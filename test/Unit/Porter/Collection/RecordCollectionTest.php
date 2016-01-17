@@ -1,5 +1,5 @@
 <?php
-namespace ScriptFUSIONTest\Unit\Porter\Record;
+namespace ScriptFUSIONTest\Unit\Porter\Collection;
 
 use ScriptFUSION\Porter\Collection\RecordCollection;
 
