@@ -17,5 +17,5 @@ Requirements
   [Version image]: http://img.shields.io/github/tag/Porter/ByteFormatter.svg "Latest version"
   [Build]: http://travis-ci.org/ScriptFUSION/Porter
   [Build image]: http://img.shields.io/travis/ScriptFUSION/Porter.svg "Build status"
-  [Coverage]: https://coveralls.io/github/ScriptFUSION/Porter?branch=test
-  [Coverage image]: https://coveralls.io/repos/ScriptFUSION/Porter/badge.svg?branch=test&service=github "Test coverage"
+  [Coverage]: https://coveralls.io/github/ScriptFUSION/Porter?branch=master
+  [Coverage image]: https://coveralls.io/repos/ScriptFUSION/Porter/badge.svg?branch=master&service=github "Test coverage"
