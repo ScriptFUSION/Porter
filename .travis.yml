@@ -16,7 +16,7 @@ install:
   - composer -n --prefer-source require satooshi/php-coveralls
 
 script:
-  - vendor/bin/phpunit --coverage-clover=build/logs/clover.xml -c test test
+  - bin/test --coverage-clover=build/logs/clover.xml
 
 after_success:
   - vendor/bin/coveralls -v
