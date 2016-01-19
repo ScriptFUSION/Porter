@@ -2,17 +2,14 @@
 namespace ScriptFUSION\Porter;
 
 use ScriptFUSION\Porter\Mapping\Mapping;
-use ScriptFUSION\Porter\Provider\ProviderDataType;
+use ScriptFUSION\Porter\Provider\ProviderData;
 
 class ImportSpecification
 {
     private $finalized = false;
 
-    /** @var ProviderDataType */
-    private $providerDataType;
-
-    /** @var array */
-    private $parameters;
+    /** @var ProviderData */
+    private $providerData;
 
     /** @var Mapping */
     private $mapping;
@@ -23,12 +20,9 @@ class ImportSpecification
     /** @var callable */
     private $filter;
 
-    public function __construct(ProviderDataType $dataType, array $parameters = [])
+    public function __construct(ProviderData $providerData)
     {
-        $this
-            ->setProviderDataType($dataType)
-            ->setParameters($parameters)
-        ;
+        $this->providerData = $providerData;
     }
 
     /**
@@ -59,47 +53,11 @@ class ImportSpecification
     }
 
     /**
-     * @return ProviderDataType
+     * @return ProviderData
      */
-    final public function getProviderDataType()
+    final public function getProviderData()
     {
-        return $this->providerDataType;
-    }
-
-    /**
-     * @param ProviderDataType $providerDataType
-     *
-     * @return $this
-     */
-    final public function setProviderDataType(ProviderDataType $providerDataType)
-    {
-        $this->failIfFinalized(__FUNCTION__);
-
-        $this->providerDataType = $providerDataType;
-
-        return $this;
-    }
-
-    /**
-     * @return array
-     */
-    final public function getParameters()
-    {
-        return $this->parameters;
-    }
-
-    /**
-     * @param array $parameters
-     *
-     * @return $this
-     */
-    final public function setParameters(array $parameters)
-    {
-        $this->failIfFinalized(__FUNCTION__);
-
-        $this->parameters = $parameters;
-
-        return $this;
+        return $this->providerData;
     }
 
     /**

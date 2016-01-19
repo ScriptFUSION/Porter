@@ -3,17 +3,21 @@ namespace ScriptFUSIONTest\Unit\Porter;
 
 use ScriptFUSION\Porter\Porter;
 use ScriptFUSION\Porter\Provider\Provider;
+use ScriptFUSION\Porter\ProviderNotFoundException;
 
 final class PorterTest extends \PHPUnit_Framework_TestCase
 {
     public function testAddAndGetProvider()
     {
-        $provider = \Mockery::mock(Provider::class);
-        $provider->shouldReceive('getName')->andReturn('foo');
+        $porter = (new Porter)->addProvider($provider = \Mockery::mock(Provider::class));
 
-        $porter = new Porter;
-        $porter->addProvider($provider);
+        $this->assertSame($provider, $porter->getProvider(get_class($provider)));
+    }
 
-        $this->assertSame($provider, $porter->getProvider('foo'));
+    public function testGetInvalidProvider()
+    {
+        $this->setExpectedException(ProviderNotFoundException::class);
+
+        (new Porter)->getProvider('foo');
     }
 }

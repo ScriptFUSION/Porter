@@ -13,19 +13,13 @@ abstract class Provider
     }
 
     /**
-     * @return ProviderName
-     */
-    abstract public function getName();
-
-    /**
-     * @param ProviderDataType $dataType
-     * @param array $parameters
+     * @param ProviderData $data
      *
      * @return \Iterator
      */
-    public function fetch(ProviderDataType $dataType, array $parameters = [])
+    public function fetch(ProviderData $data)
     {
-        throw new \LogicException("Unhandled type: $dataType.");
+        return $data->fetch($this->getConnector());
     }
 
     /**

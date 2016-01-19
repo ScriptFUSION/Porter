@@ -4,19 +4,19 @@ namespace ScriptFUSIONTest\Unit\Porter;
 use ScriptFUSION\Porter\ImportSpecification;
 use ScriptFUSION\Porter\Mapping\Mapping;
 use ScriptFUSION\Porter\ObjectFinalizedException;
-use ScriptFUSION\Porter\Provider\ProviderDataType;
+use ScriptFUSION\Porter\Provider\ProviderData;
 
 final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
 {
     /** @var ImportSpecification */
     private $specification;
 
-    /** @var ProviderDataType */
-    private $dataType;
+    /** @var ProviderData */
+    private $providerData;
 
     protected function setUp()
     {
-        $this->specification = new ImportSpecification($this->dataType = \Mockery::mock(ProviderDataType::class));
+        $this->specification = new ImportSpecification($this->providerData = \Mockery::mock(ProviderData::class));
     }
 
     public function testFinalize()
@@ -33,22 +33,12 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
         $this->setExpectedException(ObjectFinalizedException::class);
 
         $this->specification->finalize();
-        $this->specification->setProviderDataType($this->dataType);
+        $this->specification->setContext('foo');
     }
 
-    public function testProviderDataType()
+    public function testProviderData()
     {
-        $this->assertSame($this->dataType, $this->specification->getProviderDataType());
-    }
-
-    public function testParameters()
-    {
-        $this->assertSame([], $this->specification->getParameters());
-
-        $this->assertSame(
-            $parameters = ['foo', 'bar'],
-            $this->specification->setParameters($parameters)->getParameters()
-        );
+        $this->assertSame($this->providerData, $this->specification->getProviderData());
     }
 
     public function testMapping()

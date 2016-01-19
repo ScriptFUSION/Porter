@@ -8,7 +8,7 @@ use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Mapping\Mapper;
 use ScriptFUSION\Porter\Mapping\Mapping;
 use ScriptFUSION\Porter\Provider\Provider;
-use ScriptFUSION\Porter\Provider\ProviderDataType;
+use ScriptFUSION\Porter\Provider\ProviderData;
 
 class Porter
 {
@@ -23,15 +23,15 @@ class Porter
      */
     public function import(ImportSpecification $specification)
     {
-        $dataType = $specification->finalize()->getProviderDataType();
+        $providerData = $specification->finalize()->getProviderData();
 
-        if (!$documents = $this->fetch($dataType, $specification->getParameters())) {
-            return new CountableProviderRecords(new \EmptyIterator, 0, $dataType);
+        if (!$documents = $this->fetch($providerData)) {
+            return new CountableProviderRecords(new \EmptyIterator, 0, $providerData);
         }
 
         if (!$documents instanceof ProviderRecords) {
             // Compose documents iterator.
-            $documents = new ProviderRecords($documents, $dataType);
+            $documents = new ProviderRecords($documents, $providerData);
         }
 
         if ($specification->getFilter()) {
@@ -52,12 +52,16 @@ class Porter
      */
     public function getProvider($name)
     {
-        return $this->providers["$name"];
+        if (isset($this->providers["$name"])) {
+            return $this->providers["$name"];
+        }
+
+        throw new ProviderNotFoundException("No such provider registered: \"$name\".");
     }
 
     public function addProvider(Provider $provider)
     {
-        $this->providers["{$provider->getName()}"] = $provider;
+        $this->providers[get_class($provider)] = $provider;
 
         return $this;
     }
@@ -91,10 +95,10 @@ class Porter
         return $this;
     }
 
-    private function fetch(ProviderDataType $dataType, array $params)
+    private function fetch(ProviderData $dataType)
     {
-        if ($provider = $this->getProvider($dataType->getName())) {
-            return $provider->fetch($dataType, $params);
+        if ($provider = $this->getProvider($dataType->getProviderName())) {
+            return $provider->fetch($dataType);
         }
     }
 
