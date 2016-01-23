@@ -8,10 +8,14 @@ use ScriptFUSION\Porter\Mapping\Mapper;
 use ScriptFUSION\Porter\Mapping\Mapping;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\ProviderData;
+use ScriptFUSION\Porter\Provider\ProviderFactory;
+use ScriptFUSION\Porter\Specification\ImportSpecification;
 
 class Porter
 {
     private $providers;
+
+    private $providerFactory;
 
     private $mapper;
 
@@ -51,7 +55,13 @@ class Porter
             return $this->providers["$name"];
         }
 
-        throw new ProviderNotFoundException("No such provider registered: \"$name\".");
+        try {
+            $this->addProvider($provider = $this->getOrCreateProviderFactory()->createProvider("$name"));
+        } catch (ObjectNotCreatedException $e) {
+            throw new ProviderNotFoundException("No such provider registered: \"$name\".", $e);
+        }
+
+        return $provider;
     }
 
     public function addProvider(Provider $provider)
@@ -66,6 +76,18 @@ class Porter
         foreach ($providers as $provider) {
             $this->addProvider($provider);
         }
+
+        return $this;
+    }
+
+    private function getOrCreateProviderFactory()
+    {
+        return $this->providerFactory ?: $this->providerFactory = new ProviderFactory;
+    }
+
+    public function setProviderFactory(ProviderFactory $factory)
+    {
+        $this->providerFactory = $factory;
 
         return $this;
     }

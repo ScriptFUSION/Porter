@@ -1,7 +1,8 @@
 <?php
-namespace ScriptFUSION\Porter;
+namespace ScriptFUSION\Porter\Specification;
 
 use ScriptFUSION\Porter\Mapping\Mapping;
+use ScriptFUSION\Porter\ObjectFinalizedException;
 use ScriptFUSION\Porter\Provider\ProviderData;
 
 class ImportSpecification

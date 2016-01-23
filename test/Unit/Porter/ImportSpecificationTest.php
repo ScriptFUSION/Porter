@@ -1,10 +1,10 @@
 <?php
 namespace ScriptFUSIONTest\Unit\Porter;
 
-use ScriptFUSION\Porter\ImportSpecification;
 use ScriptFUSION\Porter\Mapping\Mapping;
 use ScriptFUSION\Porter\ObjectFinalizedException;
 use ScriptFUSION\Porter\Provider\ProviderData;
+use ScriptFUSION\Porter\Specification\ImportSpecification;
 
 final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
 {

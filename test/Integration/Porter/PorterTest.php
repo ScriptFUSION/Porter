@@ -1,13 +1,13 @@
 <?php
-namespace ScriptFUSIONTest\Unit\Porter;
+namespace ScriptFUSIONTest\Integration\Porter;
 
 use Mockery\MockInterface;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
-use ScriptFUSION\Porter\ImportSpecification;
 use ScriptFUSION\Porter\Porter;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\ProviderData;
 use ScriptFUSION\Porter\ProviderNotFoundException;
+use ScriptFUSION\Porter\Specification\ImportSpecification;
 
 final class PorterTest extends \PHPUnit_Framework_TestCase
 {
