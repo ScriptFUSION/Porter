@@ -8,11 +8,11 @@ class CountableProviderRecords extends ProviderRecords implements \Countable
     private $count;
 
     /**
-     * @param \Traversable $providerRecords
+     * @param \Iterator $providerRecords
      * @param int $count
      * @param ProviderData $providerData
      */
-    public function __construct(\Traversable $providerRecords, $count, ProviderData $providerData)
+    public function __construct(\Iterator $providerRecords, $count, ProviderData $providerData)
     {
         parent::__construct($providerRecords, $providerData);
 

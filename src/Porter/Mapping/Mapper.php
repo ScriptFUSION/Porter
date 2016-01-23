@@ -1,8 +1,8 @@
 <?php
 namespace ScriptFUSION\Porter\Mapping;
 
-use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Collection\MappedRecords;
+use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Porter;
 
 class Mapper

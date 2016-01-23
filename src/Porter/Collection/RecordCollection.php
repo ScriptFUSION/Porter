@@ -4,21 +4,41 @@ namespace ScriptFUSION\Porter\Collection;
 /**
  * Encapsulates an enumerable collection of records.
  */
-abstract class RecordCollection implements \IteratorAggregate
+abstract class RecordCollection implements \Iterator
 {
     private $records;
 
     private $previousCollection;
 
-    public function __construct(\Traversable $records, RecordCollection $previousCollection = null)
+    public function __construct(\Iterator $records, RecordCollection $previousCollection = null)
     {
         $this->records = $records;
         $this->previousCollection = $previousCollection;
     }
 
-    public function getIterator()
+    public function current()
     {
-        return $this->records;
+        return $this->records->current();
+    }
+
+    public function next()
+    {
+        $this->records->next();
+    }
+
+    public function key()
+    {
+        return $this->records->key();
+    }
+
+    public function valid()
+    {
+        return $this->records->valid();
+    }
+
+    public function rewind()
+    {
+        $this->records->rewind();
     }
 
     /**

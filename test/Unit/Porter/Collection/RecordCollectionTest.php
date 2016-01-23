@@ -12,7 +12,6 @@ final class RecordCollectionTest extends \PHPUnit_Framework_TestCase
          * @var RecordCollection $collection2
          * @var RecordCollection $collection3
          */
-
         $collection3 = \Mockery::mock(
             RecordCollection::class,
             [
@@ -21,9 +20,9 @@ final class RecordCollectionTest extends \PHPUnit_Framework_TestCase
                     RecordCollection::class,
                     [
                         $it,
-                        $collection1 = \Mockery::mock(RecordCollection::class)->makePartial()
+                        $collection1 = \Mockery::mock(RecordCollection::class)->makePartial(),
                     ]
-                )->makePartial()
+                )->makePartial(),
             ]
         )->makePartial();
 

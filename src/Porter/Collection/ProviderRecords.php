@@ -7,7 +7,7 @@ class ProviderRecords extends RecordCollection
 {
     private $providerData;
 
-    public function __construct(\Traversable $providerRecords, ProviderData $providerData)
+    public function __construct(\Iterator $providerRecords, ProviderData $providerData)
     {
         parent::__construct($providerRecords);
 

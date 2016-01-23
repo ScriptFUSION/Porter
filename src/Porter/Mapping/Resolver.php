@@ -14,11 +14,9 @@ class Resolver
 
     public function resolve($strategyOrMapping)
     {
-
     }
 
     public function resolveMapping(Mapping $mapping, array $document, $context = null)
     {
-
     }
 }

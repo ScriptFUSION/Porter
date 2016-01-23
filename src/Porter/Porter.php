@@ -102,9 +102,17 @@ class Porter
         }
     }
 
-    private function filter(ProviderRecords $documents, callable $predicate, $context)
+    private function filter(ProviderRecords $records, callable $predicate, $context)
     {
-        return new FilteredRecords($documents, $documents);
+        $filter = function () use ($records, $predicate, $context) {
+            foreach ($records as $record) {
+                if ($predicate($record, $context)) {
+                    yield $record;
+                }
+            }
+        };
+
+        return new FilteredRecords($filter(), $records);
     }
 
     private function map(RecordCollection $documents, Mapping $mapping, $context)
