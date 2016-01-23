@@ -1,7 +1,6 @@
 <?php
 namespace ScriptFUSION\Porter;
 
-use ScriptFUSION\Porter\Collection\CountableProviderRecords;
 use ScriptFUSION\Porter\Collection\FilteredRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
@@ -25,12 +24,8 @@ class Porter
     {
         $providerData = $specification->finalize()->getProviderData();
 
-        if (!$documents = $this->fetch($providerData)) {
-            return new CountableProviderRecords(new \EmptyIterator, 0, $providerData);
-        }
-
-        if (!$documents instanceof ProviderRecords) {
-            // Compose documents iterator.
+        if (!($documents = $this->fetch($providerData)) instanceof ProviderRecords) {
+            // Compose records iterator.
             $documents = new ProviderRecords($documents, $providerData);
         }
 
