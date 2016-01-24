@@ -16,7 +16,7 @@ class Resolver
     {
     }
 
-    public function resolveMapping(Mapping $mapping, array $document, $context = null)
+    public function resolveMapping(Mapping $mapping, array $record, $context = null)
     {
     }
 }

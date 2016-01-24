@@ -6,6 +6,7 @@ use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Mapping\Mapper;
 use ScriptFUSION\Porter\Mapping\Mapping;
+use ScriptFUSION\Porter\Mapping\Resolver;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\ProviderData;
 use ScriptFUSION\Porter\Provider\ProviderFactory;
@@ -28,20 +29,20 @@ class Porter
     {
         $providerData = $specification->finalize()->getProviderData();
 
-        if (!($documents = $this->fetch($providerData)) instanceof ProviderRecords) {
+        if (!($records = $this->fetch($providerData)) instanceof ProviderRecords) {
             // Compose records iterator.
-            $documents = new ProviderRecords($documents, $providerData);
+            $records = new ProviderRecords($records, $providerData);
         }
 
         if ($specification->getFilter()) {
-            $documents = $this->filter($documents, $specification->getFilter(), $specification->getContext());
+            $records = $this->filter($records, $specification->getFilter(), $specification->getContext());
         }
 
         if ($specification->getMapping()) {
-            $documents = $this->map($documents, $specification->getMapping(), $specification->getContext());
+            $records = $this->map($records, $specification->getMapping(), $specification->getContext());
         }
 
-        return $documents;
+        return $records;
     }
 
     /**
@@ -97,7 +98,7 @@ class Porter
      */
     private function getOrCreateMapper()
     {
-        return $this->mapper ?: $this->mapper = new Mapper($this);
+        return $this->mapper ?: $this->mapper = new Mapper(new Resolver($this));
     }
 
     /**
@@ -132,8 +133,8 @@ class Porter
         return new FilteredRecords($filter(), $records);
     }
 
-    private function map(RecordCollection $documents, Mapping $mapping, $context)
+    private function map(RecordCollection $records, Mapping $mapping, $context)
     {
-        return $this->getOrCreateMapper()->map($documents, $mapping, $context, $this);
+        return $this->getOrCreateMapper()->map($records, $mapping, $context);
     }
 }

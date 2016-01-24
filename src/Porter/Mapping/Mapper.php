@@ -3,26 +3,24 @@ namespace ScriptFUSION\Porter\Mapping;
 
 use ScriptFUSION\Porter\Collection\MappedRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
-use ScriptFUSION\Porter\Porter;
 
 class Mapper
 {
-    /** @var Resolver */
     private $resolver;
 
-    public function __construct(Porter $porter)
+    public function __construct(Resolver $resolver)
     {
-        $this->resolver = new Resolver($porter);
+        $this->resolver = $resolver;
     }
 
-    public function map(RecordCollection $documents, Mapping $mapping, $context = null, Porter $porter = null)
+    public function map(RecordCollection $records, Mapping $mapping, $context = null)
     {
-        $map = function () use ($documents, $mapping, $context) {
-            foreach ($documents as $document) {
-                yield $this->resolver->resolveMapping($mapping, $document, $context);
+        $map = function () use ($records, $mapping, $context) {
+            foreach ($records as $record) {
+                yield $this->resolver->resolveMapping($mapping, $record, $context);
             }
         };
 
-        return new MappedRecords($map(), $documents);
+        return new MappedRecords($map(), $records);
     }
 }
