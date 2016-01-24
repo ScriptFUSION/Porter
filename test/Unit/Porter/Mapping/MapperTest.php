@@ -1,6 +1,7 @@
 <?php
 namespace ScriptFUSIONTest\Unit\Porter\Mapping;
 
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use ScriptFUSION\Porter\Collection\MappedRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Mapping\Mapper;
@@ -9,6 +10,8 @@ use ScriptFUSION\Porter\Mapping\Resolver;
 
 final class MapperTest extends \PHPUnit_Framework_TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testMap()
     {
         $mapper = new Mapper($resolver = \Mockery::mock(Resolver::class));
