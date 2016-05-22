@@ -25,12 +25,12 @@ final class ProviderTest extends \PHPUnit_Framework_TestCase
 
     public function testConnector()
     {
-        $this->assertSame($this->connector, $this->provider->getConnector());
+        self::assertSame($this->connector, $this->provider->getConnector());
     }
 
     public function testFetch()
     {
-        $this->assertSame(
+        self::assertSame(
             'foo',
             $this->provider->fetch(
                 \Mockery::mock(ProviderData::class)

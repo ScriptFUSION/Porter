@@ -16,7 +16,7 @@ final class CountableProviderRecordsTest extends \PHPUnit_Framework_TestCase
             \Mockery::mock(ProviderData::class)
         );
 
-        $this->assertCount(count($data), $records);
-        $this->assertSame($data, iterator_to_array($records));
+        self::assertCount(count($data), $records);
+        self::assertSame($data, iterator_to_array($records));
     }
 }

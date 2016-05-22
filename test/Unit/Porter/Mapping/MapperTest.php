@@ -27,7 +27,7 @@ final class MapperTest extends \PHPUnit_Framework_TestCase
 
         $mappedRecords = $mapper->map($records, \Mockery::mock(Mapping::class));
 
-        $this->assertInstanceOf(MappedRecords::class, $mappedRecords);
-        $this->assertSame([[1], [4], [9]], iterator_to_array($mappedRecords));
+        self::assertInstanceOf(MappedRecords::class, $mappedRecords);
+        self::assertSame([[1], [4], [9]], iterator_to_array($mappedRecords));
     }
 }

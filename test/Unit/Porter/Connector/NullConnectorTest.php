@@ -7,6 +7,6 @@ final class NullConnectorTest extends \PHPUnit_Framework_TestCase
 {
     public function test()
     {
-        $this->assertNull((new NullConnector)->fetch('foo'));
+        self::assertNull((new NullConnector)->fetch('foo'));
     }
 }

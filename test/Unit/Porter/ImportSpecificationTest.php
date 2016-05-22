@@ -21,11 +21,11 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
 
     public function testFinalize()
     {
-        $this->assertFalse($this->specification->isFinalized());
+        self::assertFalse($this->specification->isFinalized());
 
         $this->specification->finalize();
 
-        $this->assertTrue($this->specification->isFinalized());
+        self::assertTrue($this->specification->isFinalized());
     }
 
     public function testFinalizeAugmentation()
@@ -38,12 +38,12 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
 
     public function testProviderData()
     {
-        $this->assertSame($this->providerData, $this->specification->getProviderData());
+        self::assertSame($this->providerData, $this->specification->getProviderData());
     }
 
     public function testMapping()
     {
-        $this->assertSame(
+        self::assertSame(
             $mapping = \Mockery::mock(Mapping::class),
             $this->specification->setMapping($mapping)->getMapping()
         );
@@ -51,12 +51,12 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
 
     public function testContext()
     {
-        $this->assertSame('foo', $this->specification->setContext('foo')->getContext());
+        self::assertSame('foo', $this->specification->setContext('foo')->getContext());
     }
 
     public function testFilter()
     {
-        $this->assertSame(
+        self::assertSame(
             $filter = function () {
                 // Intentionally empty.
             },

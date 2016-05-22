@@ -7,7 +7,7 @@ final class MappingTest extends \PHPUnit_Framework_TestCase
 {
     public function test()
     {
-        $this->assertSame(['foo' => 'bar'], (new TestMapping)->getArrayCopy());
+        self::assertSame(['foo' => 'bar'], (new TestMapping)->getArrayCopy());
     }
 }
 

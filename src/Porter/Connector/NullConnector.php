@@ -3,7 +3,7 @@ namespace ScriptFUSION\Porter\Connector;
 
 class NullConnector implements Connector
 {
-    public function fetch($destination, array $parameters = [])
+    public function fetch($source, array $parameters = [])
     {
         // Intentionally empty.
     }

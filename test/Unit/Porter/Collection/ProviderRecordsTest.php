@@ -10,6 +10,6 @@ final class ProviderRecordsTest extends \PHPUnit_Framework_TestCase
     {
         $records = new ProviderRecords(new \EmptyIterator, $data = \Mockery::mock(ProviderData::class));
 
-        $this->assertSame($data, $records->getProviderData());
+        self::assertSame($data, $records->getProviderData());
     }
 }

@@ -29,8 +29,8 @@ abstract class EncapsulatedOptions
      */
     final protected function get($option, $default = null)
     {
-        if (isset($this->options[$option])) {
-            return $this->options[$option];
+        if (array_key_exists($key = "$option", $this->options)) {
+            return $this->options[$key];
         }
 
         return $default;
@@ -45,7 +45,7 @@ abstract class EncapsulatedOptions
      */
     final protected function &getReference($option)
     {
-        return $this->options[$option];
+        return $this->options["$option"];
     }
 
     /**
@@ -58,7 +58,7 @@ abstract class EncapsulatedOptions
      */
     final protected function set($option, $value)
     {
-        $this->options[$option] = $value;
+        $this->options["$option"] = $value;
 
         return $this;
     }

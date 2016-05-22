@@ -10,6 +10,6 @@ final class StaticDataTest extends \PHPUnit_Framework_TestCase
     {
         $records = (new Porter)->import(new StaticDataImportSpecification(new \ArrayIterator(['foo'])));
 
-        $this->assertSame('foo', $records->current());
+        self::assertSame('foo', $records->current());
     }
 }

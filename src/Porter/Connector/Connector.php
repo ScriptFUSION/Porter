@@ -3,5 +3,11 @@ namespace ScriptFUSION\Porter\Connector;
 
 interface Connector
 {
-    public function fetch($destination, array $parameters = []);
+    /**
+     * @param string $source
+     * @param array $parameters
+     *
+     * @return mixed
+     */
+    public function fetch($source, array $parameters = []);
 }

@@ -31,7 +31,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     public function testGetProvider()
     {
-        $this->assertSame($this->provider, $this->porter->getProvider(get_class($this->provider)));
+        self::assertSame($this->provider, $this->porter->getProvider(get_class($this->provider)));
     }
 
     public function testGetInvalidProvider()
@@ -48,8 +48,8 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
             $provider = $this->getMockBuilder(Provider::class)->disableOriginalConstructor()->getMock(),
         ]);
 
-        $this->assertSame($this->provider, $this->porter->getProvider(get_class($this->provider)));
-        $this->assertSame($provider, $this->porter->getProvider(get_class($provider)));
+        self::assertSame($this->provider, $this->porter->getProvider(get_class($this->provider)));
+        self::assertSame($provider, $this->porter->getProvider(get_class($provider)));
     }
 
     public function testImport()
@@ -58,8 +58,8 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
         $records = $this->porter->import(new ImportSpecification($this->providerData));
 
-        $this->assertInstanceOf(ProviderRecords::class, $records);
-        $this->assertSame('foo', $records->current());
+        self::assertInstanceOf(ProviderRecords::class, $records);
+        self::assertSame('foo', $records->current());
     }
 
     public function testFilter()
@@ -73,6 +73,6 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
                 })
         );
 
-        $this->assertSame([1, 3, 5, 7, 9], iterator_to_array($records));
+        self::assertSame([1, 3, 5, 7, 9], iterator_to_array($records));
     }
 }

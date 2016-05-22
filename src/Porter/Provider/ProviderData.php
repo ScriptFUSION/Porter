@@ -11,6 +11,8 @@ interface ProviderData
     public function getProviderName();
 
     /**
+     * @param Connector $connector
+     *
      * @return \Iterator
      */
     public function fetch(Connector $connector);

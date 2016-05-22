@@ -26,8 +26,8 @@ final class RecordCollectionTest extends \PHPUnit_Framework_TestCase
             ]
         )->makePartial();
 
-        $this->assertSame($collection1, $collection1->findFirstCollection());
-        $this->assertSame($collection1, $collection2->findFirstCollection());
-        $this->assertSame($collection1, $collection3->findFirstCollection());
+        self::assertSame($collection1, $collection1->findFirstCollection());
+        self::assertSame($collection1, $collection2->findFirstCollection());
+        self::assertSame($collection1, $collection3->findFirstCollection());
     }
 }
