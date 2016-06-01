@@ -1,7 +1,7 @@
 <?php
 namespace ScriptFUSION\Porter\Specification;
 
-use ScriptFUSION\Porter\Mapping\Mapping;
+use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\ObjectFinalizedException;
 use ScriptFUSION\Porter\Provider\ProviderData;
 
@@ -49,7 +49,7 @@ class ImportSpecification
     private function failIfFinalized($function)
     {
         if ($this->isFinalized()) {
-            throw new ObjectFinalizedException("Cannot \"$function\": object finalized.");
+            throw new ObjectFinalizedException("Cannot \"$function\": specification is final.");
         }
     }
 

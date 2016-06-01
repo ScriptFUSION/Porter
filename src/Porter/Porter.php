@@ -1,12 +1,11 @@
 <?php
 namespace ScriptFUSION\Porter;
 
+use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\Collection\FilteredRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
-use ScriptFUSION\Porter\Mapping\Mapper;
-use ScriptFUSION\Porter\Mapping\Mapping;
-use ScriptFUSION\Porter\Mapping\Resolver;
+use ScriptFUSION\Porter\Mapper\PorterMapper;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\ProviderData;
 use ScriptFUSION\Porter\Provider\ProviderFactory;
@@ -94,19 +93,19 @@ class Porter
     }
 
     /**
-     * @return Mapper
+     * @return PorterMapper
      */
     private function getOrCreateMapper()
     {
-        return $this->mapper ?: $this->mapper = new Mapper(new Resolver($this));
+        return $this->mapper ?: $this->mapper = new PorterMapper($this);
     }
 
     /**
-     * @param Mapper $mapper
+     * @param PorterMapper $mapper
      *
      * @return $this
      */
-    public function setMapper(Mapper $mapper)
+    public function setMapper(PorterMapper $mapper)
     {
         $this->mapper = $mapper;
 
@@ -135,6 +134,6 @@ class Porter
 
     private function map(RecordCollection $records, Mapping $mapping, $context)
     {
-        return $this->getOrCreateMapper()->map($records, $mapping, $context);
+        return $this->getOrCreateMapper()->mapRecords($records, $mapping, $context);
     }
 }

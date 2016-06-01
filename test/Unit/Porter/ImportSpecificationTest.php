@@ -1,7 +1,7 @@
 <?php
 namespace ScriptFUSIONTest\Unit\Porter;
 
-use ScriptFUSION\Porter\Mapping\Mapping;
+use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\ObjectFinalizedException;
 use ScriptFUSION\Porter\Provider\ProviderData;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
