@@ -27,6 +27,25 @@ class ImportSpecification
     }
 
     /**
+     * @param ImportSpecification $specification
+     *
+     * @return static
+     */
+    public static function createFrom(ImportSpecification $specification)
+    {
+        // Finalize specification to avoid sharing objects.
+        if (!$specification->isFinalized()) {
+            $specification = clone $specification;
+            $specification->finalize();
+        }
+
+        return (new static($specification->getProviderDataType()))
+            ->setMapping($specification->getMapping())
+            ->setContext($specification->getContext())
+            ->setFilter($specification->getFilter());
+    }
+
+    /**
      * Finalizes this specification so no more changes can be written to it.
      *
      * @return $this
@@ -74,7 +93,7 @@ class ImportSpecification
      *
      * @return $this
      */
-    final public function setMapping(Mapping $mapping)
+    final public function setMapping(Mapping $mapping = null)
     {
         $this->failIfFinalized(__FUNCTION__);
 
@@ -118,7 +137,7 @@ class ImportSpecification
      *
      * @return $this
      */
-    final public function setFilter(callable $filter)
+    final public function setFilter(callable $filter = null)
     {
         $this->failIfFinalized(__FUNCTION__);
 

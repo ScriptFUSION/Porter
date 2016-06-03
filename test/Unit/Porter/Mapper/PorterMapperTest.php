@@ -1,5 +1,5 @@
 <?php
-namespace ScriptFUSIONTest\Unit\Porter\Mapping;
+namespace ScriptFUSIONTest\Unit\Porter\Mapper;
 
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use ScriptFUSION\Mapper\AnonymousMapping;

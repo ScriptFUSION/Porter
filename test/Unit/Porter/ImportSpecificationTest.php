@@ -28,6 +28,8 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
         $this->specification->finalize();
 
         self::assertTrue($this->specification->isFinalized());
+
+        // TODO: Test embedded objects are cloned.
     }
 
     public function testFinalizeAugmentation()
@@ -64,5 +66,30 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
             },
             $this->specification->setFilter($filter)->getFilter()
         );
+    }
+
+    public function testCreateFrom()
+    {
+        $specification = ImportSpecification::createFrom(
+            $this->specification
+                ->setMapping(
+                    /** @var Mapping $mapping */
+                    $mapping = \Mockery::mock(Mapping::class)
+                        ->shouldReceive('getArrayCopy')
+                        ->andReturn([range(1, 5)])
+                        ->getMock()
+                )
+                ->setContext($context = 'foo')
+                ->setFilter($filter = function () {
+                    // Intentionally empty.
+                })
+        );
+
+        self::assertNotSame($specification, $this->specification);
+        self::assertNotSame($this->providerDataType, $specification->getProviderDataType());
+        self::assertNotSame($mapping, $specification->getMapping());
+        self::assertSame($mapping->getArrayCopy(), $specification->getMapping()->getArrayCopy());
+        self::assertSame($context, $specification->getContext());
+        self::assertSame($filter, $specification->getFilter());
     }
 }
