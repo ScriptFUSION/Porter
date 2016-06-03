@@ -4,7 +4,7 @@ namespace ScriptFUSIONTest\Unit\Porter\Provider;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Provider\Provider;
-use ScriptFUSION\Porter\Provider\ProviderData;
+use ScriptFUSION\Porter\Provider\ProviderDataType;
 
 final class ProviderTest extends \PHPUnit_Framework_TestCase
 {
@@ -23,20 +23,18 @@ final class ProviderTest extends \PHPUnit_Framework_TestCase
         )->makePartial();
     }
 
-    public function testConnector()
-    {
-        self::assertSame($this->connector, $this->provider->getConnector());
-    }
-
     public function testFetch()
     {
         self::assertSame(
             'foo',
             $this->provider->fetch(
-                \Mockery::mock(ProviderData::class)
+                \Mockery::mock(ProviderDataType::class)
                     ->shouldReceive('fetch')
                     ->with($this->connector)
                     ->andReturn('foo')
+                    ->getMock()
+                    ->shouldReceive('getProviderName')
+                    ->andReturn(get_class($this->provider))
                     ->getMock()
             )
         );

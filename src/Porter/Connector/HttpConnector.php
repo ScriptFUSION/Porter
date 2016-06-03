@@ -1,6 +1,7 @@
 <?php
 namespace ScriptFUSION\Porter\Connector;
 
+use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 use ScriptFUSION\Porter\Options\HttpOptions;
 
 class HttpConnector implements Connector
@@ -13,12 +14,14 @@ class HttpConnector implements Connector
         $this->options = $options ?: new HttpOptions;
     }
 
-    public function fetch($source, array $parameters = [])
+    public function fetch($source, EncapsulatedOptions $options = null)
     {
         return file_get_contents(
             $source,
             false,
-            stream_context_create(['http' => $this->options->extractHttpContextOptions()])
+            stream_context_create([
+                'http' => array_intersect_key($options->copy(), $this->options->extractHttpContextOptions()),
+            ])
         );
     }
 

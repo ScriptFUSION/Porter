@@ -1,13 +1,15 @@
 <?php
 namespace ScriptFUSION\Porter\Connector;
 
+use ScriptFUSION\Porter\Options\EncapsulatedOptions;
+
 interface Connector
 {
     /**
      * @param string $source
-     * @param array $parameters
+     * @param EncapsulatedOptions $options
      *
      * @return mixed
      */
-    public function fetch($source, array $parameters = []);
+    public function fetch($source, EncapsulatedOptions $options = null);
 }

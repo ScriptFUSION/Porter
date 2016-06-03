@@ -4,7 +4,6 @@ namespace ScriptFUSION\Porter\Mapper\Strategy;
 use ScriptFUSION\Mapper\MapperAware;
 use ScriptFUSION\Mapper\MapperAwareTrait;
 use ScriptFUSION\Mapper\Strategy\Strategy;
-use ScriptFUSION\Porter\Mapper\ProviderDataMapping;
 use ScriptFUSION\Porter\PorterAware;
 use ScriptFUSION\Porter\PorterAwareTrait;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
@@ -15,7 +14,7 @@ class Import implements Strategy, MapperAware, PorterAware
 
     private $specification;
 
-    private $providerDataMapping;
+    private $preImportCallbacks = [];
 
     public function __construct(ImportSpecification $specification)
     {
@@ -30,18 +29,8 @@ class Import implements Strategy, MapperAware, PorterAware
             $specification->setContext($context);
         }
 
-        if ($this->providerDataMapping) {
-            $providerData = $specification->getProviderData();
-
-            foreach ($this->getMapper()->map($data, $this->providerDataMapping, $context) as $method => $value) {
-                if (!method_exists($providerData, $method)) {
-                    throw new \RuntimeException( // TODO. Proper exception type.
-                        sprintf('No such method: %s::%s.', get_class($providerData), $method)
-                    );
-                }
-
-                $providerData->$method($value);
-            }
+        foreach ($this->preImportCallbacks as $callback) {
+            $callback($specification, $data, $context);
         }
 
         $generator = $this->getPorter()->import($specification);
@@ -51,14 +40,9 @@ class Import implements Strategy, MapperAware, PorterAware
         }
     }
 
-    /**
-     * @param ProviderDataMapping $providerDataMapping
-     *
-     * @return $this
-     */
-    public function setProviderDataMapping(ProviderDataMapping $providerDataMapping)
+    public function addPreImportCallback(callable $callback)
     {
-        $this->providerDataMapping = $providerDataMapping;
+        $this->preImportCallbacks[] = $callback;
 
         return $this;
     }

@@ -3,14 +3,14 @@ namespace ScriptFUSION\Porter\Specification;
 
 use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\ObjectFinalizedException;
-use ScriptFUSION\Porter\Provider\ProviderData;
+use ScriptFUSION\Porter\Provider\ProviderDataType;
 
 class ImportSpecification
 {
     private $finalized = false;
 
-    /** @var ProviderData */
-    private $providerData;
+    /** @var ProviderDataType */
+    private $providerDataType;
 
     /** @var Mapping */
     private $mapping;
@@ -21,9 +21,9 @@ class ImportSpecification
     /** @var callable */
     private $filter;
 
-    public function __construct(ProviderData $providerData)
+    public function __construct(ProviderDataType $providerDataType)
     {
-        $this->providerData = $providerData;
+        $this->providerDataType = $providerDataType;
     }
 
     /**
@@ -54,11 +54,11 @@ class ImportSpecification
     }
 
     /**
-     * @return ProviderData
+     * @return ProviderDataType
      */
-    final public function getProviderData()
+    final public function getProviderDataType()
     {
-        return $this->providerData;
+        return $this->isFinalized() ? clone $this->providerDataType : $this->providerDataType;
     }
 
     /**
@@ -66,7 +66,7 @@ class ImportSpecification
      */
     final public function getMapping()
     {
-        return $this->mapping;
+        return $this->isFinalized() && $this->mapping ? clone $this->mapping : $this->mapping;
     }
 
     /**
@@ -88,7 +88,7 @@ class ImportSpecification
      */
     final public function getContext()
     {
-        return $this->context;
+        return $this->isFinalized() && is_object($this->context) ? clone $this->context : $this->context;
     }
 
     /**

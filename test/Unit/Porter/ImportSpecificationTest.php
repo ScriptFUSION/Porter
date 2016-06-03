@@ -3,7 +3,7 @@ namespace ScriptFUSIONTest\Unit\Porter;
 
 use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\ObjectFinalizedException;
-use ScriptFUSION\Porter\Provider\ProviderData;
+use ScriptFUSION\Porter\Provider\ProviderDataType;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 
 final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
@@ -11,12 +11,14 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
     /** @var ImportSpecification */
     private $specification;
 
-    /** @var ProviderData */
-    private $providerData;
+    /** @var ProviderDataType */
+    private $providerDataType;
 
     protected function setUp()
     {
-        $this->specification = new ImportSpecification($this->providerData = \Mockery::mock(ProviderData::class));
+        $this->specification = new ImportSpecification(
+            $this->providerDataType = \Mockery::mock(ProviderDataType::class)
+        );
     }
 
     public function testFinalize()
@@ -38,7 +40,7 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
 
     public function testProviderData()
     {
-        self::assertSame($this->providerData, $this->specification->getProviderData());
+        self::assertSame($this->providerDataType, $this->specification->getProviderDataType());
     }
 
     public function testMapping()

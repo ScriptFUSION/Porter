@@ -1,21 +1,21 @@
 <?php
 namespace ScriptFUSION\Porter\Collection;
 
-use ScriptFUSION\Porter\Provider\ProviderData;
+use ScriptFUSION\Porter\Provider\ProviderDataType;
 
 class ProviderRecords extends RecordCollection
 {
     private $providerData;
 
-    public function __construct(\Iterator $providerRecords, ProviderData $providerData)
+    public function __construct(\Iterator $providerRecords, ProviderDataType $providerDataType)
     {
         parent::__construct($providerRecords);
 
-        $this->providerData = $providerData;
+        $this->providerData = $providerDataType;
     }
 
     /**
-     * @return ProviderData
+     * @return ProviderDataType
      */
     public function getProviderData()
     {

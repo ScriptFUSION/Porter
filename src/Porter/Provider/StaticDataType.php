@@ -2,8 +2,9 @@
 namespace ScriptFUSION\Porter\Provider;
 
 use ScriptFUSION\Porter\Connector\Connector;
+use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 
-class StaticData implements ProviderData
+class StaticDataType implements ProviderDataType
 {
     private $data;
 
@@ -17,7 +18,7 @@ class StaticData implements ProviderData
         return StaticDataProvider::class;
     }
 
-    public function fetch(Connector $connector)
+    public function fetch(Connector $connector, EncapsulatedOptions $options = null)
     {
         return $this->data;
     }

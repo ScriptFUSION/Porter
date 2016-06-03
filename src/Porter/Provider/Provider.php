@@ -13,20 +13,17 @@ abstract class Provider
     }
 
     /**
-     * @param ProviderData $data
+     * @param ProviderDataType $providerDataType
      *
      * @return \Iterator
      */
-    public function fetch(ProviderData $data)
+    public function fetch(ProviderDataType $providerDataType)
     {
-        return $data->fetch($this->getConnector());
-    }
+        if ($providerDataType->getProviderName() !== static::class) {
+            // TODO. Proper exception type.
+            throw new \RuntimeException('Cannot fetch data for foreign type: ' . get_class($providerDataType));
+        }
 
-    /**
-     * @return Connector
-     */
-    public function getConnector()
-    {
-        return $this->connector;
+        return $providerDataType->fetch($this->connector);
     }
 }

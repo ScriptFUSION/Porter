@@ -3,7 +3,10 @@ namespace ScriptFUSION\Porter\Provider;
 
 use ScriptFUSION\Porter\Connector\Connector;
 
-interface ProviderData
+/**
+ * Specifies how to fetch a type of data from the specified provider.
+ */
+interface ProviderDataType
 {
     /**
      * @return string

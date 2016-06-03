@@ -3,11 +3,12 @@ namespace ScriptFUSION\Porter;
 
 use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\Collection\FilteredRecords;
+use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Mapper\PorterMapper;
 use ScriptFUSION\Porter\Provider\Provider;
-use ScriptFUSION\Porter\Provider\ProviderData;
+use ScriptFUSION\Porter\Provider\ProviderDataType;
 use ScriptFUSION\Porter\Provider\ProviderFactory;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 
@@ -26,7 +27,7 @@ class Porter
      */
     public function import(ImportSpecification $specification)
     {
-        $providerData = $specification->finalize()->getProviderData();
+        $providerData = $specification->finalize()->getProviderDataType();
 
         if (!($records = $this->fetch($providerData)) instanceof ProviderRecords) {
             // Compose records iterator.
@@ -41,7 +42,7 @@ class Porter
             $records = $this->map($records, $specification->getMapping(), $specification->getContext());
         }
 
-        return $records;
+        return new PorterRecords($records, $specification);
     }
 
     /**
@@ -112,10 +113,10 @@ class Porter
         return $this;
     }
 
-    private function fetch(ProviderData $dataType)
+    private function fetch(ProviderDataType $providerDataType)
     {
-        if ($provider = $this->getProvider($dataType->getProviderName())) {
-            return $provider->fetch($dataType);
+        if ($provider = $this->getProvider($providerDataType->getProviderName())) {
+            return $provider->fetch($providerDataType);
         }
     }
 

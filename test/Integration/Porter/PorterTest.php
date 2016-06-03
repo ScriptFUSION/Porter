@@ -2,10 +2,10 @@
 namespace ScriptFUSIONTest\Integration\Porter;
 
 use Mockery\MockInterface;
-use ScriptFUSION\Porter\Collection\ProviderRecords;
+use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Porter;
 use ScriptFUSION\Porter\Provider\Provider;
-use ScriptFUSION\Porter\Provider\ProviderData;
+use ScriptFUSION\Porter\Provider\ProviderDataType;
 use ScriptFUSION\Porter\ProviderNotFoundException;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 
@@ -17,13 +17,13 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     /** @var Provider|MockInterface */
     private $provider;
 
-    /** @var ProviderData */
-    private $providerData;
+    /** @var ProviderDataType */
+    private $providerDataType;
 
     protected function setUp()
     {
         $this->porter = (new Porter)->addProvider($this->provider = \Mockery::mock(Provider::class));
-        $this->providerData = \Mockery::mock(ProviderData::class)
+        $this->providerDataType = \Mockery::mock(ProviderDataType::class)
             ->shouldReceive('getProviderName')
             ->andReturn(get_class($this->provider))
             ->getMock();
@@ -56,9 +56,9 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     {
         $this->provider->shouldReceive('fetch')->andReturn(new \ArrayIterator(['foo']));
 
-        $records = $this->porter->import(new ImportSpecification($this->providerData));
+        $records = $this->porter->import(new ImportSpecification($this->providerDataType));
 
-        self::assertInstanceOf(ProviderRecords::class, $records);
+        self::assertInstanceOf(PorterRecords::class, $records);
         self::assertSame('foo', $records->current());
     }
 
@@ -67,7 +67,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         $this->provider->shouldReceive('fetch')->andReturn(new \ArrayIterator(range(1, 10)));
 
         $records = $this->porter->import(
-            (new ImportSpecification($this->providerData))
+            (new ImportSpecification($this->providerDataType))
                 ->setFilter(function ($record) {
                     return $record % 2;
                 })
