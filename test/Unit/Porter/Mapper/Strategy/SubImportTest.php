@@ -5,9 +5,12 @@ use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
 use ScriptFUSION\Porter\Mapper\Strategy\SubImport;
 use ScriptFUSION\Porter\Porter;
-use ScriptFUSION\Porter\Provider\ProviderDataType;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
+use ScriptFUSIONTest\MockFactory;
 
+/**
+ * @see SubImport
+ */
 final class SubImportTest extends \PHPUnit_Framework_TestCase
 {
     use MockeryPHPUnitIntegration;
@@ -22,9 +25,7 @@ final class SubImportTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $this->import = $import = new SubImport(
-            $this->specification = \Mockery::mock(ImportSpecification::class, [\Mockery::mock(ProviderDataType::class)])
-        );
+        $this->import = $import = new SubImport($this->specification = MockFactory::mockImportSpecification());
 
         $import->setPorter(
             $this->porter = \Mockery::mock(Porter::class)
@@ -43,7 +44,7 @@ final class SubImportTest extends \PHPUnit_Framework_TestCase
         self::assertSame($array, $this->import());
     }
 
-    public function testPreImportCallback()
+    public function testSpecificationCallback()
     {
         $this->import->addSpecificationCallback(
             function ($data, $context, ImportSpecification $specification) {

@@ -3,6 +3,9 @@ namespace ScriptFUSION\Porter\Options;
 
 use ScriptFUSION\Porter\Type\StringType;
 
+/**
+ * TODO. Add missing HTTP context option accessors and mutators.
+ */
 class HttpOptions extends EncapsulatedOptions
 {
     /**

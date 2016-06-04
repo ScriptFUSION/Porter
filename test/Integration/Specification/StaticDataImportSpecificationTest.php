@@ -1,10 +1,13 @@
 <?php
-namespace ScriptFUSIONTest\Functional;
+namespace ScriptFUSIONTest\Integration\Specification;
 
 use ScriptFUSION\Porter\Porter;
 use ScriptFUSION\Porter\Specification\StaticDataImportSpecification;
 
-final class StaticDataTest extends \PHPUnit_Framework_TestCase
+/**
+ * @see StaticDataImportSpecification
+ */
+final class StaticDataImportSpecificationTest extends \PHPUnit_Framework_TestCase
 {
     public function test()
     {
