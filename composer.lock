@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "556d6f5f176e22fcbed0648930158a4f",
-    "content-hash": "dad817db7dae2d092c4380dd61249514",
+    "hash": "4fb2a23931d5edc42cbd205367479cf8",
+    "content-hash": "8037997dcc7a18505a62071d3f7edf97",
     "packages": [
         {
             "name": "eloquent/enumeration",
@@ -64,16 +64,17 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/ScriptFUSION/ArrayWalker.git",
-                "reference": "3818934f60e739c766776bd9e3ba57537f1cac99"
+                "reference": "c303cdd5481906bbf43a02964388de035a9186ab"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ScriptFUSION/ArrayWalker/zipball/3818934f60e739c766776bd9e3ba57537f1cac99",
-                "reference": "3818934f60e739c766776bd9e3ba57537f1cac99",
+                "url": "https://api.github.com/repos/ScriptFUSION/ArrayWalker/zipball/c303cdd5481906bbf43a02964388de035a9186ab",
+                "reference": "c303cdd5481906bbf43a02964388de035a9186ab",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.5"
+                "php": ">=5.5",
+                "scriptfusion/static-class": "^1"
             },
             "require-dev": {
                 "phpunit/phpunit": "^4"
@@ -92,7 +93,7 @@
                 }
             ],
             "description": "Walks nested array structures to retrieve values.",
-            "time": "2016-05-31 09:25:37"
+            "time": "2016-06-04 13:51:46"
         },
         {
             "name": "scriptfusion/mapper",
@@ -132,6 +133,36 @@
             ],
             "description": "Maps data from one format to another using a DSL.",
             "time": "2016-05-31 10:00:50"
+        },
+        {
+            "name": "scriptfusion/static-class",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ScriptFUSION/StaticClass.git",
+                "reference": "87eb29703db3baba09b68d35b739372370bfb5a0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ScriptFUSION/StaticClass/zipball/87eb29703db3baba09b68d35b739372370bfb5a0",
+                "reference": "87eb29703db3baba09b68d35b739372370bfb5a0",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "ScriptFUSION\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "authors": [
+                {
+                    "name": "Bilge",
+                    "email": "bilge@scriptfusion.com"
+                }
+            ],
+            "description": "Prevents class instantiation.",
+            "time": "2016-06-04 13:42:04"
         }
     ],
     "packages-dev": [

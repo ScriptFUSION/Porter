@@ -9,7 +9,8 @@
   ],
   "require": {
     "php": ">=5.5",
-    "scriptfusion/mapper": "^1|^0"
+    "scriptfusion/mapper": "^1|^0",
+    "scriptfusion/static-class": "^1"
   },
   "require-dev": {
     "phpunit/phpunit": "^4",

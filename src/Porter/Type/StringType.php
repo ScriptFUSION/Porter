@@ -1,7 +1,7 @@
 <?php
 namespace ScriptFUSION\Porter\Type;
 
-use ScriptFUSION\Porter\StaticClass;
+use ScriptFUSION\StaticClass;
 
 final class StringType
 {
