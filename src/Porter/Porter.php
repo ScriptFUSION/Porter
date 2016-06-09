@@ -27,11 +27,11 @@ class Porter
      */
     public function import(ImportSpecification $specification)
     {
-        $providerData = $specification->finalize()->getProviderDataType();
+        $providerDataType = $specification->finalize()->getProviderDataType();
 
-        if (!($records = $this->fetch($providerData)) instanceof ProviderRecords) {
+        if (!($records = $this->fetch($providerDataType)) instanceof ProviderRecords) {
             // Compose records iterator.
-            $records = new ProviderRecords($records, $providerData);
+            $records = new ProviderRecords($records, $providerDataType);
         }
 
         if ($specification->getFilter()) {

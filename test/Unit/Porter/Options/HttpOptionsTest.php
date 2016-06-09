@@ -9,7 +9,7 @@ final class HttpOptionsTest extends \PHPUnit_Framework_TestCase
     {
         $options = new HttpOptions;
 
-        self::assertNull(null, $options->getBaseUrl());
+        self::assertNull($options->getBaseUrl());
         self::assertSame([], $options->getQueryParameters());
         self::assertSame([], $options->getHeaders());
     }

@@ -1,6 +1,8 @@
 <?php
 namespace ScriptFUSIONTest\Unit\Porter\Options;
 
+use ScriptFUSIONTest\Porter\Options\TestOptions;
+
 final class EncapsulatedOptionsTest extends \PHPUnit_Framework_TestCase
 {
     /** @var TestOptions */

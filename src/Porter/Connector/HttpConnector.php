@@ -4,17 +4,19 @@ namespace ScriptFUSION\Porter\Connector;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 use ScriptFUSION\Porter\Options\HttpOptions;
 
-class HttpConnector implements Connector
+class HttpConnector extends CachingConnector
 {
     /** @var HttpOptions */
     private $options;
 
     public function __construct(HttpOptions $options = null)
     {
+        parent::__construct();
+
         $this->options = $options ?: new HttpOptions;
     }
 
-    public function fetch($source, EncapsulatedOptions $options = null)
+    public function fetchFreshData($source, EncapsulatedOptions $options = null)
     {
         return file_get_contents(
             $source,

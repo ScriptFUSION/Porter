@@ -1,5 +1,5 @@
 <?php
-namespace ScriptFUSIONTest\Unit\Porter\Options;
+namespace ScriptFUSIONTest\Porter\Options;
 
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 
