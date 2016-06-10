@@ -1,12 +1,13 @@
 <?php
-namespace ScriptFUSION\Porter\Options;
+namespace ScriptFUSION\Porter\Connector\Http;
 
+use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 use ScriptFUSION\Porter\Type\StringType;
 
 /**
  * TODO. Add missing HTTP context option accessors and mutators.
  */
-class HttpOptions extends EncapsulatedOptions
+final class HttpOptions extends EncapsulatedOptions
 {
     /**
      * @return string

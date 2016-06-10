@@ -3,6 +3,8 @@ namespace ScriptFUSION\Porter\Options;
 
 /**
  * Encapsulates a collection of implementation-defined name and value pairs.
+ *
+ * TODO: Address get() default parameter value and copy() value inconsistency.
  */
 abstract class EncapsulatedOptions
 {

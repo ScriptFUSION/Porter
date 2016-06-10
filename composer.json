@@ -10,7 +10,9 @@
   "require": {
     "php": ">=5.5",
     "scriptfusion/mapper": "^1|^0",
-    "scriptfusion/static-class": "^1"
+    "scriptfusion/static-class": "^1",
+    "codelegance/retry": "^1",
+    "zendframework/zend-uri": "^2"
   },
   "require-dev": {
     "phpunit/phpunit": "^4",
