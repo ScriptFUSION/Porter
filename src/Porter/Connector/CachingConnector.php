@@ -1,10 +1,11 @@
 <?php
 namespace ScriptFUSION\Porter\Connector;
 
+use ScriptFUSION\Porter\Cache\CacheEnabler;
 use ScriptFUSION\Porter\Cache\MemoryCache;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 
-abstract class CachingConnector implements Connector
+abstract class CachingConnector implements Connector, CacheEnabler
 {
     private $cache;
 

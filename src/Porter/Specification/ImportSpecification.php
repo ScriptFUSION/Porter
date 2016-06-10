@@ -2,6 +2,7 @@
 namespace ScriptFUSION\Porter\Specification;
 
 use ScriptFUSION\Mapper\Mapping;
+use ScriptFUSION\Porter\Cache\CacheAdvice;
 use ScriptFUSION\Porter\ObjectFinalizedException;
 use ScriptFUSION\Porter\Provider\ProviderDataType;
 
@@ -20,6 +21,9 @@ class ImportSpecification
 
     /** @var callable */
     private $filter;
+
+    /** @var CacheAdvice */
+    private $cacheAdvice;
 
     public function __construct(ProviderDataType $providerDataType)
     {
@@ -142,6 +146,28 @@ class ImportSpecification
         $this->failIfFinalized(__FUNCTION__);
 
         $this->filter = $filter;
+
+        return $this;
+    }
+
+    /**
+     * @return CacheAdvice
+     */
+    public function getCacheAdvice()
+    {
+        return $this->cacheAdvice;
+    }
+
+    /**
+     * @param CacheAdvice $cacheAdvice
+     *
+     * @return $this
+     */
+    public function setCacheAdvice(CacheAdvice $cacheAdvice)
+    {
+        $this->failIfFinalized(__FUNCTION__);
+
+        $this->cacheAdvice = $cacheAdvice;
 
         return $this;
     }

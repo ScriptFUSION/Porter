@@ -22,7 +22,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $this->porter = (new Porter)->addProvider($this->provider = \Mockery::mock(Provider::class));
+        $this->porter = (new Porter)->addProvider($this->provider = \Mockery::spy(Provider::class));
         $this->providerDataType = \Mockery::mock(ProviderDataType::class)
             ->shouldReceive('getProviderName')
             ->andReturn(get_class($this->provider))
