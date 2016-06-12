@@ -21,11 +21,11 @@ class SoapConnector extends CachingConnector
 
     public function fetchFreshData($source, EncapsulatedOptions $options = null)
     {
-        if (!$options instanceof SoapOptions) {
+        if ($options && !$options instanceof SoapOptions) {
             throw new \RuntimeException('Options must be an instance of SoapOptions.');
         }
 
-        $params = array_merge($this->options->getParameters(), $options->getParameters());
+        $params = array_merge($this->options->getParameters(), $options ? $options->getParameters() : []);
 
         return ObjectType::toArray(
             \igorw\retry(5, function () use ($source, $params) {

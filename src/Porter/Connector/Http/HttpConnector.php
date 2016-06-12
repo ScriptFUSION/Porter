@@ -22,17 +22,17 @@ class HttpConnector extends CachingConnector
 
     public function fetchFreshData($source, EncapsulatedOptions $options = null)
     {
-        if (!$options instanceof HttpOptions) {
+        if ($options && !$options instanceof HttpOptions) {
             throw new \RuntimeException('Options must be an instance of HttpOptions.');
         }
 
         return file_get_contents(
-            $this->getOrCreateUrlBuilder()->buildUrl($source, $options->getQueryParameters()),
+            $this->getOrCreateUrlBuilder()->buildUrl($source, $options ? $options->getQueryParameters() : []),
             false,
             stream_context_create([
                 'http' => array_merge(
                     $this->options->extractHttpContextOptions(),
-                    $options->extractHttpContextOptions()
+                    $options ? $options->extractHttpContextOptions() : []
                 ),
             ])
         );
