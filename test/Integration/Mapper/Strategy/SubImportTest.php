@@ -14,7 +14,7 @@ final class SubImportTest extends \PHPUnit_Framework_TestCase
     {
         $record = 'foo';
 
-        $import = new SubImport(null, function () use ($record) {
+        $import = new SubImport(function () use ($record) {
             return new StaticDataImportSpecification(new \ArrayIterator([$record]));
         });
         $import->setPorter(new Porter);

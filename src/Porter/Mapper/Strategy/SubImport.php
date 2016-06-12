@@ -2,6 +2,7 @@
 namespace ScriptFUSION\Porter\Mapper\Strategy;
 
 use ScriptFUSION\Mapper\Strategy\Strategy;
+use ScriptFUSION\Porter\InvalidCallbackException;
 use ScriptFUSION\Porter\PorterAware;
 use ScriptFUSION\Porter\PorterAwareTrait;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
@@ -12,43 +13,28 @@ class SubImport implements Strategy, PorterAware
 
     private $specification;
 
-    private $specificationCallbacks = [];
-
     /**
      * Initializes this instance with the specified import specification or
-     * the specified specification callback or both.
+     * the specification callback.
      *
-     * @param ImportSpecification|null $specification Import specification.
-     * @param callable|null $specificationCallback Specification callback.
+     * @param ImportSpecification|callable $specification Import specification
+     *     or specification callback.
      *
-     * @throws \LogicException Import specification and specification callback
-     *     are both null.
+     * @throws \InvalidArgumentException Specification is not an ImportSpecification or callable.
      */
-    public function __construct(ImportSpecification $specification = null, callable $specificationCallback = null)
+    public function __construct($specification)
     {
-        if (!$specification && !$specificationCallback) {
-            // TODO: Proper exception type.
-            throw new \LogicException('Import specification and specification callback cannot both be null.');
+        if (!$specification instanceof ImportSpecification && !is_callable($specification)) {
+            throw new \InvalidArgumentException('Argument one must be an instance of ImportSpecification or callable.');
         }
 
         $this->specification = $specification;
-        $specificationCallback && $this->addSpecificationCallback($specificationCallback);
     }
 
     public function __invoke($data, $context = null)
     {
-        foreach ($this->specificationCallbacks as $callback) {
-            if (($specification = $callback($data, $context, $this->specification)) instanceof ImportSpecification) {
-                $this->specification = $specification;
-            }
-        }
-
-        if (!$this->specification) {
-            // TODO: Proper exception type.
-            throw new \RuntimeException('Specification callbacks failed to create an instance of ImportSpecification.');
-        }
-
-        $specification = ImportSpecification::createFrom($this->specification)->setContext($context);
+        $specification = ImportSpecification::createFrom($this->getOrCreateImportSpecification($data, $context))
+            ->setContext($context);
 
         $generator = $this->getPorter()->import($specification);
 
@@ -57,10 +43,16 @@ class SubImport implements Strategy, PorterAware
         }
     }
 
-    public function addSpecificationCallback(callable $callback)
+    private function getOrCreateImportSpecification($data, $context = null)
     {
-        $this->specificationCallbacks[] = $callback;
+        if ($this->specification instanceof ImportSpecification) {
+            return $this->specification;
+        }
 
-        return $this;
+        if (($specification = call_user_func($this->specification, $data, $context)) instanceof ImportSpecification) {
+            return $specification;
+        }
+
+        throw new InvalidCallbackException('Callback failed to create an instance of ImportSpecification.');
     }
 }

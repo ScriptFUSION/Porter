@@ -3,9 +3,9 @@ namespace ScriptFUSIONTest\Unit\Porter\Mapper\Strategy;
 
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
+use ScriptFUSION\Porter\InvalidCallbackException;
 use ScriptFUSION\Porter\Mapper\Strategy\SubImport;
 use ScriptFUSION\Porter\Porter;
-use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSIONTest\MockFactory;
 
 /**
@@ -16,24 +16,21 @@ final class SubImportTest extends \PHPUnit_Framework_TestCase
     use MockeryPHPUnitIntegration;
 
     /** @var MockInterface|SubImport */
-    private $import;
+    private $subImport;
 
     /** @var MockInterface|Porter */
     private $porter;
 
-    private $specification;
-
     protected function setUp()
     {
-        $this->import = $import = new SubImport($this->specification = MockFactory::mockImportSpecification());
+        $this->createSubImport();
+    }
 
-        $import->setPorter(
-            $this->porter = \Mockery::mock(Porter::class)
-                ->shouldReceive('import')
-                ->andReturn(new \EmptyIterator)
-                ->byDefault()
-                ->getMock()
-        );
+    public function testInvalidCreate()
+    {
+        $this->setExpectedException(\InvalidArgumentException::class);
+
+        $this->createSubImport(true);
     }
 
     public function testImport()
@@ -46,21 +43,44 @@ final class SubImportTest extends \PHPUnit_Framework_TestCase
 
     public function testSpecificationCallback()
     {
-        $this->import->addSpecificationCallback(
-            function ($data, $context, ImportSpecification $specification) {
+        $this->createSubImport(
+            function ($data, $context) {
                 self::assertSame('foo', $data);
                 self::assertSame('bar', $context);
-                self::assertSame($this->specification, $specification);
+
+                return MockFactory::mockImportSpecification();
             }
         );
 
         $this->import('foo', 'bar');
     }
 
+    public function testInvalidSpecificationCallback()
+    {
+        $this->setExpectedException(InvalidCallbackException::class);
+
+        $this->createSubImport(function () {
+            // Intentionally empty.
+        });
+
+        $this->import();
+    }
+
+    private function createSubImport($specification = null)
+    {
+        $this->subImport = $subImport = new SubImport($specification ?: MockFactory::mockImportSpecification());
+
+        $subImport->setPorter(
+            $this->porter = \Mockery::mock(Porter::class)
+                ->shouldReceive('import')
+                ->andReturn(new \EmptyIterator)
+                ->byDefault()
+                ->getMock()
+        );
+    }
+
     private function import($data = null, $context = null)
     {
-        $import = $this->import;
-
-        return $import($data, $context);
+        return call_user_func($this->subImport, $data, $context);
     }
 }
