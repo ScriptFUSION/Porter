@@ -13,7 +13,7 @@ class UrlBuilder
         $this->options = $options;
     }
 
-    public function buildUrl($endpoint, $params = [])
+    public function buildUrl($endpoint, array $params = [])
     {
         $uri = UriFactory::factory($endpoint);
 

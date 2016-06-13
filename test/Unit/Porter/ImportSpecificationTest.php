@@ -2,6 +2,7 @@
 namespace ScriptFUSIONTest\Unit\Porter;
 
 use ScriptFUSION\Mapper\Mapping;
+use ScriptFUSION\Porter\Cache\CacheAdvice;
 use ScriptFUSION\Porter\ObjectFinalizedException;
 use ScriptFUSION\Porter\Provider\ProviderDataType;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
@@ -65,6 +66,14 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
                 // Intentionally empty.
             },
             $this->specification->setFilter($filter)->getFilter()
+        );
+    }
+
+    public function testCacheAdvice()
+    {
+        self::assertSame(
+            $advice = CacheAdvice::MUST_CACHE(),
+            $this->specification->setCacheAdvice($advice)->getCacheAdvice()
         );
     }
 

@@ -63,4 +63,15 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
 
         self::assertSame('foo', $this->connector->fetch('baz'));
     }
+
+    public function testEnableCache()
+    {
+        self::assertTrue($this->connector->isCacheEnabled());
+
+        $this->connector->disableCache();
+        self::assertFalse($this->connector->isCacheEnabled());
+
+        $this->connector->enableCache();
+        self::assertTrue($this->connector->isCacheEnabled());
+    }
 }
