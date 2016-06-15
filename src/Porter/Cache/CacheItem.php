@@ -3,6 +3,9 @@ namespace ScriptFUSION\Porter\Cache;
 
 use Psr\Cache\CacheItemInterface;
 
+/**
+ * @internal Only this library may create instances of this class.
+ */
 final class CacheItem implements CacheItemInterface
 {
     private $key;
@@ -11,7 +14,7 @@ final class CacheItem implements CacheItemInterface
 
     private $hit;
 
-    public function __construct($key, $value, $hit = false)
+    private function __construct($key, $value, $hit)
     {
         $this->key = "$key";
         $this->value = $value;
@@ -35,7 +38,9 @@ final class CacheItem implements CacheItemInterface
 
     public function set($value)
     {
-        throw new CacheOperationProhibitedException('Cannot directly modify an item\'s value.');
+        $this->value = $value;
+
+        return $this;
     }
 
     public function expiresAt($expiration)

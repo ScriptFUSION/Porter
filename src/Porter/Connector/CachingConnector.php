@@ -3,7 +3,6 @@ namespace ScriptFUSION\Porter\Connector;
 
 use Psr\Cache\CacheItemPoolInterface;
 use ScriptFUSION\Porter\Cache\CacheEnabler;
-use ScriptFUSION\Porter\Cache\CacheItem;
 use ScriptFUSION\Porter\Cache\MemoryCache;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 
@@ -34,7 +33,7 @@ abstract class CachingConnector implements Connector, CacheEnabler
 
         $data = $this->fetchFreshData($source, $options);
 
-        isset($hash) && $this->cache->save(new CacheItem($hash, $data));
+        isset($hash) && $this->cache->save($this->cache->getItem($hash)->set($data));
 
         return $data;
     }

@@ -11,7 +11,15 @@ class MemoryCache extends \ArrayObject implements CacheItemPoolInterface
 {
     public function getItem($key)
     {
-        return new CacheItem($key, $this->hasItem($key) ? $this[$key] : null, $this->hasItem($key));
+        return call_user_func(
+            \Closure::bind(
+                function () use ($key) {
+                    return new self($key, $this->hasItem($key) ? $this[$key] : null, $this->hasItem($key));
+                },
+                $this,
+                CacheItem::class
+            )
+        );
     }
 
     public function getItems(array $keys = [])
