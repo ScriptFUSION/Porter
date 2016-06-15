@@ -1,7 +1,9 @@
 <?php
 namespace ScriptFUSION\Porter\Connector;
 
+use Psr\Cache\CacheItemPoolInterface;
 use ScriptFUSION\Porter\Cache\CacheEnabler;
+use ScriptFUSION\Porter\Cache\CacheItem;
 use ScriptFUSION\Porter\Cache\MemoryCache;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 
@@ -9,28 +11,30 @@ abstract class CachingConnector implements Connector, CacheEnabler
 {
     private $cache;
 
-    public function __construct()
+    private $cacheEnabled = true;
+
+    public function __construct(CacheItemPoolInterface $cache = null)
     {
-        $this->cache = new MemoryCache;
+        $this->cache = $cache ?: new MemoryCache;
     }
 
     public function fetch($source, EncapsulatedOptions $options = null)
     {
-        $params = $options ? $options->copy() : [];
+        $optionsCopy = $options ? $options->copy() : [];
 
-        if ($this->cache->isEnabled()) {
-            ksort($params);
+        if ($this->isCacheEnabled()) {
+            ksort($optionsCopy);
 
-            $hash = $this->hash([$source, $params]);
+            $hash = $this->hash([$source, $optionsCopy]);
 
-            if ($this->cache->has($hash)) {
-                return $this->cache->get($hash);
+            if ($this->cache->hasItem($hash)) {
+                return $this->cache->getItem($hash)->get();
             }
         }
 
         $data = $this->fetchFreshData($source, $options);
 
-        isset($hash) && $this->cache->set($hash, $data);
+        isset($hash) && $this->cache->save(new CacheItem($hash, $data));
 
         return $data;
     }
@@ -39,17 +43,17 @@ abstract class CachingConnector implements Connector, CacheEnabler
 
     public function enableCache()
     {
-        $this->cache->enable();
+        $this->cacheEnabled = true;
     }
 
     public function disableCache()
     {
-        $this->cache->disable();
+        $this->cacheEnabled = false;
     }
 
     public function isCacheEnabled()
     {
-        return $this->cache->isEnabled();
+        return $this->cacheEnabled;
     }
 
     private function hash(array $structure)

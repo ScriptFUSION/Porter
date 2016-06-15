@@ -60,6 +60,8 @@ class Porter
      * @param string $name
      *
      * @return Provider
+     *
+     * @throws ProviderNotFoundException The requested provider was not found.
      */
     public function getProvider($name)
     {

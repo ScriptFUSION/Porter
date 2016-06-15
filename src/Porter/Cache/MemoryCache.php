@@ -1,72 +1,64 @@
 <?php
 namespace ScriptFUSION\Porter\Cache;
 
-class MemoryCache extends \ArrayObject
-{
-    private $enabled = true;
+use Psr\Cache\CacheItemInterface;
+use Psr\Cache\CacheItemPoolInterface;
 
-    public function has($key)
+/**
+ * Provides an in-memory cache with a PSR-6 interface.
+ */
+class MemoryCache extends \ArrayObject implements CacheItemPoolInterface
+{
+    public function getItem($key)
+    {
+        return new CacheItem($key, $this->hasItem($key) ? $this[$key] : null, $this->hasItem($key));
+    }
+
+    public function getItems(array $keys = [])
+    {
+        foreach ($keys as $key) {
+            yield $this->getItem($key);
+        }
+    }
+
+    public function hasItem($key)
     {
         return isset($this[$key]);
     }
 
-    public function get($key)
+    public function clear()
     {
-        return $this[$key];
+        $this->exchangeArray([]);
     }
 
-    public function set($key, $value)
+    public function deleteItem($key)
     {
-        return $this[$key] = $value;
+        unset($this[$key]);
     }
 
-    public function disable()
+    public function deleteItems(array $keys)
     {
-        $this->enabled = false;
-    }
+        foreach ($keys as $key) {
+            if (!$this->hasItem($key)) {
+                throw new InvalidArgumentException("No such key in cache: \"$key\".");
+            }
 
-    public function enable()
-    {
-        $this->enabled = true;
-    }
-
-    public function isEnabled()
-    {
-        return $this->enabled;
-    }
-
-    public function offsetExists($index)
-    {
-        $this->ensureOperationPermitted('read');
-
-        return parent::offsetExists($index);
-    }
-
-    public function offsetGet($index)
-    {
-        $this->ensureOperationPermitted('read');
-
-        return parent::offsetGet($index);
-    }
-
-    public function offsetSet($index, $value)
-    {
-        $this->ensureOperationPermitted('write');
-
-        parent::offsetSet($index, $value);
-    }
-
-    public function offsetUnset($index)
-    {
-        $this->ensureOperationPermitted('write');
-
-        parent::offsetUnset($index);
-    }
-
-    private function ensureOperationPermitted($operation)
-    {
-        if (!$this->isEnabled()) {
-            throw new CacheOperationProhibitedException("Cannot $operation: cache is disabled.");
+            $this->deleteItem($key);
         }
+    }
+
+    public function save(CacheItemInterface $item)
+    {
+        $this[$item->getKey()] = $item->get();
+    }
+
+    public function saveDeferred(CacheItemInterface $item)
+    {
+        $this->save($item);
+    }
+
+    public function commit()
+    {
+        return true;
     }
 }

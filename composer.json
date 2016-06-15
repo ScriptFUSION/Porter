@@ -12,6 +12,7 @@
     "scriptfusion/mapper": "^1|^0",
     "scriptfusion/static-class": "^1",
     "codelegance/retry": "^1",
+    "psr/cache": "^1",
     "zendframework/zend-uri": "^2"
   },
   "require-dev": {

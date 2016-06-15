@@ -72,6 +72,6 @@ abstract class Provider implements CacheEnabler
 
     private function createCacheUnavailableException()
     {
-        throw new CacheOperationProhibitedException('Cannot modify cache: cache unavailable.');
+        return new CacheOperationProhibitedException('Cannot modify cache: cache unavailable.');
     }
 }
