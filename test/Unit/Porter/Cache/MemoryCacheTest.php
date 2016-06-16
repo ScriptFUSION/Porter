@@ -83,7 +83,7 @@ final class MemoryCacheTest extends \PHPUnit_Framework_TestCase
 
     public function testSaveDeferred()
     {
-        $this->cache->save($this->cache->getItem('bar')->set('baz'));
+        $this->cache->saveDeferred($this->cache->getItem('bar')->set('baz'));
 
         self::assertSame('baz', $this->cache->getItem('bar')->get());
     }

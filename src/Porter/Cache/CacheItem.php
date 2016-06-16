@@ -45,11 +45,11 @@ final class CacheItem implements CacheItemInterface
 
     public function expiresAt($expiration)
     {
-        // TODO: Implement expiresAt() method.
+        throw new NotImplementedException;
     }
 
     public function expiresAfter($time)
     {
-        // TODO: Implement expiresAfter() method.
+        throw new NotImplementedException;
     }
 }
