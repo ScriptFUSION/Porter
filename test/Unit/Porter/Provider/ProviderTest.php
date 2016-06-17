@@ -2,7 +2,9 @@
 namespace ScriptFUSIONTest\Unit\Porter\Provider;
 
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+use Mockery\Mock;
 use ScriptFUSION\Porter\Connector\Connector;
+use ScriptFUSION\Porter\Provider\IncompatibleDataTypeException;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\ProviderDataType;
 
@@ -37,6 +39,18 @@ final class ProviderTest extends \PHPUnit_Framework_TestCase
                     ->andReturn(get_class($this->provider))
                     ->getMock()
             )
+        );
+    }
+
+    public function testFetchForeignProvider()
+    {
+        $this->setExpectedException(IncompatibleDataTypeException::class);
+
+        $this->provider->fetch(
+            \Mockery::mock(ProviderDataType::class)
+                ->shouldReceive('getProviderName')
+                ->andReturn('foo')
+                ->getMock()
         );
     }
 }

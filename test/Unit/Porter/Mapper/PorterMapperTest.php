@@ -8,6 +8,7 @@ use ScriptFUSION\Porter\Collection\MappedRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Mapper\PorterMapper;
 use ScriptFUSION\Porter\Porter;
+use ScriptFUSION\Porter\PorterAware;
 
 final class PorterMapperTest extends \PHPUnit_Framework_TestCase
 {
@@ -15,7 +16,7 @@ final class PorterMapperTest extends \PHPUnit_Framework_TestCase
 
     public function testMap()
     {
-        $mapper = new PorterMapper(\Mockery::mock(Porter::class));
+        $mapper = new PorterMapper($porter = \Mockery::mock(Porter::class));
 
         /** @var RecordCollection $records */
         $records = \Mockery::mock(
@@ -25,12 +26,12 @@ final class PorterMapperTest extends \PHPUnit_Framework_TestCase
 
         $mappedRecords = $mapper->mapRecords(
             $records,
-            new AnonymousMapping([$strategy = \Mockery::mock(Strategy::class)])
+            new AnonymousMapping([$strategy = \Mockery::mock(implode(',', [Strategy::class, PorterAware::class]))])
         );
 
         $strategy->shouldReceive('__invoke')->andReturnUsing(function ($data) {
             return $data[0] * $data[0];
-        });
+        })->getMock()->shouldReceive('setPorter')->with($porter)->atLeast()->once();
 
         self::assertInstanceOf(MappedRecords::class, $mappedRecords);
         self::assertSame([[1], [4], [9]], iterator_to_array($mappedRecords));

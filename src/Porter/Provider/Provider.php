@@ -18,12 +18,16 @@ abstract class Provider implements CacheEnabler
      * @param ProviderDataType $providerDataType
      *
      * @return \Iterator
+     *
+     * @throws IncompatibleDataTypeException A foreign data type was received.
      */
     public function fetch(ProviderDataType $providerDataType)
     {
         if ($providerDataType->getProviderName() !== static::class) {
-            // TODO. Proper exception type.
-            throw new \RuntimeException('Cannot fetch data for foreign type: ' . get_class($providerDataType));
+            throw new IncompatibleDataTypeException(sprintf(
+                'Cannot fetch data for foreign type: "%s".',
+                get_class($providerDataType)
+            ));
         }
 
         return $providerDataType->fetch($this->connector);
