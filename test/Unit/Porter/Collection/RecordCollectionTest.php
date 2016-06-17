@@ -15,7 +15,7 @@ final class RecordCollectionTest extends \PHPUnit_Framework_TestCase
         $collection3 = \Mockery::mock(
             RecordCollection::class,
             [
-                $it = new \EmptyIterator,
+                $it = \Mockery::mock(\Iterator::class),
                 $collection2 = \Mockery::mock(
                     RecordCollection::class,
                     [

@@ -1,5 +1,5 @@
 <?php
-namespace ScriptFUSIONTest\Unit\Porter\Collection;
+namespace ScriptFUSIONTest\Integration\Porter\Collection;
 
 use ScriptFUSION\Porter\Collection\CountableProviderRecords;
 use ScriptFUSION\Porter\Provider\ProviderDataType;
