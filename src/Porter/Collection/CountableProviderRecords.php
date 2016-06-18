@@ -1,7 +1,7 @@
 <?php
 namespace ScriptFUSION\Porter\Collection;
 
-use ScriptFUSION\Porter\Provider\ProviderDataType;
+use ScriptFUSION\Porter\Provider\ProviderDataFetcher;
 
 class CountableProviderRecords extends ProviderRecords implements \Countable
 {
@@ -10,11 +10,11 @@ class CountableProviderRecords extends ProviderRecords implements \Countable
     /**
      * @param \Iterator $providerRecords
      * @param int $count
-     * @param ProviderDataType $providerDataType
+     * @param ProviderDataFetcher $dataFetcher
      */
-    public function __construct(\Iterator $providerRecords, $count, ProviderDataType $providerDataType)
+    public function __construct(\Iterator $providerRecords, $count, ProviderDataFetcher $dataFetcher)
     {
-        parent::__construct($providerRecords, $providerDataType);
+        parent::__construct($providerRecords, $dataFetcher);
 
         $this->count = $count|0;
     }

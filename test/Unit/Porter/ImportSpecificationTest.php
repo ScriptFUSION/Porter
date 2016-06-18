@@ -4,7 +4,7 @@ namespace ScriptFUSIONTest\Unit\Porter;
 use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
 use ScriptFUSION\Porter\ObjectFinalizedException;
-use ScriptFUSION\Porter\Provider\ProviderDataType;
+use ScriptFUSION\Porter\Provider\ProviderDataFetcher;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 
 final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
@@ -12,13 +12,13 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
     /** @var ImportSpecification */
     private $specification;
 
-    /** @var ProviderDataType */
-    private $providerDataType;
+    /** @var ProviderDataFetcher */
+    private $dataFetcher;
 
     protected function setUp()
     {
         $this->specification = new ImportSpecification(
-            $this->providerDataType = \Mockery::mock(ProviderDataType::class)
+            $this->dataFetcher = \Mockery::mock(ProviderDataFetcher::class)
         );
     }
 
@@ -43,7 +43,7 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
 
     public function testProviderData()
     {
-        self::assertSame($this->providerDataType, $this->specification->getProviderDataType());
+        self::assertSame($this->dataFetcher, $this->specification->getDataFetcher());
     }
 
     public function testMapping()
@@ -95,7 +95,7 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
         );
 
         self::assertNotSame($specification, $this->specification);
-        self::assertNotSame($this->providerDataType, $specification->getProviderDataType());
+        self::assertNotSame($this->dataFetcher, $specification->getDataFetcher());
         self::assertNotSame($mapping, $specification->getMapping());
         self::assertSame($mapping->getArrayCopy(), $specification->getMapping()->getArrayCopy());
         self::assertSame($context, $specification->getContext());

@@ -5,7 +5,7 @@ use Mockery\MockInterface;
 use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Porter;
 use ScriptFUSION\Porter\Provider\Provider;
-use ScriptFUSION\Porter\Provider\ProviderDataType;
+use ScriptFUSION\Porter\Provider\ProviderDataFetcher;
 use ScriptFUSION\Porter\ProviderNotFoundException;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 
@@ -17,13 +17,13 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     /** @var Provider|MockInterface */
     private $provider;
 
-    /** @var ProviderDataType */
-    private $providerDataType;
+    /** @var ProviderDataFetcher */
+    private $dataFetcher;
 
     protected function setUp()
     {
         $this->porter = (new Porter)->addProvider($this->provider = \Mockery::spy(Provider::class));
-        $this->providerDataType = \Mockery::mock(ProviderDataType::class)
+        $this->dataFetcher = \Mockery::mock(ProviderDataFetcher::class)
             ->shouldReceive('getProviderName')
             ->andReturn(get_class($this->provider))
             ->getMock();
@@ -56,7 +56,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     {
         $this->provider->shouldReceive('fetch')->andReturn(new \ArrayIterator(['foo']));
 
-        $records = $this->porter->import(new ImportSpecification($this->providerDataType));
+        $records = $this->porter->import(new ImportSpecification($this->dataFetcher));
 
         self::assertInstanceOf(PorterRecords::class, $records);
         self::assertSame('foo', $records->current());
@@ -67,7 +67,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         $this->provider->shouldReceive('fetch')->andReturn(new \ArrayIterator(range(1, 10)));
 
         $records = $this->porter->import(
-            (new ImportSpecification($this->providerDataType))
+            (new ImportSpecification($this->dataFetcher))
                 ->setFilter(function ($record) {
                     return $record % 2;
                 })

@@ -4,14 +4,14 @@ namespace ScriptFUSION\Porter\Specification;
 use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
 use ScriptFUSION\Porter\ObjectFinalizedException;
-use ScriptFUSION\Porter\Provider\ProviderDataType;
+use ScriptFUSION\Porter\Provider\ProviderDataFetcher;
 
 class ImportSpecification
 {
     private $finalized = false;
 
-    /** @var ProviderDataType */
-    private $providerDataType;
+    /** @var ProviderDataFetcher */
+    private $dataFetcher;
 
     /** @var Mapping */
     private $mapping;
@@ -25,9 +25,9 @@ class ImportSpecification
     /** @var CacheAdvice */
     private $cacheAdvice;
 
-    public function __construct(ProviderDataType $providerDataType)
+    public function __construct(ProviderDataFetcher $dataFetcher)
     {
-        $this->providerDataType = $providerDataType;
+        $this->dataFetcher = $dataFetcher;
     }
 
     /**
@@ -43,7 +43,7 @@ class ImportSpecification
             $specification->finalize();
         }
 
-        return (new static($specification->getProviderDataType()))
+        return (new static($specification->getDataFetcher()))
             ->setMapping($specification->getMapping())
             ->setContext($specification->getContext())
             ->setFilter($specification->getFilter());
@@ -77,11 +77,11 @@ class ImportSpecification
     }
 
     /**
-     * @return ProviderDataType
+     * @return ProviderDataFetcher
      */
-    final public function getProviderDataType()
+    final public function getDataFetcher()
     {
-        return $this->isFinalized() ? clone $this->providerDataType : $this->providerDataType;
+        return $this->isFinalized() ? clone $this->dataFetcher : $this->dataFetcher;
     }
 
     /**

@@ -11,7 +11,7 @@ use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Mapper\PorterMapper;
 use ScriptFUSION\Porter\Provider\Provider;
-use ScriptFUSION\Porter\Provider\ProviderDataType;
+use ScriptFUSION\Porter\Provider\ProviderDataFetcher;
 use ScriptFUSION\Porter\Provider\ProviderFactory;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 
@@ -37,12 +37,12 @@ class Porter
      */
     public function import(ImportSpecification $specification)
     {
-        $providerDataType = $specification->finalize()->getProviderDataType();
-        $records = $this->fetch($providerDataType, $specification->getCacheAdvice());
+        $dataFetcher = $specification->finalize()->getDataFetcher();
+        $records = $this->fetch($dataFetcher, $specification->getCacheAdvice());
 
         if (!$records instanceof ProviderRecords) {
             // Compose records iterator.
-            $records = new ProviderRecords($records, $providerDataType);
+            $records = new ProviderRecords($records, $dataFetcher);
         }
 
         if ($specification->getFilter()) {
@@ -99,13 +99,6 @@ class Porter
         return $this->providerFactory ?: $this->providerFactory = new ProviderFactory;
     }
 
-    public function setProviderFactory(ProviderFactory $factory)
-    {
-        $this->providerFactory = $factory;
-
-        return $this;
-    }
-
     /**
      * @return PorterMapper
      */
@@ -126,16 +119,16 @@ class Porter
         return $this;
     }
 
-    private function fetch(ProviderDataType $providerDataType, CacheAdvice $cacheAdvice = null)
+    private function fetch(ProviderDataFetcher $dataFetcher, CacheAdvice $cacheAdvice = null)
     {
-        if ($provider = $this->getProvider($providerDataType->getProviderName())) {
+        if ($provider = $this->getProvider($dataFetcher->getProviderName())) {
             $this->applyCacheAdvice($provider, $cacheAdvice ?: $this->defaultCacheAdvice);
 
-            return $provider->fetch($providerDataType);
+            return $provider->fetch($dataFetcher);
         }
 
         // TODO: Proper exception type.
-        throw new \RuntimeException("No such provider: {$providerDataType->getProviderName()}.");
+        throw new \RuntimeException("No such provider: {$dataFetcher->getProviderName()}.");
     }
 
     private function filter(ProviderRecords $records, callable $predicate, $context)

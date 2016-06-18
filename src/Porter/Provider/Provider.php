@@ -15,22 +15,22 @@ abstract class Provider implements CacheEnabler
     }
 
     /**
-     * @param ProviderDataType $providerDataType
+     * @param ProviderDataFetcher $dataFetcher
      *
      * @return \Iterator
      *
-     * @throws IncompatibleDataTypeException A foreign data type was received.
+     * @throws ForeignDataFetcherException A foreign data fetcher was received.
      */
-    public function fetch(ProviderDataType $providerDataType)
+    public function fetch(ProviderDataFetcher $dataFetcher)
     {
-        if ($providerDataType->getProviderName() !== static::class) {
-            throw new IncompatibleDataTypeException(sprintf(
-                'Cannot fetch data for foreign type: "%s".',
-                get_class($providerDataType)
+        if ($dataFetcher->getProviderName() !== static::class) {
+            throw new ForeignDataFetcherException(sprintf(
+                'Cannot fetch data from foreign type: "%s".',
+                get_class($dataFetcher)
             ));
         }
 
-        return $providerDataType->fetch($this->connector);
+        return $dataFetcher->fetch($this->connector);
     }
 
     /**

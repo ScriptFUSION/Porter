@@ -1,7 +1,7 @@
 <?php
 namespace ScriptFUSION\Porter\Provider;
 
-class NoDataType extends StaticDataType
+class NullFetcher extends StaticDataFetcher
 {
     public function __construct()
     {

@@ -4,7 +4,7 @@ namespace ScriptFUSION\Porter\Provider;
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 
-class StaticDataType implements ProviderDataType
+class StaticDataFetcher implements ProviderDataFetcher
 {
     private $data;
 

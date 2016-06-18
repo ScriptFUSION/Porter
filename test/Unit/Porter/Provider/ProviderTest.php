@@ -6,9 +6,9 @@ use Mockery\MockInterface;
 use ScriptFUSION\Porter\Cache\CacheOperationProhibitedException;
 use ScriptFUSION\Porter\Connector\CachingConnector;
 use ScriptFUSION\Porter\Connector\Connector;
-use ScriptFUSION\Porter\Provider\IncompatibleDataTypeException;
+use ScriptFUSION\Porter\Provider\ForeignDataFetcherException;
 use ScriptFUSION\Porter\Provider\Provider;
-use ScriptFUSION\Porter\Provider\ProviderDataType;
+use ScriptFUSION\Porter\Provider\ProviderDataFetcher;
 
 final class ProviderTest extends \PHPUnit_Framework_TestCase
 {
@@ -45,7 +45,7 @@ final class ProviderTest extends \PHPUnit_Framework_TestCase
         self::assertSame(
             'foo',
             $this->provider->fetch(
-                \Mockery::mock(ProviderDataType::class)
+                \Mockery::mock(ProviderDataFetcher::class)
                     ->shouldReceive('fetch')
                     ->with($this->connector)
                     ->andReturn('foo')
@@ -59,10 +59,10 @@ final class ProviderTest extends \PHPUnit_Framework_TestCase
 
     public function testFetchForeignProvider()
     {
-        $this->setExpectedException(IncompatibleDataTypeException::class);
+        $this->setExpectedException(ForeignDataFetcherException::class);
 
         $this->provider->fetch(
-            \Mockery::mock(ProviderDataType::class)
+            \Mockery::mock(ProviderDataFetcher::class)
                 ->shouldReceive('getProviderName')
                 ->andReturn('foo')
                 ->getMock()
