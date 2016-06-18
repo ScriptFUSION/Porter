@@ -1,5 +1,5 @@
 <?php
-namespace ScriptFUSIONTest\Integration\Mapper\Strategy;
+namespace ScriptFUSIONTest\Integration\Porter\Mapper\Strategy;
 
 use ScriptFUSION\Porter\Mapper\Strategy\SubImport;
 use ScriptFUSION\Porter\Porter;

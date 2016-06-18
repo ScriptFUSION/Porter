@@ -1,5 +1,5 @@
 <?php
-namespace ScriptFUSION\Porter\Connector\Http;
+namespace ScriptFUSION\Porter\Net\Http;
 
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 use ScriptFUSION\Porter\Type\StringType;

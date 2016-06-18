@@ -1,7 +1,7 @@
 <?php
-namespace ScriptFUSIONTest\Unit\Porter\Connector\Soap;
+namespace ScriptFUSIONTest\Unit\Porter\Net\Soap;
 
-use ScriptFUSION\Porter\Connector\Soap\SoapOptions;
+use ScriptFUSION\Porter\Net\Soap\SoapOptions;
 
 final class SoapOptionsTest extends \PHPUnit_Framework_TestCase
 {

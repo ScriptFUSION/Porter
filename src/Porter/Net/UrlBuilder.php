@@ -1,7 +1,7 @@
 <?php
 namespace ScriptFUSION\Porter\Net;
 
-use ScriptFUSION\Porter\Connector\Http\HttpOptions;
+use ScriptFUSION\Porter\Net\Http\HttpOptions;
 use Zend\Uri\UriFactory;
 
 class UrlBuilder

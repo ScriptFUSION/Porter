@@ -1,5 +1,5 @@
 <?php
-namespace ScriptFUSION\Porter\Connector\Http;
+namespace ScriptFUSION\Porter\Net\Http;
 
 use ScriptFUSION\Porter\Connector\CachingConnector;
 use ScriptFUSION\Porter\Net\UrlBuilder;

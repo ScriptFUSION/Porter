@@ -1,7 +1,7 @@
 <?php
-namespace ScriptFUSIONTest\Unit\Porter\Connector\Http;
+namespace ScriptFUSIONTest\Unit\Porter\Net\Http;
 
-use ScriptFUSION\Porter\Connector\Http\HttpOptions;
+use ScriptFUSION\Porter\Net\Http\HttpOptions;
 
 final class HttpOptionsTest extends \PHPUnit_Framework_TestCase
 {

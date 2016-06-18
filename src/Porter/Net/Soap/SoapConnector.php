@@ -1,5 +1,5 @@
 <?php
-namespace ScriptFUSION\Porter\Connector\Soap;
+namespace ScriptFUSION\Porter\Net\Soap;
 
 use ScriptFUSION\Porter\Connector\CachingConnector;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;

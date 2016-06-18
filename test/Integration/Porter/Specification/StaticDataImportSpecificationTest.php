@@ -1,5 +1,5 @@
 <?php
-namespace ScriptFUSIONTest\Integration\Specification;
+namespace ScriptFUSIONTest\Integration\Porter\Specification;
 
 use ScriptFUSION\Porter\Porter;
 use ScriptFUSION\Porter\Specification\StaticDataImportSpecification;

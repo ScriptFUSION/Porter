@@ -1,7 +1,7 @@
 <?php
 namespace ScriptFUSIONTest\Integration\Porter\Net;
 
-use ScriptFUSION\Porter\Connector\Http\HttpOptions;
+use ScriptFUSION\Porter\Net\Http\HttpOptions;
 use ScriptFUSION\Porter\Net\UrlBuilder;
 
 final class UrlBuilderTest extends \PHPUnit_Framework_TestCase
