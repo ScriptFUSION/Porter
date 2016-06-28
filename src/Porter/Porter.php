@@ -3,13 +3,14 @@ namespace ScriptFUSION\Porter;
 
 use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
-use ScriptFUSION\Porter\Cache\CacheEnabler;
+use ScriptFUSION\Porter\Cache\MutableCacheState;
 use ScriptFUSION\Porter\Cache\CacheOperationProhibitedException;
 use ScriptFUSION\Porter\Collection\FilteredRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Mapper\PorterMapper;
+use ScriptFUSION\Porter\Provider\ObjectNotCreatedException;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\ProviderDataFetcher;
 use ScriptFUSION\Porter\Provider\ProviderFactory;
@@ -54,6 +55,56 @@ class Porter
         }
 
         return new PorterRecords($records, $specification);
+    }
+
+    private function fetch(ProviderDataFetcher $dataFetcher, CacheAdvice $cacheAdvice = null)
+    {
+        $provider = $this->getProvider($dataFetcher->getProviderName());
+        $this->applyCacheAdvice($provider, $cacheAdvice ?: $this->defaultCacheAdvice);
+
+        return $provider->fetch($dataFetcher);
+    }
+
+    private function filter(ProviderRecords $records, callable $predicate, $context)
+    {
+        $filter = function () use ($records, $predicate, $context) {
+            foreach ($records as $record) {
+                if ($predicate($record, $context)) {
+                    yield $record;
+                }
+            }
+        };
+
+        return new FilteredRecords($filter(), $records);
+    }
+
+    private function map(RecordCollection $records, Mapping $mapping, $context)
+    {
+        return $this->getOrCreateMapper()->mapRecords($records, $mapping, $context);
+    }
+
+    private function applyCacheAdvice(MutableCacheState $cache, CacheAdvice $cacheAdvice)
+    {
+        try {
+            switch ("$cacheAdvice") {
+                case CacheAdvice::MUST_CACHE:
+                case CacheAdvice::SHOULD_CACHE:
+                    $cache->enableCache();
+                    break;
+
+                case CacheAdvice::MUST_NOT_CACHE:
+                case CacheAdvice::SHOULD_NOT_CACHE:
+                    $cache->disableCache();
+                    break;
+            }
+        } catch (CacheOperationProhibitedException $e) {
+            if (
+                $cacheAdvice === CacheAdvice::MUST_NOT_CACHE() ||
+                $cacheAdvice === CacheAdvice::MUST_CACHE()
+            ) {
+                throw $e;
+            }
+        }
     }
 
     /**
@@ -117,59 +168,5 @@ class Porter
         $this->mapper = $mapper;
 
         return $this;
-    }
-
-    private function fetch(ProviderDataFetcher $dataFetcher, CacheAdvice $cacheAdvice = null)
-    {
-        if ($provider = $this->getProvider($dataFetcher->getProviderName())) {
-            $this->applyCacheAdvice($provider, $cacheAdvice ?: $this->defaultCacheAdvice);
-
-            return $provider->fetch($dataFetcher);
-        }
-
-        // TODO: Proper exception type.
-        throw new \RuntimeException("No such provider: {$dataFetcher->getProviderName()}.");
-    }
-
-    private function filter(ProviderRecords $records, callable $predicate, $context)
-    {
-        $filter = function () use ($records, $predicate, $context) {
-            foreach ($records as $record) {
-                if ($predicate($record, $context)) {
-                    yield $record;
-                }
-            }
-        };
-
-        return new FilteredRecords($filter(), $records);
-    }
-
-    private function map(RecordCollection $records, Mapping $mapping, $context)
-    {
-        return $this->getOrCreateMapper()->mapRecords($records, $mapping, $context);
-    }
-
-    private function applyCacheAdvice(CacheEnabler $cache, CacheAdvice $cacheAdvice)
-    {
-        try {
-            switch ("$cacheAdvice") {
-                case CacheAdvice::MUST_CACHE:
-                case CacheAdvice::SHOULD_CACHE:
-                    $cache->enableCache();
-                    break;
-
-                case CacheAdvice::MUST_NOT_CACHE:
-                case CacheAdvice::SHOULD_NOT_CACHE:
-                    $cache->disableCache();
-                    break;
-            }
-        } catch (CacheOperationProhibitedException $e) {
-            if (
-                $cacheAdvice === CacheAdvice::MUST_NOT_CACHE() ||
-                $cacheAdvice === CacheAdvice::MUST_CACHE()
-            ) {
-                throw $e;
-            }
-        }
     }
 }

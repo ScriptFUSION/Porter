@@ -1,7 +1,7 @@
 <?php
 namespace ScriptFUSION\Porter\Provider;
 
-use ScriptFUSION\Porter\ObjectNotCreatedException;
+use ScriptFUSION\Porter\Provider\ObjectNotCreatedException;
 
 class ProviderFactory
 {

@@ -3,7 +3,6 @@ namespace ScriptFUSION\Porter\Specification;
 
 use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
-use ScriptFUSION\Porter\ObjectFinalizedException;
 use ScriptFUSION\Porter\Provider\ProviderDataFetcher;
 
 class ImportSpecification

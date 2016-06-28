@@ -2,7 +2,6 @@
 namespace ScriptFUSION\Porter\Mapper\Strategy;
 
 use ScriptFUSION\Mapper\Strategy\Strategy;
-use ScriptFUSION\Porter\InvalidCallbackException;
 use ScriptFUSION\Porter\PorterAware;
 use ScriptFUSION\Porter\PorterAwareTrait;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
@@ -11,24 +10,24 @@ class SubImport implements Strategy, PorterAware
 {
     use PorterAwareTrait;
 
-    private $specification;
+    private $specificationOrCallback;
 
     /**
      * Initializes this instance with the specified import specification or
      * the specification callback.
      *
-     * @param ImportSpecification|callable $specification Import specification
+     * @param ImportSpecification|callable $specificationOrCallback Import specification
      *     or specification callback.
      *
      * @throws \InvalidArgumentException Specification is not an ImportSpecification or callable.
      */
-    public function __construct($specification)
+    public function __construct($specificationOrCallback)
     {
-        if (!$specification instanceof ImportSpecification && !is_callable($specification)) {
+        if (!$specificationOrCallback instanceof ImportSpecification && !is_callable($specificationOrCallback)) {
             throw new \InvalidArgumentException('Argument one must be an instance of ImportSpecification or callable.');
         }
 
-        $this->specification = $specification;
+        $this->specificationOrCallback = $specificationOrCallback;
     }
 
     public function __invoke($data, $context = null)
@@ -45,14 +44,16 @@ class SubImport implements Strategy, PorterAware
 
     private function getOrCreateImportSpecification($data, $context = null)
     {
-        if ($this->specification instanceof ImportSpecification) {
-            return $this->specification;
+        if ($this->specificationOrCallback instanceof ImportSpecification) {
+            return $this->specificationOrCallback;
         }
 
-        if (($specification = call_user_func($this->specification, $data, $context)) instanceof ImportSpecification) {
+        if (($specification = call_user_func($this->specificationOrCallback, $data, $context))
+            instanceof ImportSpecification
+        ) {
             return $specification;
         }
 
-        throw new InvalidCallbackException('Callback failed to create an instance of ImportSpecification.');
+        throw new InvalidCallbackResultException('Callback failed to create an instance of ImportSpecification.');
     }
 }

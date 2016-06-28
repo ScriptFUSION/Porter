@@ -2,11 +2,11 @@
 namespace ScriptFUSION\Porter\Connector;
 
 use Psr\Cache\CacheItemPoolInterface;
-use ScriptFUSION\Porter\Cache\CacheEnabler;
+use ScriptFUSION\Porter\Cache\MutableCacheState;
 use ScriptFUSION\Porter\Cache\MemoryCache;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 
-abstract class CachingConnector implements Connector, CacheEnabler
+abstract class CachingConnector implements Connector, MutableCacheState
 {
     private $cache;
 

@@ -1,5 +1,5 @@
 <?php
-namespace ScriptFUSION\Porter;
+namespace ScriptFUSION\Porter\Provider;
 
 /**
  * The exception that is thrown when an object could not be created.

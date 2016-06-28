@@ -4,22 +4,24 @@ namespace ScriptFUSION\Porter\Provider;
 use ScriptFUSION\Porter\Connector\Connector;
 
 /**
- * Specifies how to fetch data from the specified provider.
+ * Defines methods for fetching data from a specific provider.
  */
 interface ProviderDataFetcher
 {
     /**
+     * Gets the class name of the provider this data fetcher belongs to.
+     *
      * @return string
      */
     public function getProviderName();
 
     /**
      * Fetches data from the provider using the the specified connector and
-     * presents the data as an iterative series.
+     * presents its data as an enumerable series.
      *
      * @param Connector $connector Connector.
      *
-     * @return \Iterator Data series.
+     * @return \Iterator Enumerable data series.
      */
     public function fetch(Connector $connector);
 }

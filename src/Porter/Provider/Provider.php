@@ -1,11 +1,11 @@
 <?php
 namespace ScriptFUSION\Porter\Provider;
 
-use ScriptFUSION\Porter\Cache\CacheEnabler;
+use ScriptFUSION\Porter\Cache\MutableCacheState;
 use ScriptFUSION\Porter\Cache\CacheOperationProhibitedException;
 use ScriptFUSION\Porter\Connector\Connector;
 
-abstract class Provider implements CacheEnabler
+abstract class Provider implements MutableCacheState
 {
     private $connector;
 
@@ -45,7 +45,7 @@ abstract class Provider implements CacheEnabler
     {
         $connector = $this->getConnector();
 
-        if (!$connector instanceof CacheEnabler) {
+        if (!$connector instanceof MutableCacheState) {
             throw $this->createCacheUnavailableException();
         }
 
@@ -56,7 +56,7 @@ abstract class Provider implements CacheEnabler
     {
         $connector = $this->getConnector();
 
-        if (!$connector instanceof CacheEnabler) {
+        if (!$connector instanceof MutableCacheState) {
             throw $this->createCacheUnavailableException();
         }
 
@@ -67,7 +67,7 @@ abstract class Provider implements CacheEnabler
     {
         $connector = $this->getConnector();
 
-        if (!$connector instanceof CacheEnabler) {
+        if (!$connector instanceof MutableCacheState) {
             return false;
         }
 

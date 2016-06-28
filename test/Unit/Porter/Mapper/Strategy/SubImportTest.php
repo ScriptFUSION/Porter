@@ -3,7 +3,7 @@ namespace ScriptFUSIONTest\Unit\Porter\Mapper\Strategy;
 
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
-use ScriptFUSION\Porter\InvalidCallbackException;
+use ScriptFUSION\Porter\Mapper\Strategy\InvalidCallbackResultException;
 use ScriptFUSION\Porter\Mapper\Strategy\SubImport;
 use ScriptFUSION\Porter\Porter;
 use ScriptFUSIONTest\MockFactory;
@@ -57,7 +57,7 @@ final class SubImportTest extends \PHPUnit_Framework_TestCase
 
     public function testInvalidSpecificationCallback()
     {
-        $this->setExpectedException(InvalidCallbackException::class);
+        $this->setExpectedException(InvalidCallbackResultException::class);
 
         $this->createSubImport(function () {
             // Intentionally empty.

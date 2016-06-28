@@ -3,7 +3,7 @@ namespace ScriptFUSIONTest\Unit\Porter;
 
 use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
-use ScriptFUSION\Porter\ObjectFinalizedException;
+use ScriptFUSION\Porter\Specification\ObjectFinalizedException;
 use ScriptFUSION\Porter\Provider\ProviderDataFetcher;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 
