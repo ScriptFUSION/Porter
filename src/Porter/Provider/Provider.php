@@ -1,8 +1,8 @@
 <?php
 namespace ScriptFUSION\Porter\Provider;
 
-use ScriptFUSION\Porter\Cache\MutableCacheState;
 use ScriptFUSION\Porter\Cache\CacheOperationProhibitedException;
+use ScriptFUSION\Porter\Cache\MutableCacheState;
 use ScriptFUSION\Porter\Connector\Connector;
 
 abstract class Provider implements MutableCacheState

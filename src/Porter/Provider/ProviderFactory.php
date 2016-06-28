@@ -1,8 +1,6 @@
 <?php
 namespace ScriptFUSION\Porter\Provider;
 
-use ScriptFUSION\Porter\Provider\ObjectNotCreatedException;
-
 class ProviderFactory
 {
     public function createProvider($name)
