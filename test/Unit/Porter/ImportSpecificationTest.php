@@ -3,9 +3,9 @@ namespace ScriptFUSIONTest\Unit\Porter;
 
 use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
-use ScriptFUSION\Porter\Specification\ObjectFinalizedException;
 use ScriptFUSION\Porter\Provider\ProviderDataFetcher;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
+use ScriptFUSION\Porter\Specification\ObjectFinalizedException;
 
 final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
 {
