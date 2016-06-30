@@ -4,6 +4,7 @@ namespace ScriptFUSION\Porter\Provider;
 use ScriptFUSION\Porter\Cache\CacheOperationProhibitedException;
 use ScriptFUSION\Porter\Cache\MutableCacheState;
 use ScriptFUSION\Porter\Connector\Connector;
+use ScriptFUSION\Porter\Provider\DataSource\ProviderDataSource;
 
 abstract class Provider implements MutableCacheState
 {
@@ -15,22 +16,22 @@ abstract class Provider implements MutableCacheState
     }
 
     /**
-     * @param ProviderDataFetcher $dataFetcher
+     * @param ProviderDataSource $dataSource
      *
      * @return \Iterator
      *
-     * @throws ForeignDataFetcherException A foreign data fetcher was received.
+     * @throws ForeignDataSourceException A foreign data source was received.
      */
-    public function fetch(ProviderDataFetcher $dataFetcher)
+    public function fetch(ProviderDataSource $dataSource)
     {
-        if ($dataFetcher->getProviderName() !== static::class) {
-            throw new ForeignDataFetcherException(sprintf(
-                'Cannot fetch data from foreign type: "%s".',
-                get_class($dataFetcher)
+        if ($dataSource->getProviderName() !== static::class) {
+            throw new ForeignDataSourceException(sprintf(
+                'Cannot fetch data from foreign source: "%s".',
+                get_class($dataSource)
             ));
         }
 
-        return $dataFetcher->fetch($this->connector);
+        return $dataSource->fetch($this->connector);
     }
 
     /**

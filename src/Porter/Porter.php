@@ -12,7 +12,7 @@ use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Mapper\PorterMapper;
 use ScriptFUSION\Porter\Provider\ObjectNotCreatedException;
 use ScriptFUSION\Porter\Provider\Provider;
-use ScriptFUSION\Porter\Provider\ProviderDataFetcher;
+use ScriptFUSION\Porter\Provider\DataSource\ProviderDataSource;
 use ScriptFUSION\Porter\Provider\ProviderFactory;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 
@@ -38,12 +38,12 @@ class Porter
      */
     public function import(ImportSpecification $specification)
     {
-        $dataFetcher = $specification->finalize()->getDataFetcher();
-        $records = $this->fetch($dataFetcher, $specification->getCacheAdvice());
+        $dataSource = $specification->finalize()->getDataSource();
+        $records = $this->fetch($dataSource, $specification->getCacheAdvice());
 
         if (!$records instanceof ProviderRecords) {
             // Compose records iterator.
-            $records = new ProviderRecords($records, $dataFetcher);
+            $records = new ProviderRecords($records, $dataSource);
         }
 
         if ($specification->getFilter()) {
@@ -57,12 +57,12 @@ class Porter
         return new PorterRecords($records, $specification);
     }
 
-    private function fetch(ProviderDataFetcher $dataFetcher, CacheAdvice $cacheAdvice = null)
+    private function fetch(ProviderDataSource $dataSource, CacheAdvice $cacheAdvice = null)
     {
-        $provider = $this->getProvider($dataFetcher->getProviderName());
+        $provider = $this->getProvider($dataSource->getProviderName());
         $this->applyCacheAdvice($provider, $cacheAdvice ?: $this->defaultCacheAdvice);
 
-        return $provider->fetch($dataFetcher);
+        return $provider->fetch($dataSource);
     }
 
     private function filter(ProviderRecords $records, callable $predicate, $context)

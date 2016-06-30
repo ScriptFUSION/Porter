@@ -2,7 +2,7 @@
 namespace ScriptFUSIONTest\Unit\Porter\Collection;
 
 use ScriptFUSION\Porter\Collection\ProviderRecords;
-use ScriptFUSION\Porter\Provider\ProviderDataFetcher;
+use ScriptFUSION\Porter\Provider\DataSource\ProviderDataSource;
 
 final class ProviderRecordsTest extends \PHPUnit_Framework_TestCase
 {
@@ -10,9 +10,9 @@ final class ProviderRecordsTest extends \PHPUnit_Framework_TestCase
     {
         $records = new ProviderRecords(
             \Mockery::mock(\Iterator::class),
-            $dataFetcher = \Mockery::mock(ProviderDataFetcher::class)
+            $dataSource = \Mockery::mock(ProviderDataSource::class)
         );
 
-        self::assertSame($dataFetcher, $records->getDataFetcher());
+        self::assertSame($dataSource, $records->getDataSource());
     }
 }

@@ -1,24 +1,24 @@
 <?php
 namespace ScriptFUSION\Porter\Collection;
 
-use ScriptFUSION\Porter\Provider\ProviderDataFetcher;
+use ScriptFUSION\Porter\Provider\DataSource\ProviderDataSource;
 
 class ProviderRecords extends RecordCollection
 {
-    private $dataFetcher;
+    private $dataSource;
 
-    public function __construct(\Iterator $providerRecords, ProviderDataFetcher $dataFetcher)
+    public function __construct(\Iterator $providerRecords, ProviderDataSource $dataSource)
     {
         parent::__construct($providerRecords);
 
-        $this->dataFetcher = $dataFetcher;
+        $this->dataSource = $dataSource;
     }
 
     /**
-     * @return ProviderDataFetcher
+     * @return ProviderDataSource
      */
-    public function getDataFetcher()
+    public function getDataSource()
     {
-        return $this->dataFetcher;
+        return $this->dataSource;
     }
 }

@@ -1,10 +1,11 @@
 <?php
-namespace ScriptFUSION\Porter\Provider;
+namespace ScriptFUSION\Porter\Provider\DataSource;
 
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
+use ScriptFUSION\Porter\Provider\StaticDataProvider;
 
-class StaticDataFetcher implements ProviderDataFetcher
+class StaticDataSource implements ProviderDataSource
 {
     private $data;
 

@@ -1,7 +1,7 @@
 <?php
 namespace ScriptFUSIONTest;
 
-use ScriptFUSION\Porter\Provider\ProviderDataFetcher;
+use ScriptFUSION\Porter\Provider\DataSource\ProviderDataSource;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\StaticClass;
 
@@ -11,6 +11,6 @@ final class MockFactory
 
     public static function mockImportSpecification()
     {
-        return \Mockery::mock(ImportSpecification::class, [\Mockery::mock(ProviderDataFetcher::class)]);
+        return \Mockery::mock(ImportSpecification::class, [\Mockery::mock(ProviderDataSource::class)]);
     }
 }

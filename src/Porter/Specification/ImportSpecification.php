@@ -3,14 +3,14 @@ namespace ScriptFUSION\Porter\Specification;
 
 use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
-use ScriptFUSION\Porter\Provider\ProviderDataFetcher;
+use ScriptFUSION\Porter\Provider\DataSource\ProviderDataSource;
 
 class ImportSpecification
 {
     private $finalized = false;
 
-    /** @var ProviderDataFetcher */
-    private $dataFetcher;
+    /** @var ProviderDataSource */
+    private $dataSource;
 
     /** @var Mapping */
     private $mapping;
@@ -24,9 +24,9 @@ class ImportSpecification
     /** @var CacheAdvice */
     private $cacheAdvice;
 
-    public function __construct(ProviderDataFetcher $dataFetcher)
+    public function __construct(ProviderDataSource $dataSource)
     {
-        $this->dataFetcher = $dataFetcher;
+        $this->dataSource = $dataSource;
     }
 
     /**
@@ -42,7 +42,7 @@ class ImportSpecification
             $specification->finalize();
         }
 
-        return (new static($specification->getDataFetcher()))
+        return (new static($specification->getDataSource()))
             ->setMapping($specification->getMapping())
             ->setContext($specification->getContext())
             ->setFilter($specification->getFilter());
@@ -76,11 +76,11 @@ class ImportSpecification
     }
 
     /**
-     * @return ProviderDataFetcher
+     * @return ProviderDataSource
      */
-    final public function getDataFetcher()
+    final public function getDataSource()
     {
-        return $this->isFinalized() ? clone $this->dataFetcher : $this->dataFetcher;
+        return $this->isFinalized() ? clone $this->dataSource : $this->dataSource;
     }
 
     /**
