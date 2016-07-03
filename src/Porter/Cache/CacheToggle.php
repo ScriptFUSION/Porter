@@ -2,9 +2,9 @@
 namespace ScriptFUSION\Porter\Cache;
 
 /**
- * Defines methods for getting and setting cache availability.
+ * Defines methods for getting and setting whether a cache is enabled.
  */
-interface MutableCacheState
+interface CacheToggle
 {
     /**
      * Enables the cache, permitting subsequent cache access operations.

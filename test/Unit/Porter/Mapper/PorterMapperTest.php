@@ -4,7 +4,6 @@ namespace ScriptFUSIONTest\Unit\Porter\Mapper;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use ScriptFUSION\Mapper\AnonymousMapping;
 use ScriptFUSION\Mapper\Strategy\Strategy;
-use ScriptFUSION\Porter\Collection\MappedRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Mapper\PorterMapper;
 use ScriptFUSION\Porter\Porter;
@@ -24,7 +23,7 @@ final class PorterMapperTest extends \PHPUnit_Framework_TestCase
             [new \ArrayIterator([[1], [2], [3]])]
         )->makePartial();
 
-        $mappedRecords = $mapper->mapRecords(
+        $mappedRecords = $mapper->mapCollection(
             $records,
             new AnonymousMapping([$strategy = \Mockery::mock(implode(',', [Strategy::class, PorterAware::class]))])
         );
@@ -33,7 +32,6 @@ final class PorterMapperTest extends \PHPUnit_Framework_TestCase
             return $data[0] * $data[0];
         })->getMock()->shouldReceive('setPorter')->with($porter)->atLeast()->once();
 
-        self::assertInstanceOf(MappedRecords::class, $mappedRecords);
         self::assertSame([[1], [4], [9]], iterator_to_array($mappedRecords));
     }
 }

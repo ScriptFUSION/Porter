@@ -14,7 +14,7 @@ class StaticDataSource implements ProviderDataSource
         $this->data = $data;
     }
 
-    public function getProviderName()
+    public function getProviderClassName()
     {
         return StaticDataProvider::class;
     }

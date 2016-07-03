@@ -1,18 +1,20 @@
 <?php
 namespace ScriptFUSION\Porter;
 
+use ScriptFUSION\Mapper\CollectionMapper;
 use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
 use ScriptFUSION\Porter\Cache\CacheOperationProhibitedException;
-use ScriptFUSION\Porter\Cache\MutableCacheState;
+use ScriptFUSION\Porter\Cache\CacheToggle;
 use ScriptFUSION\Porter\Collection\FilteredRecords;
+use ScriptFUSION\Porter\Collection\MappedRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Mapper\PorterMapper;
+use ScriptFUSION\Porter\Provider\DataSource\ProviderDataSource;
 use ScriptFUSION\Porter\Provider\ObjectNotCreatedException;
 use ScriptFUSION\Porter\Provider\Provider;
-use ScriptFUSION\Porter\Provider\DataSource\ProviderDataSource;
 use ScriptFUSION\Porter\Provider\ProviderFactory;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 
@@ -59,7 +61,7 @@ class Porter
 
     private function fetch(ProviderDataSource $dataSource, CacheAdvice $cacheAdvice = null)
     {
-        $provider = $this->getProvider($dataSource->getProviderName());
+        $provider = $this->getProvider($dataSource->getProviderClassName());
         $this->applyCacheAdvice($provider, $cacheAdvice ?: $this->defaultCacheAdvice);
 
         return $provider->fetch($dataSource);
@@ -80,10 +82,10 @@ class Porter
 
     private function map(RecordCollection $records, Mapping $mapping, $context)
     {
-        return $this->getOrCreateMapper()->mapRecords($records, $mapping, $context);
+        return new MappedRecords($this->getOrCreateMapper()->mapCollection($records, $mapping, $context), $records);
     }
 
-    private function applyCacheAdvice(MutableCacheState $cache, CacheAdvice $cacheAdvice)
+    private function applyCacheAdvice(CacheToggle $cache, CacheAdvice $cacheAdvice)
     {
         try {
             switch ("$cacheAdvice") {
@@ -151,7 +153,7 @@ class Porter
     }
 
     /**
-     * @return PorterMapper
+     * @return CollectionMapper
      */
     private function getOrCreateMapper()
     {
@@ -159,11 +161,11 @@ class Porter
     }
 
     /**
-     * @param PorterMapper $mapper
+     * @param CollectionMapper $mapper
      *
      * @return $this
      */
-    public function setMapper(PorterMapper $mapper)
+    public function setMapper(CollectionMapper $mapper)
     {
         $this->mapper = $mapper;
 

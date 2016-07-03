@@ -6,9 +6,9 @@ use Mockery\MockInterface;
 use ScriptFUSION\Porter\Cache\CacheOperationProhibitedException;
 use ScriptFUSION\Porter\Connector\CachingConnector;
 use ScriptFUSION\Porter\Connector\Connector;
+use ScriptFUSION\Porter\Provider\DataSource\ProviderDataSource;
 use ScriptFUSION\Porter\Provider\ForeignDataSourceException;
 use ScriptFUSION\Porter\Provider\Provider;
-use ScriptFUSION\Porter\Provider\DataSource\ProviderDataSource;
 
 final class ProviderTest extends \PHPUnit_Framework_TestCase
 {
@@ -50,7 +50,7 @@ final class ProviderTest extends \PHPUnit_Framework_TestCase
                     ->with($this->connector)
                     ->andReturn('foo')
                     ->getMock()
-                    ->shouldReceive('getProviderName')
+                    ->shouldReceive('getProviderClassName')
                     ->andReturn(get_class($this->provider))
                     ->getMock()
             )
@@ -63,7 +63,7 @@ final class ProviderTest extends \PHPUnit_Framework_TestCase
 
         $this->provider->fetch(
             \Mockery::mock(ProviderDataSource::class)
-                ->shouldReceive('getProviderName')
+                ->shouldReceive('getProviderClassName')
                 ->andReturn('foo')
                 ->getMock()
         );

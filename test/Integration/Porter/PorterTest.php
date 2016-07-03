@@ -2,10 +2,12 @@
 namespace ScriptFUSIONTest\Integration\Porter;
 
 use Mockery\MockInterface;
+use ScriptFUSION\Porter\Collection\FilteredRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
+use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Porter;
-use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\DataSource\ProviderDataSource;
+use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\ProviderNotFoundException;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 
@@ -24,7 +26,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     {
         $this->porter = (new Porter)->addProvider($this->provider = \Mockery::spy(Provider::class));
         $this->dataSource = \Mockery::mock(ProviderDataSource::class)
-            ->shouldReceive('getProviderName')
+            ->shouldReceive('getProviderClassName')
             ->andReturn(get_class($this->provider))
             ->getMock();
     }
@@ -59,6 +61,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         $records = $this->porter->import(new ImportSpecification($this->dataSource));
 
         self::assertInstanceOf(PorterRecords::class, $records);
+        self::assertInstanceOf(ProviderRecords::class, $records->getPreviousCollection());
         self::assertSame('foo', $records->current());
     }
 
@@ -73,6 +76,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
                 })
         );
 
+        self::assertInstanceOf(FilteredRecords::class, $records->getPreviousCollection());
         self::assertSame([1, 3, 5, 7, 9], iterator_to_array($records));
     }
 }

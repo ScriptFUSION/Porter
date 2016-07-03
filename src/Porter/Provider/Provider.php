@@ -2,11 +2,11 @@
 namespace ScriptFUSION\Porter\Provider;
 
 use ScriptFUSION\Porter\Cache\CacheOperationProhibitedException;
-use ScriptFUSION\Porter\Cache\MutableCacheState;
+use ScriptFUSION\Porter\Cache\CacheToggle;
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Provider\DataSource\ProviderDataSource;
 
-abstract class Provider implements MutableCacheState
+abstract class Provider implements CacheToggle
 {
     private $connector;
 
@@ -24,7 +24,7 @@ abstract class Provider implements MutableCacheState
      */
     public function fetch(ProviderDataSource $dataSource)
     {
-        if ($dataSource->getProviderName() !== static::class) {
+        if ($dataSource->getProviderClassName() !== static::class) {
             throw new ForeignDataSourceException(sprintf(
                 'Cannot fetch data from foreign source: "%s".',
                 get_class($dataSource)
@@ -46,7 +46,7 @@ abstract class Provider implements MutableCacheState
     {
         $connector = $this->getConnector();
 
-        if (!$connector instanceof MutableCacheState) {
+        if (!$connector instanceof CacheToggle) {
             throw $this->createCacheUnavailableException();
         }
 
@@ -57,7 +57,7 @@ abstract class Provider implements MutableCacheState
     {
         $connector = $this->getConnector();
 
-        if (!$connector instanceof MutableCacheState) {
+        if (!$connector instanceof CacheToggle) {
             throw $this->createCacheUnavailableException();
         }
 
@@ -68,7 +68,7 @@ abstract class Provider implements MutableCacheState
     {
         $connector = $this->getConnector();
 
-        if (!$connector instanceof MutableCacheState) {
+        if (!$connector instanceof CacheToggle) {
             return false;
         }
 

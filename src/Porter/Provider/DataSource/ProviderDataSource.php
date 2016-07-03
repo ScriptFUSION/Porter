@@ -13,7 +13,7 @@ interface ProviderDataSource
      *
      * @return string
      */
-    public function getProviderName();
+    public function getProviderClassName();
 
     /**
      * Fetches data from the provider using the the specified connector and
