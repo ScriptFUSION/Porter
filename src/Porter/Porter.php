@@ -34,18 +34,20 @@ class Porter
     }
 
     /**
-     * @param ImportSpecification $specification
+     * Imports data according to the design of the specified import specification.
      *
-     * @return RecordCollection
+     * @param ImportSpecification $specification Import specification.
+     *
+     * @return PorterRecords
      */
     public function import(ImportSpecification $specification)
     {
-        $dataSource = $specification->finalize()->getDataSource();
-        $records = $this->fetch($dataSource, $specification->getCacheAdvice());
+        $specification = clone $specification;
+        $records = $this->fetch($specification->getDataSource(), $specification->getCacheAdvice());
 
         if (!$records instanceof ProviderRecords) {
             // Compose records iterator.
-            $records = new ProviderRecords($records, $dataSource);
+            $records = new ProviderRecords($records, $specification->getDataSource());
         }
 
         if ($specification->getFilter()) {

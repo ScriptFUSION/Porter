@@ -5,7 +5,6 @@ use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
 use ScriptFUSION\Porter\Provider\DataSource\ProviderDataSource;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
-use ScriptFUSION\Porter\Specification\ObjectFinalizedException;
 
 final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
 {
@@ -22,23 +21,14 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    public function testFinalize()
+    public function testClone()
     {
-        self::assertFalse($this->specification->isFinalized());
+        $this->specification->setMapping($mapping = \Mockery::mock(Mapping::class))->setContext($context = (object)[]);
+        $specification = clone $this->specification;
 
-        $this->specification->finalize();
-
-        self::assertTrue($this->specification->isFinalized());
-
-        // TODO: Test embedded objects are cloned.
-    }
-
-    public function testFinalizeAugmentation()
-    {
-        $this->setExpectedException(ObjectFinalizedException::class);
-
-        $this->specification->finalize();
-        $this->specification->setContext('foo');
+        self::assertNotSame($this->dataSource, $specification->getDataSource());
+        self::assertNotSame($mapping, $specification->getMapping());
+        self::assertNotSame($context, $specification->getContext());
     }
 
     public function testProviderData()
@@ -75,30 +65,5 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
             $advice = CacheAdvice::MUST_CACHE(),
             $this->specification->setCacheAdvice($advice)->getCacheAdvice()
         );
-    }
-
-    public function testCreateFrom()
-    {
-        $specification = ImportSpecification::createFrom(
-            $this->specification
-                ->setMapping(
-                    /** @var Mapping $mapping */
-                    $mapping = \Mockery::mock(Mapping::class)
-                        ->shouldReceive('getArrayCopy')
-                        ->andReturn([range(1, 5)])
-                        ->getMock()
-                )
-                ->setContext($context = 'foo')
-                ->setFilter($filter = function () {
-                    // Intentionally empty.
-                })
-        );
-
-        self::assertNotSame($specification, $this->specification);
-        self::assertNotSame($this->dataSource, $specification->getDataSource());
-        self::assertNotSame($mapping, $specification->getMapping());
-        self::assertSame($mapping->getArrayCopy(), $specification->getMapping()->getArrayCopy());
-        self::assertSame($context, $specification->getContext());
-        self::assertSame($filter, $specification->getFilter());
     }
 }

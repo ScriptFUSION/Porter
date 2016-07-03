@@ -7,8 +7,6 @@ use ScriptFUSION\Porter\Provider\DataSource\ProviderDataSource;
 
 class ImportSpecification
 {
-    private $finalized = false;
-
     /** @var ProviderDataSource */
     private $dataSource;
 
@@ -29,50 +27,11 @@ class ImportSpecification
         $this->dataSource = $dataSource;
     }
 
-    /**
-     * @param ImportSpecification $specification
-     *
-     * @return static
-     */
-    public static function createFrom(ImportSpecification $specification)
+    public function __clone()
     {
-        // Finalize specification to avoid sharing objects.
-        if (!$specification->isFinalized()) {
-            $specification = clone $specification;
-            $specification->finalize();
-        }
-
-        return (new static($specification->getDataSource()))
-            ->setMapping($specification->getMapping())
-            ->setContext($specification->getContext())
-            ->setFilter($specification->getFilter());
-    }
-
-    /**
-     * Finalizes this specification so no more changes can be written to it.
-     *
-     * @return $this
-     */
-    final public function finalize()
-    {
-        $this->finalized = true;
-
-        return $this;
-    }
-
-    /**
-     * @return bool
-     */
-    final public function isFinalized()
-    {
-        return $this->finalized;
-    }
-
-    private function failIfFinalized($function)
-    {
-        if ($this->isFinalized()) {
-            throw new ObjectFinalizedException("Cannot \"$function\": specification is final.");
-        }
+        $this->dataSource = clone $this->dataSource;
+        $this->mapping !== null && $this->mapping = clone $this->mapping;
+        is_object($this->context) && $this->context = clone $this->context;
     }
 
     /**
@@ -80,7 +39,7 @@ class ImportSpecification
      */
     final public function getDataSource()
     {
-        return $this->isFinalized() ? clone $this->dataSource : $this->dataSource;
+        return $this->dataSource;
     }
 
     /**
@@ -88,7 +47,7 @@ class ImportSpecification
      */
     final public function getMapping()
     {
-        return $this->isFinalized() && $this->mapping ? clone $this->mapping : $this->mapping;
+        return $this->mapping;
     }
 
     /**
@@ -98,8 +57,6 @@ class ImportSpecification
      */
     final public function setMapping(Mapping $mapping = null)
     {
-        $this->failIfFinalized(__FUNCTION__);
-
         $this->mapping = $mapping;
 
         return $this;
@@ -110,7 +67,7 @@ class ImportSpecification
      */
     final public function getContext()
     {
-        return $this->isFinalized() && is_object($this->context) ? clone $this->context : $this->context;
+        return $this->context;
     }
 
     /**
@@ -120,8 +77,6 @@ class ImportSpecification
      */
     final public function setContext($context)
     {
-        $this->failIfFinalized(__FUNCTION__);
-
         $this->context = $context;
 
         return $this;
@@ -142,8 +97,6 @@ class ImportSpecification
      */
     final public function setFilter(callable $filter = null)
     {
-        $this->failIfFinalized(__FUNCTION__);
-
         $this->filter = $filter;
 
         return $this;
@@ -152,7 +105,7 @@ class ImportSpecification
     /**
      * @return CacheAdvice
      */
-    public function getCacheAdvice()
+    final public function getCacheAdvice()
     {
         return $this->cacheAdvice;
     }
@@ -162,10 +115,8 @@ class ImportSpecification
      *
      * @return $this
      */
-    public function setCacheAdvice(CacheAdvice $cacheAdvice)
+    final public function setCacheAdvice(CacheAdvice $cacheAdvice)
     {
-        $this->failIfFinalized(__FUNCTION__);
-
         $this->cacheAdvice = $cacheAdvice;
 
         return $this;

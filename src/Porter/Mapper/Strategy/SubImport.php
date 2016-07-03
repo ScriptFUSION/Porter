@@ -32,8 +32,8 @@ class SubImport implements Strategy, PorterAware
 
     public function __invoke($data, $context = null)
     {
-        $specification = ImportSpecification::createFrom($this->getOrCreateImportSpecification($data, $context))
-            ->setContext($context);
+        $specification = clone $this->getOrCreateImportSpecification($data, $context);
+        $specification->setContext($context);
 
         $generator = $this->getPorter()->import($specification);
 
