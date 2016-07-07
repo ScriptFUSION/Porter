@@ -2,7 +2,10 @@
 namespace ScriptFUSIONTest\Integration\Porter;
 
 use Mockery\MockInterface;
+use ScriptFUSION\Mapper\CollectionMapper;
+use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\Collection\FilteredRecords;
+use ScriptFUSION\Porter\Collection\MappedRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Porter;
@@ -24,7 +27,15 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $this->porter = (new Porter)->addProvider($this->provider = \Mockery::spy(Provider::class));
+        $this->porter = (new Porter)->addProvider(
+            $this->provider =
+                \Mockery::spy(Provider::class)
+                    ->shouldReceive('fetch')
+                    ->andReturn(new \ArrayIterator(['foo']))
+                    ->byDefault()
+                    ->getMock()
+        );
+
         $this->dataSource = \Mockery::mock(ProviderDataSource::class)
             ->shouldReceive('getProviderClassName')
             ->andReturn(get_class($this->provider))
@@ -56,8 +67,6 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     public function testImport()
     {
-        $this->provider->shouldReceive('fetch')->andReturn(new \ArrayIterator(['foo']));
-
         $records = $this->porter->import(new ImportSpecification($this->dataSource));
 
         self::assertInstanceOf(PorterRecords::class, $records);
@@ -76,7 +85,26 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
                 })
         );
 
+        self::assertInstanceOf(PorterRecords::class, $records);
         self::assertInstanceOf(FilteredRecords::class, $records->getPreviousCollection());
         self::assertSame([1, 3, 5, 7, 9], iterator_to_array($records));
+    }
+
+    public function testMap()
+    {
+        $records = $this->porter->setMapper(
+            \Mockery::mock(CollectionMapper::class)
+                ->shouldReceive('mapCollection')
+                ->with(\Mockery::type(\Iterator::class), \Mockery::type(Mapping::class), \Mockery::any())
+                ->once()
+                ->andReturn(new \ArrayIterator($result = ['foo' => 'bar']))
+                ->getMock()
+        )->import(
+            (new ImportSpecification($this->dataSource))->setMapping(\Mockery::mock(Mapping::class))
+        );
+
+        self::assertInstanceOf(PorterRecords::class, $records);
+        self::assertInstanceOf(MappedRecords::class, $records->getPreviousCollection());
+        self::assertSame($result, iterator_to_array($records));
     }
 }

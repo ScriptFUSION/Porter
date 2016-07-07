@@ -42,7 +42,7 @@ abstract class RecordCollection implements \Iterator
     }
 
     /**
-     * @return RecordCollection
+     * @return RecordCollection|null
      */
     public function getPreviousCollection()
     {
