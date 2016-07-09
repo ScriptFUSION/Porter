@@ -3,18 +3,18 @@ namespace ScriptFUSIONTest\Unit\Porter\Provider;
 
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
-use ScriptFUSION\Porter\Cache\CacheOperationProhibitedException;
+use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Connector\CachingConnector;
 use ScriptFUSION\Porter\Connector\Connector;
+use ScriptFUSION\Porter\Provider\AbstractProvider;
 use ScriptFUSION\Porter\Provider\DataSource\ProviderDataSource;
 use ScriptFUSION\Porter\Provider\ForeignDataSourceException;
-use ScriptFUSION\Porter\Provider\Provider;
 
-final class ProviderTest extends \PHPUnit_Framework_TestCase
+final class AbstractProviderTest extends \PHPUnit_Framework_TestCase
 {
     use MockeryPHPUnitIntegration;
 
-    /** @var Provider */
+    /** @var AbstractProvider */
     private $provider;
 
     /** @var MockInterface */
@@ -28,7 +28,7 @@ final class ProviderTest extends \PHPUnit_Framework_TestCase
     private function createProviderMock($connector = null)
     {
         $this->provider = \Mockery::mock(
-            Provider::class,
+            AbstractProvider::class,
             [$this->connector = $connector ?: \Mockery::mock(Connector::class)]
         )->makePartial();
     }
@@ -76,7 +76,7 @@ final class ProviderTest extends \PHPUnit_Framework_TestCase
 
     public function testEnableCacheFails()
     {
-        $this->setExpectedException(CacheOperationProhibitedException::class);
+        $this->setExpectedException(CacheUnavailableException::class);
 
         $this->provider->enableCache();
     }
@@ -90,7 +90,7 @@ final class ProviderTest extends \PHPUnit_Framework_TestCase
 
     public function testDisableCacheFails()
     {
-        $this->setExpectedException(CacheOperationProhibitedException::class);
+        $this->setExpectedException(CacheUnavailableException::class);
 
         $this->provider->disableCache();
     }

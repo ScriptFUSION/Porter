@@ -4,8 +4,8 @@ namespace ScriptFUSION\Porter;
 use ScriptFUSION\Mapper\CollectionMapper;
 use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
-use ScriptFUSION\Porter\Cache\CacheOperationProhibitedException;
 use ScriptFUSION\Porter\Cache\CacheToggle;
+use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Collection\FilteredRecords;
 use ScriptFUSION\Porter\Collection\MappedRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
@@ -87,26 +87,28 @@ class Porter
         return new MappedRecords($this->getOrCreateMapper()->mapCollection($records, $mapping, $context), $records);
     }
 
-    private function applyCacheAdvice(CacheToggle $cache, CacheAdvice $cacheAdvice)
+    private function applyCacheAdvice(Provider $provider, CacheAdvice $cacheAdvice)
     {
         try {
+            if (!$provider instanceof CacheToggle) {
+                throw CacheUnavailableException::modify();
+            }
+
             switch ("$cacheAdvice") {
                 case CacheAdvice::MUST_CACHE:
                 case CacheAdvice::SHOULD_CACHE:
-                    $cache->enableCache();
+                    $provider->enableCache();
                     break;
 
                 case CacheAdvice::MUST_NOT_CACHE:
                 case CacheAdvice::SHOULD_NOT_CACHE:
-                    $cache->disableCache();
-                    break;
+                    $provider->disableCache();
             }
-        } catch (CacheOperationProhibitedException $e) {
-            if (
-                $cacheAdvice === CacheAdvice::MUST_NOT_CACHE() ||
+        } catch (CacheUnavailableException $exception) {
+            if ($cacheAdvice === CacheAdvice::MUST_NOT_CACHE() ||
                 $cacheAdvice === CacheAdvice::MUST_CACHE()
             ) {
-                throw $e;
+                throw $exception;
             }
         }
     }

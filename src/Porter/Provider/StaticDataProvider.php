@@ -3,7 +3,7 @@ namespace ScriptFUSION\Porter\Provider;
 
 use ScriptFUSION\Porter\Connector\NullConnector;
 
-class StaticDataProvider extends Provider
+class StaticDataProvider extends AbstractProvider
 {
     public function __construct()
     {

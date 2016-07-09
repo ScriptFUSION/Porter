@@ -11,9 +11,10 @@ php:
   - 7.0
 
 install:
-  - composer -n selfupdate
-  - composer -n --prefer-source install
-  - composer -n --prefer-source require satooshi/php-coveralls
+  - alias composer=composer\ -n && composer selfupdate
+  - composer validate
+  - composer --prefer-source install
+  - composer --prefer-source require satooshi/php-coveralls
 
 script:
   - bin/test --coverage-clover=build/logs/clover.xml

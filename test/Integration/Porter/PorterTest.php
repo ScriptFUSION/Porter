@@ -1,9 +1,13 @@
 <?php
 namespace ScriptFUSIONTest\Integration\Porter;
 
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
 use ScriptFUSION\Mapper\CollectionMapper;
 use ScriptFUSION\Mapper\Mapping;
+use ScriptFUSION\Porter\Cache\CacheAdvice;
+use ScriptFUSION\Porter\Cache\CacheToggle;
+use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Collection\FilteredRecords;
 use ScriptFUSION\Porter\Collection\MappedRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
@@ -13,9 +17,12 @@ use ScriptFUSION\Porter\Provider\DataSource\ProviderDataSource;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\ProviderNotFoundException;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
+use ScriptFUSIONTest\MockFactory;
 
 final class PorterTest extends \PHPUnit_Framework_TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     /** @var Porter */
     private $porter;
 
@@ -29,17 +36,14 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     {
         $this->porter = (new Porter)->addProvider(
             $this->provider =
-                \Mockery::spy(Provider::class)
+                \Mockery::mock(Provider::class)
                     ->shouldReceive('fetch')
                     ->andReturn(new \ArrayIterator(['foo']))
                     ->byDefault()
                     ->getMock()
         );
 
-        $this->dataSource = \Mockery::mock(ProviderDataSource::class)
-            ->shouldReceive('getProviderClassName')
-            ->andReturn(get_class($this->provider))
-            ->getMock();
+        $this->dataSource = MockFactory::mockDataSource($this->provider);
     }
 
     public function testGetProvider()
@@ -106,5 +110,26 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         self::assertInstanceOf(PorterRecords::class, $records);
         self::assertInstanceOf(MappedRecords::class, $records->getPreviousCollection());
         self::assertSame($result, iterator_to_array($records));
+    }
+
+    public function testApplyCacheAdvice()
+    {
+        $this->porter->addProvider(
+            $provider = \Mockery::mock(implode(',', [Provider::class, CacheToggle::class]))
+                ->shouldReceive('fetch')->andReturn(new \EmptyIterator)
+                ->shouldReceive('disableCache')->once()
+                ->shouldReceive('enableCache')->once()
+                ->getMock()
+        );
+
+        $this->porter->import($specification = new ImportSpecification(MockFactory::mockDataSource($provider)));
+        $this->porter->import($specification->setCacheAdvice(CacheAdvice::SHOULD_CACHE()));
+    }
+
+    public function testCacheUnavailable()
+    {
+        $this->setExpectedException(CacheUnavailableException::class);
+
+        $this->porter->import((new ImportSpecification($this->dataSource))->setCacheAdvice(CacheAdvice::MUST_CACHE()));
     }
 }
