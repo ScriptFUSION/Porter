@@ -4,56 +4,9 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "c64905cfdd83144273c5d2910f6f1b58",
-    "content-hash": "90d9830c81a1ce1cf53dc84dd537f1ab",
+    "hash": "e6f2b45434c076a4c45fa1c2d27f576d",
+    "content-hash": "e2619028fcf046a926b19a5a5b1107b5",
     "packages": [
-        {
-            "name": "codelegance/retry",
-            "version": "1.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Codelegance/retry.git",
-                "reference": "9ec50c5716e8a1dc0ca408d975258b29e266c1e1"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Codelegance/retry/zipball/9ec50c5716e8a1dc0ca408d975258b29e266c1e1",
-                "reference": "9ec50c5716e8a1dc0ca408d975258b29e266c1e1",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.4"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "~4.2"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "1.0-dev"
-                }
-            },
-            "autoload": {
-                "files": [
-                    "src/retry.php"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Igor Wiedler",
-                    "email": "igor@wiedler.ch"
-                }
-            ],
-            "description": "A tiny library for retrying failing operations.",
-            "keywords": [
-                "failure"
-            ],
-            "time": "2015-12-21 14:56:27"
-        },
         {
             "name": "container-interop/container-interop",
             "version": "1.1.0",
@@ -253,6 +206,88 @@
             ],
             "description": "Maps data from one format to another using a DSL.",
             "time": "2016-05-31 10:00:50"
+        },
+        {
+            "name": "scriptfusion/retry",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ScriptFUSION/Retry.git",
+                "reference": "5e182e65fd9ea007f604b18ce5aa8a88ddabd8db"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ScriptFUSION/Retry/zipball/5e182e65fd9ea007f604b18ce5aa8a88ddabd8db",
+                "reference": "5e182e65fd9ea007f604b18ce5aa8a88ddabd8db",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^5.5|^7"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^4"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/retry.php"
+                ],
+                "psr-4": {
+                    "ScriptFUSION\\Retry\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Bilge",
+                    "email": "bilge@scriptfusion.com"
+                },
+                {
+                    "name": "Igor Wiedler",
+                    "email": "igor@wiedler.ch"
+                }
+            ],
+            "description": "Retries failing operations.",
+            "time": "2016-07-18 20:38:28"
+        },
+        {
+            "name": "scriptfusion/retry-error-handlers",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ScriptFUSION/Retry-error-handlers.git",
+                "reference": "d3be509bee6b183223fde89b7b49a7bda913aabb"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ScriptFUSION/Retry-error-handlers/zipball/d3be509bee6b183223fde89b7b49a7bda913aabb",
+                "reference": "d3be509bee6b183223fde89b7b49a7bda913aabb",
+                "shasum": ""
+            },
+            "require": {
+                "scriptfusion/retry": "^1"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "ScriptFUSION\\Retry\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "authors": [
+                {
+                    "name": "Bilge",
+                    "email": "bilge@scriptfusion.com"
+                }
+            ],
+            "description": "Error handlers for Retry.",
+            "time": "2016-07-19 13:55:09"
         },
         {
             "name": "scriptfusion/static-class",

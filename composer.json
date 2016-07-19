@@ -11,7 +11,7 @@
     "php": ">=5.5",
     "scriptfusion/mapper": "^1|^0",
     "scriptfusion/static-class": "^1",
-    "codelegance/retry": "^1",
+    "scriptfusion/retry-error-handlers": "^1",
     "psr/cache": "^1",
     "zendframework/zend-uri": "^2"
   },
