@@ -24,7 +24,7 @@ class HttpConnector extends CachingConnector
     public function fetchFreshData($source, EncapsulatedOptions $options = null)
     {
         if ($options && !$options instanceof HttpOptions) {
-            throw new \RuntimeException('Options must be an instance of HttpOptions.');
+            throw new \InvalidArgumentException('Options must be an instance of HttpOptions.');
         }
 
         return \ScriptFUSION\Retry\retry(5, function () use ($source, $options) {

@@ -16,14 +16,14 @@ class SoapConnector extends CachingConnector
     {
         parent::__construct();
 
-        $this->client = new \SoapClient($wsdl, $options->extractSoapClientOptions());
+        $this->client = new \SoapClient($wsdl, $options ? $options->extractSoapClientOptions() : null);
         $this->options = $options;
     }
 
     public function fetchFreshData($source, EncapsulatedOptions $options = null)
     {
         if ($options && !$options instanceof SoapOptions) {
-            throw new \RuntimeException('Options must be an instance of SoapOptions.');
+            throw new \InvalidArgumentException('Options must be an instance of SoapOptions.');
         }
 
         $params = array_merge($this->options->getParameters(), $options ? $options->getParameters() : []);
