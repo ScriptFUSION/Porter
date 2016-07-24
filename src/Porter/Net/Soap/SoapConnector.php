@@ -10,13 +10,15 @@ class SoapConnector extends CachingConnector
 {
     private $client;
 
+    private $wsdl;
+
     private $options;
 
     public function __construct($wsdl = null, SoapOptions $options = null)
     {
         parent::__construct();
 
-        $this->client = new \SoapClient($wsdl, $options ? $options->extractSoapClientOptions() : null);
+        $this->wsdl = $wsdl;
         $this->options = $options;
     }
 
@@ -30,8 +32,14 @@ class SoapConnector extends CachingConnector
 
         return ObjectType::toArray(
             \ScriptFUSION\Retry\retry(5, function () use ($source, $params) {
-                return $this->client->$source($params);
+                return $this->getOrCreateClient()->$source($params);
             }, new ExponentialBackoffErrorHandler)
         );
+    }
+
+    private function getOrCreateClient()
+    {
+        return $this->client ?: $this->client =
+            new \SoapClient($this->wsdl, $this->options ? $this->options->extractSoapClientOptions() : null);
     }
 }

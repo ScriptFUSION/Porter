@@ -18,9 +18,9 @@ final class UrlBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testBuildUrl($base, $relative, $full)
     {
-        $builder = new UrlBuilder((new HttpOptions)->setBaseUrl("http://foo/$base"));
+        $builder = new UrlBuilder(new HttpOptions);
 
-        self::assertSame("http://foo/$full", $builder->buildUrl("$relative"));
+        self::assertSame("http://foo/$full", $builder->buildUrl("$relative", [], "http://foo/$base"));
     }
 
     public function providerUrlPathFragments()

@@ -5,7 +5,7 @@ use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use ScriptFUSION\Porter\Net\Http\HttpConnector;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 
-final class HttpConnectorTestTest extends \PHPUnit_Framework_TestCase
+final class HttpConnectorTest extends \PHPUnit_Framework_TestCase
 {
     use MockeryPHPUnitIntegration;
 
@@ -14,5 +14,10 @@ final class HttpConnectorTestTest extends \PHPUnit_Framework_TestCase
         $this->setExpectedException(\InvalidArgumentException::class);
 
         (new HttpConnector)->fetch('foo', \Mockery::mock(EncapsulatedOptions::class));
+    }
+
+    public function testBaseUrl()
+    {
+        self::assertSame('foo', (new HttpConnector)->setBaseUrl('foo')->getBaseUrl());
     }
 }

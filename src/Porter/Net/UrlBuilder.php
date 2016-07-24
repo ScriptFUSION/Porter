@@ -13,13 +13,13 @@ class UrlBuilder
         $this->options = $options;
     }
 
-    public function buildUrl($endpoint, array $params = [])
+    public function buildUrl($endpoint, array $params = [], $baseUrl = null)
     {
         $uri = UriFactory::factory($endpoint);
 
-        if (!$uri->isAbsolute() && $this->options->getBaseUrl()) {
+        if ($baseUrl && !$uri->isAbsolute()) {
             // Convert relative URL to absolute URL using base URL.
-            $uri->resolve($this->options->getBaseUrl());
+            $uri->resolve($baseUrl);
         }
 
         // Merge query parameters.

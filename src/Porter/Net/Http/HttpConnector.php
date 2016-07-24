@@ -14,6 +14,9 @@ class HttpConnector extends CachingConnector
     /** @var UrlBuilder */
     private $urlBuilder;
 
+    /** @var string */
+    private $baseUrl;
+
     public function __construct(HttpOptions $options = null)
     {
         parent::__construct();
@@ -29,7 +32,11 @@ class HttpConnector extends CachingConnector
 
         return \ScriptFUSION\Retry\retry(5, function () use ($source, $options) {
             if (false === $response = @file_get_contents(
-                $this->getOrCreateUrlBuilder()->buildUrl($source, $options ? $options->getQueryParameters() : []),
+                $this->getOrCreateUrlBuilder()->buildUrl(
+                    $source,
+                    $options ? $options->getQueryParameters() : [],
+                    $this->getBaseUrl()
+                ),
                 false,
                 stream_context_create([
                     'http' => array_merge(
@@ -48,5 +55,25 @@ class HttpConnector extends CachingConnector
     private function getOrCreateUrlBuilder()
     {
         return $this->urlBuilder ?: $this->urlBuilder = new UrlBuilder($this->options);
+    }
+
+    /**
+     * @return string
+     */
+    public function getBaseUrl()
+    {
+        return $this->baseUrl;
+    }
+
+    /**
+     * @param $baseUrl
+     *
+     * @return $this
+     */
+    public function setBaseUrl($baseUrl)
+    {
+        $this->baseUrl = "$baseUrl";
+
+        return $this;
     }
 }
