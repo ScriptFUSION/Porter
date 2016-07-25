@@ -4,6 +4,7 @@ namespace ScriptFUSIONTest\Integration\Porter\Connector;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
 use ScriptFUSION\Porter\Connector\CachingConnector;
+use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 use ScriptFUSIONTest\Porter\Options\TestOptions;
 
 final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
@@ -23,7 +24,7 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
             ->andReturn('foo', 'bar')
             ->getMock();
 
-        $this->options = (new TestOptions)->setFoo('foo');
+        $this->options = new TestOptions;
     }
 
     public function testCacheEnabled()
@@ -57,7 +58,9 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
 
     public function testNullAndEmptyAreEquivalent()
     {
-        $options = new TestOptions;
+        /** @var EncapsulatedOptions $options */
+        $options = \Mockery::mock(EncapsulatedOptions::class)->shouldReceive('copy')->andReturn([])->getMock();
+
         self::assertEmpty($options->copy());
         self::assertSame('foo', $this->connector->fetch('baz', $options));
 

@@ -3,12 +3,12 @@ namespace ScriptFUSION\Porter\Options;
 
 /**
  * Encapsulates a collection of implementation-defined name and value pairs.
- *
- * TODO: Address get() default parameter value and copy() value inconsistency.
  */
 abstract class EncapsulatedOptions
 {
     private $options = [];
+
+    private $defaults = [];
 
     /**
      * Creates a copy of the encapsulated options.
@@ -17,7 +17,7 @@ abstract class EncapsulatedOptions
      */
     final public function copy()
     {
-        return $this->options;
+        return $this->options + $this->defaults;
     }
 
     /**
@@ -25,17 +25,18 @@ abstract class EncapsulatedOptions
      * default value if option name is not set.
      *
      * @param string $option Option name.
-     * @param mixed $default Default value.
      *
      * @return mixed Option value or default value.
      */
-    final protected function get($option, $default = null)
+    final protected function get($option)
     {
         if (array_key_exists($key = "$option", $this->options)) {
             return $this->options[$key];
         }
 
-        return $default;
+        if (array_key_exists($key, $this->defaults)) {
+            return $this->defaults[$key];
+        }
     }
 
     /**
@@ -61,6 +62,20 @@ abstract class EncapsulatedOptions
     final protected function set($option, $value)
     {
         $this->options["$option"] = $value;
+
+        return $this;
+    }
+
+    /**
+     * Sets the default values for the specified map of keys and values.
+     *
+     * @param array $defaults Map of keys and default values.
+     *
+     * @return $this
+     */
+    final protected function setDefaults(array $defaults)
+    {
+        $this->defaults = $defaults;
 
         return $this;
     }

@@ -34,7 +34,7 @@ final class EncapsulatedOptionsTest extends \PHPUnit_Framework_TestCase
 
     public function testCopy()
     {
-        self::assertSame([], $this->options->copy());
+        self::assertSame(['foo' => 'foo'], $this->options->copy());
 
         $this->options->setFoo('bar');
 

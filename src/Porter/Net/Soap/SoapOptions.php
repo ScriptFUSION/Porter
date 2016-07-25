@@ -5,9 +5,16 @@ use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 
 final class SoapOptions extends EncapsulatedOptions
 {
+    public function __construct()
+    {
+        $this->setDefaults([
+            'params' => [],
+        ]);
+    }
+
     public function getParameters()
     {
-        return $this->get('params', []);
+        return $this->get('params');
     }
 
     public function setParameters(array $params)

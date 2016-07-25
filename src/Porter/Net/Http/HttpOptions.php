@@ -9,22 +9,12 @@ use ScriptFUSION\Porter\Type\StringType;
  */
 final class HttpOptions extends EncapsulatedOptions
 {
-    /**
-     * @return string
-     */
-    public function getBaseUrl()
+    public function __construct()
     {
-        return $this->get('baseUrl');
-    }
-
-    /**
-     * @param string $baseUrl
-     *
-     * @return $this
-     */
-    public function setBaseUrl($baseUrl)
-    {
-        return $this->set('baseUrl', "$baseUrl");
+        $this->setDefaults([
+            'queryParameters' => [],
+            'header' => [],
+        ]);
     }
 
     /**
@@ -32,7 +22,7 @@ final class HttpOptions extends EncapsulatedOptions
      */
     public function getQueryParameters()
     {
-        return $this->get('queryParameters', []);
+        return $this->get('queryParameters');
     }
 
     /**
@@ -50,7 +40,7 @@ final class HttpOptions extends EncapsulatedOptions
      */
     public function getHeaders()
     {
-        return $this->get('header', []);
+        return $this->get('header');
     }
 
     /**

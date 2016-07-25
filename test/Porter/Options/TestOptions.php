@@ -5,6 +5,11 @@ use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 
 final class TestOptions extends EncapsulatedOptions
 {
+    public function __construct()
+    {
+        $this->setDefaults(['foo' => 'foo']);
+    }
+
     public function setFoo($foo)
     {
         return $this->set('foo', $foo);
@@ -12,7 +17,7 @@ final class TestOptions extends EncapsulatedOptions
 
     public function getFoo()
     {
-        return $this->get('foo', 'foo');
+        return $this->get('foo');
     }
 
     public function removeFooKey($child)

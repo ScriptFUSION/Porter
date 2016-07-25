@@ -9,7 +9,6 @@ final class HttpOptionsTest extends \PHPUnit_Framework_TestCase
     {
         $options = new HttpOptions;
 
-        self::assertNull($options->getBaseUrl());
         self::assertSame([], $options->getQueryParameters());
         self::assertSame([], $options->getHeaders());
     }
@@ -50,16 +49,10 @@ final class HttpOptionsTest extends \PHPUnit_Framework_TestCase
 
     public function testExtractHttpContextOptions()
     {
-        self::assertSame([], (new HttpOptions)->extractHttpContextOptions());
+        self::assertSame(['header' => []], (new HttpOptions)->extractHttpContextOptions());
 
-        $options = (new HttpOptions)
-            ->addHeader('foo')
-            ->setBaseUrl('bar') // Not a context option.
-        ;
+        $options = (new HttpOptions)->addHeader('foo');
 
         self::assertSame(['header' => ['foo']], $options->extractHttpContextOptions());
-
-        // Ensure non-context options have not been altered.
-        self::assertSame('bar', $options->getBaseUrl());
     }
 }
