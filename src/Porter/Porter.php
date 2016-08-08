@@ -6,6 +6,8 @@ use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
 use ScriptFUSION\Porter\Cache\CacheToggle;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
+use ScriptFUSION\Porter\Collection\CountableMappedRecords;
+use ScriptFUSION\Porter\Collection\CountablePorterRecords;
 use ScriptFUSION\Porter\Collection\FilteredRecords;
 use ScriptFUSION\Porter\Collection\MappedRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
@@ -42,7 +44,6 @@ class Porter
      */
     public function import(ImportSpecification $specification)
     {
-        $specification = clone $specification;
         $records = $this->fetch($specification->getDataSource(), $specification->getCacheAdvice());
 
         if (!$records instanceof ProviderRecords) {
@@ -56,6 +57,15 @@ class Porter
 
         if ($specification->getMapping()) {
             $records = $this->map($records, $specification->getMapping(), $specification->getContext());
+        }
+
+        return $this->createPorterRecords($records, clone $specification);
+    }
+
+    private function createPorterRecords(RecordCollection $records, ImportSpecification $specification)
+    {
+        if ($records instanceof \Countable) {
+            return new CountablePorterRecords($records, count($records), $specification);
         }
 
         return new PorterRecords($records, $specification);
@@ -84,7 +94,19 @@ class Porter
 
     private function map(RecordCollection $records, Mapping $mapping, $context)
     {
-        return new MappedRecords($this->getOrCreateMapper()->mapCollection($records, $mapping, $context), $records);
+        return $this->createMappedRecords(
+            $this->getOrCreateMapper()->mapCollection($records, $mapping, $context),
+            $records
+        );
+    }
+
+    private function createMappedRecords(\Iterator $records, RecordCollection $previous)
+    {
+        if ($previous instanceof \Countable) {
+            return new CountableMappedRecords($records, count($previous), $previous);
+        }
+
+        return new MappedRecords($records, $previous);
     }
 
     private function applyCacheAdvice(Provider $provider, CacheAdvice $cacheAdvice)

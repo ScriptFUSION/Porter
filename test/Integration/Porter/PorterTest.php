@@ -8,6 +8,8 @@ use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
 use ScriptFUSION\Porter\Cache\CacheToggle;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
+use ScriptFUSION\Porter\Collection\CountableMappedRecords;
+use ScriptFUSION\Porter\Collection\CountableProviderRecords;
 use ScriptFUSION\Porter\Collection\FilteredRecords;
 use ScriptFUSION\Porter\Collection\MappedRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
@@ -17,6 +19,7 @@ use ScriptFUSION\Porter\Provider\DataSource\ProviderDataSource;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\ProviderNotFoundException;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
+use ScriptFUSION\Porter\Specification\StaticDataImportSpecification;
 use ScriptFUSIONTest\MockFactory;
 
 final class PorterTest extends \PHPUnit_Framework_TestCase
@@ -71,11 +74,69 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     public function testImport()
     {
-        $records = $this->porter->import(new ImportSpecification($this->dataSource));
+        $records = $this->porter->import($specification = new ImportSpecification($this->dataSource));
 
         self::assertInstanceOf(PorterRecords::class, $records);
+        self::assertNotSame($specification, $records->getSpecification());
         self::assertInstanceOf(ProviderRecords::class, $records->getPreviousCollection());
         self::assertSame('foo', $records->current());
+    }
+
+    /**
+     * Tests that when the data source is countable the count is propagated to
+     * the outermost collection.
+     */
+    public function testImportCountableRecords()
+    {
+        $records = $this->porter->import(
+            new StaticDataImportSpecification(
+                new CountableProviderRecords(\Mockery::mock(\Iterator::class), $count = rand(1, 9), $this->dataSource)
+            )
+        );
+
+        // Innermost collection.
+        self::assertInstanceOf(\Countable::class, $first = $records->findFirstCollection());
+        self::assertCount($count, $first);
+
+        // Outermost collection.
+        self::assertInstanceOf(\Countable::class, $records);
+        self::assertCount($count, $records);
+    }
+
+    /**
+     * Tests that when the data source is countable the count is propagated to
+     * the outermost collection via a mapped collection.
+     */
+    public function testImportAndMapCountableRecords()
+    {
+        $records = $this->porter->import(
+            (new StaticDataImportSpecification(
+                new CountableProviderRecords(\Mockery::mock(\Iterator::class), $count = rand(1, 9), $this->dataSource)
+            ))->setMapping(\Mockery::mock(Mapping::class))
+        );
+
+        self::assertInstanceOf(CountableMappedRecords::class, $records->getPreviousCollection());
+        self::assertInstanceOf(\Countable::class, $records);
+        self::assertCount($count, $records);
+    }
+
+    /**
+     * Tests that when the data source is countable the count is lost when
+     * filtering is applied.
+     */
+    public function testImportAndFilterCountableRecords()
+    {
+        $records = $this->porter->import(
+            (new StaticDataImportSpecification(
+                new CountableProviderRecords(\Mockery::mock(\Iterator::class), $count = rand(1, 9), $this->dataSource)
+            ))->setFilter([$this, __FUNCTION__])
+        );
+
+        // Innermost collection.
+        self::assertInstanceOf(\Countable::class, $first = $records->findFirstCollection());
+
+        // Outermost collection.
+        self::assertNotInstanceOf(\Countable::class, $records);
     }
 
     public function testFilter()

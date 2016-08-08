@@ -52,9 +52,7 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
     public function testFilter()
     {
         self::assertSame(
-            $filter = function () {
-                // Intentionally empty.
-            },
+            $filter = [$this, __FUNCTION__],
             $this->specification->setFilter($filter)->getFilter()
         );
     }
