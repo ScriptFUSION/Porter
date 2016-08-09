@@ -5,7 +5,7 @@ use ScriptFUSION\Porter\Specification\ImportSpecification;
 
 class CountablePorterRecords extends PorterRecords implements \Countable
 {
-    private $count;
+    use CountableRecordsTrait;
 
     /**
      * @param RecordCollection $records
@@ -16,11 +16,6 @@ class CountablePorterRecords extends PorterRecords implements \Countable
     {
         parent::__construct($records, $specification);
 
-        $this->count = $count|0;
-    }
-
-    public function count()
-    {
-        return $this->count;
+        $this->setCount($count);
     }
 }

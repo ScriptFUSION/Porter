@@ -3,7 +3,7 @@ namespace ScriptFUSION\Porter\Collection;
 
 class CountableMappedRecords extends MappedRecords implements \Countable
 {
-    private $count;
+    use CountableRecordsTrait;
 
     /**
      * @param \Iterator $records
@@ -14,11 +14,6 @@ class CountableMappedRecords extends MappedRecords implements \Countable
     {
         parent::__construct($records, $previousCollection);
 
-        $this->count = $count|0;
-    }
-
-    public function count()
-    {
-        return $this->count;
+        $this->setCount($count);
     }
 }

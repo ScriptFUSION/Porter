@@ -133,7 +133,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         );
 
         // Innermost collection.
-        self::assertInstanceOf(\Countable::class, $first = $records->findFirstCollection());
+        self::assertInstanceOf(\Countable::class, $records->findFirstCollection());
 
         // Outermost collection.
         self::assertNotInstanceOf(\Countable::class, $records);

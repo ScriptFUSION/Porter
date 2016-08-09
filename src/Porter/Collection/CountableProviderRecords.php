@@ -5,7 +5,7 @@ use ScriptFUSION\Porter\Provider\DataSource\ProviderDataSource;
 
 class CountableProviderRecords extends ProviderRecords implements \Countable
 {
-    private $count;
+    use CountableRecordsTrait;
 
     /**
      * @param \Iterator $providerRecords
@@ -16,11 +16,6 @@ class CountableProviderRecords extends ProviderRecords implements \Countable
     {
         parent::__construct($providerRecords, $dataSource);
 
-        $this->count = $count|0;
-    }
-
-    public function count()
-    {
-        return $this->count;
+        $this->setCount($count);
     }
 }
