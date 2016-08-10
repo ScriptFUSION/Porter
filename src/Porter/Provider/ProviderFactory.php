@@ -1,7 +1,7 @@
 <?php
 namespace ScriptFUSION\Porter\Provider;
 
-class ProviderFactory
+final class ProviderFactory
 {
     public function createProvider($name)
     {

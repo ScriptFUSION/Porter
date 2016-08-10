@@ -17,6 +17,8 @@ use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Porter;
 use ScriptFUSION\Porter\Provider\DataSource\ProviderDataSource;
 use ScriptFUSION\Porter\Provider\Provider;
+use ScriptFUSION\Porter\Provider\StaticDataProvider;
+use ScriptFUSION\Porter\ProviderAlreadyRegisteredException;
 use ScriptFUSION\Porter\ProviderNotFoundException;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\Porter\Specification\StaticDataImportSpecification;
@@ -37,7 +39,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $this->porter = (new Porter)->addProvider(
+        $this->porter = (new Porter)->registerProvider(
             $this->provider =
                 \Mockery::mock(Provider::class)
                     ->shouldReceive('fetch')
@@ -54,6 +56,25 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         self::assertSame($this->provider, $this->porter->getProvider(get_class($this->provider)));
     }
 
+    public function testRegisterSameProvider()
+    {
+        $this->setExpectedException(ProviderAlreadyRegisteredException::class);
+
+        $this->porter->registerProvider($this->provider);
+    }
+
+    public function testRegisterProviderTag()
+    {
+        $this->porter->registerProvider($provider = clone $this->provider, 'foo');
+
+        self::assertSame($provider, $this->porter->getProvider(get_class($this->provider), 'foo'));
+    }
+
+    public function testGetStaticProvider()
+    {
+        self::assertInstanceOf(StaticDataProvider::class, $this->porter->getProvider(StaticDataProvider::class));
+    }
+
     public function testGetInvalidProvider()
     {
         $this->setExpectedException(ProviderNotFoundException::class);
@@ -61,15 +82,25 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         (new Porter)->getProvider('foo');
     }
 
-    public function testAddProviders()
+    public function testGetInvalidTag()
     {
-        $this->porter->addProviders([
-            $this->provider,
-            $provider = $this->getMockBuilder(Provider::class)->disableOriginalConstructor()->getMock(),
-        ]);
+        $this->setExpectedException(ProviderNotFoundException::class);
 
-        self::assertSame($this->provider, $this->porter->getProvider(get_class($this->provider)));
-        self::assertSame($provider, $this->porter->getProvider(get_class($provider)));
+        (new Porter)->getProvider(get_class($this->provider), 'foo');
+    }
+
+    public function testGetStaticProviderTag()
+    {
+        $this->setExpectedException(ProviderNotFoundException::class);
+
+        $this->porter->getProvider(StaticDataProvider::class, 'foo');
+    }
+
+    public function testHasProvider()
+    {
+        self::assertTrue($this->porter->hasProvider(get_class($this->provider)));
+        self::assertFalse($this->porter->hasProvider(get_class($this->provider), 'foo'));
+        self::assertFalse($this->porter->hasProvider('foo'));
     }
 
     public function testImport()
@@ -175,7 +206,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     public function testApplyCacheAdvice()
     {
-        $this->porter->addProvider(
+        $this->porter->registerProvider(
             $provider = \Mockery::mock(implode(',', [Provider::class, CacheToggle::class]))
                 ->shouldReceive('fetch')->andReturn(new \EmptyIterator)
                 ->shouldReceive('disableCache')->once()

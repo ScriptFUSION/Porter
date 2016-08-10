@@ -44,10 +44,14 @@ class Porter
      */
     public function import(ImportSpecification $specification)
     {
-        $records = $this->fetch($specification->getDataSource(), $specification->getCacheAdvice());
+        $records = $this->fetch(
+            $specification->getDataSource(),
+            $specification->getProviderTag(),
+            $specification->getCacheAdvice()
+        );
 
         if (!$records instanceof ProviderRecords) {
-            // Compose records iterator.
+            // Wrap Iterator in ProviderRecords.
             $records = new ProviderRecords($records, $specification->getDataSource());
         }
 
@@ -71,9 +75,9 @@ class Porter
         return new PorterRecords($records, $specification);
     }
 
-    private function fetch(ProviderDataSource $dataSource, CacheAdvice $cacheAdvice = null)
+    private function fetch(ProviderDataSource $dataSource, $providerTag, CacheAdvice $cacheAdvice = null)
     {
-        $provider = $this->getProvider($dataSource->getProviderClassName());
+        $provider = $this->getProvider($dataSource->getProviderClassName(), $providerTag);
         $this->applyCacheAdvice($provider, $cacheAdvice ?: $this->defaultCacheAdvice);
 
         return $provider->fetch($dataSource);
@@ -136,41 +140,81 @@ class Porter
     }
 
     /**
-     * @param string $name
+     * Registers the specified provider optionally identified by the specified tag.
+     *
+     * @param Provider $provider Provider.
+     * @param string|null $tag Optional. Provider tag.
+     *
+     * @return $this
+     *
+     * @throws ProviderAlreadyRegisteredException The specified provider is already registered.
+     */
+    public function registerProvider(Provider $provider, $tag = null)
+    {
+        if ($this->hasProvider($name = get_class($provider), $tag)) {
+            throw new ProviderAlreadyRegisteredException("Provider already registered: \"$name\" with tag \"$tag\".");
+        }
+
+        $this->providers[$this->hashProviderName($name, $tag)] = $provider;
+
+        return $this;
+    }
+
+    /**
+     * Gets the provider matching the specified class name and optionally a tag.
+     *
+     * @param string $name Provider class name.
+     * @param string|null $tag Optional. Provider tag.
      *
      * @return Provider
      *
-     * @throws ProviderNotFoundException The requested provider was not found.
+     * @throws ProviderNotFoundException The specified provider was not found.
      */
-    public function getProvider($name)
+    public function getProvider($name, $tag = null)
     {
-        if (isset($this->providers["$name"])) {
-            return $this->providers["$name"];
+        if ($this->hasProvider($name, $tag)) {
+            return $this->providers[$this->hashProviderName($name, $tag)];
         }
 
         try {
-            $this->addProvider($provider = $this->getOrCreateProviderFactory()->createProvider("$name"));
-        } catch (ObjectNotCreatedException $e) {
-            throw new ProviderNotFoundException("No such provider registered: \"$name\".", $e);
+            // Tags are not supported for lazy-loaded providers because every instance would be the same.
+            if ($tag === null) {
+                $this->registerProvider($provider = $this->getOrCreateProviderFactory()->createProvider("$name"));
+
+                return $provider;
+            }
+        } catch (ObjectNotCreatedException $exception) {
+            // Intentionally empty.
         }
 
-        return $provider;
+        throw new ProviderNotFoundException(
+            "No such provider registered: \"$name\" with tag \"$tag\".",
+            isset($exception) ? $exception : null
+        );
     }
 
-    public function addProvider(Provider $provider)
+    /**
+     * Gets a value indicating whether the specified provider is registered.
+     *
+     * @param string $name Provider class name.
+     * @param string|null $tag Optional. Provider tag.
+     *
+     * @return bool True if the specified provider is registered, otherwise false.
+     */
+    public function hasProvider($name, $tag = null)
     {
-        $this->providers[get_class($provider)] = $provider;
-
-        return $this;
+        return isset($this->providers[$this->hashProviderName($name, $tag)]);
     }
 
-    public function addProviders(array $providers)
+    /**
+     * @param string $name Provider class name.
+     * @param string|null $tag Provider tag.
+     *
+     * @return string Provider identifier hash.
+     */
+    private function hashProviderName($name, $tag)
     {
-        foreach ($providers as $provider) {
-            $this->addProvider($provider);
-        }
-
-        return $this;
+        return "$name#$tag";
     }
 
     private function getOrCreateProviderFactory()
