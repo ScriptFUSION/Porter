@@ -5,7 +5,7 @@ use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 use ScriptFUSION\Porter\Provider\StaticDataProvider;
 
-class StaticResource implements ProviderResource
+class StaticResource implements Resource
 {
     private $data;
 

@@ -17,7 +17,7 @@ use ScriptFUSION\Porter\Mapper\PorterMapper;
 use ScriptFUSION\Porter\Provider\ObjectNotCreatedException;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\ProviderFactory;
-use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
+use ScriptFUSION\Porter\Provider\Resource\Resource;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 
 class Porter
@@ -71,7 +71,7 @@ class Porter
         return new PorterRecords($records, $specification);
     }
 
-    private function fetch(ProviderResource $resource, CacheAdvice $cacheAdvice = null)
+    private function fetch(Resource $resource, CacheAdvice $cacheAdvice = null)
     {
         $provider = $this->getProvider($resource->getProviderClassName(), $resource->getProviderTag());
         $this->applyCacheAdvice($provider, $cacheAdvice ?: $this->defaultCacheAdvice);

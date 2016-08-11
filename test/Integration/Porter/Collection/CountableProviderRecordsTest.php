@@ -2,7 +2,7 @@
 namespace ScriptFUSIONTest\Integration\Porter\Collection;
 
 use ScriptFUSION\Porter\Collection\CountableProviderRecords;
-use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
+use ScriptFUSION\Porter\Provider\Resource\Resource;
 
 final class CountableProviderRecordsTest extends \PHPUnit_Framework_TestCase
 {
@@ -13,7 +13,7 @@ final class CountableProviderRecordsTest extends \PHPUnit_Framework_TestCase
         $records = new CountableProviderRecords(
             new \ArrayIterator($data),
             count($data),
-            \Mockery::mock(ProviderResource::class)
+            \Mockery::mock(Resource::class)
         );
 
         self::assertCount(count($data), $records);

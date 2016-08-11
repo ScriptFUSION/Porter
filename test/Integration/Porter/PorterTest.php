@@ -16,7 +16,7 @@ use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Porter;
 use ScriptFUSION\Porter\Provider\Provider;
-use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
+use ScriptFUSION\Porter\Provider\Resource\Resource;
 use ScriptFUSION\Porter\Provider\StaticDataProvider;
 use ScriptFUSION\Porter\ProviderAlreadyRegisteredException;
 use ScriptFUSION\Porter\ProviderNotFoundException;
@@ -34,7 +34,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     /** @var Provider|MockInterface */
     private $provider;
 
-    /** @var ProviderResource */
+    /** @var Resource */
     private $resource;
 
     protected function setUp()

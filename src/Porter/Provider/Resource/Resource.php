@@ -6,7 +6,7 @@ use ScriptFUSION\Porter\Connector\Connector;
 /**
  * Defines methods for fetching data from a specific provider resource.
  */
-interface ProviderResource
+interface Resource
 {
     /**
      * Gets the class name of the provider this resource belongs to.

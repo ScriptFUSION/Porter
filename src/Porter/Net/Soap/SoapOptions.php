@@ -3,6 +3,9 @@ namespace ScriptFUSION\Porter\Net\Soap;
 
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 
+/**
+ * TODO. Add missing SOAP context option accessors and mutators.
+ */
 final class SoapOptions extends EncapsulatedOptions
 {
     public function __construct()

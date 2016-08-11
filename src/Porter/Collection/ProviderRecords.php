@@ -1,13 +1,13 @@
 <?php
 namespace ScriptFUSION\Porter\Collection;
 
-use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
+use ScriptFUSION\Porter\Provider\Resource\Resource;
 
 class ProviderRecords extends RecordCollection
 {
     private $resource;
 
-    public function __construct(\Iterator $providerRecords, ProviderResource $resource)
+    public function __construct(\Iterator $providerRecords, Resource $resource)
     {
         parent::__construct($providerRecords);
 
@@ -15,7 +15,7 @@ class ProviderRecords extends RecordCollection
     }
 
     /**
-     * @return ProviderResource
+     * @return Resource
      */
     public function getResource()
     {
