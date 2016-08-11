@@ -36,6 +36,24 @@ final class HttpOptions extends EncapsulatedOptions
     }
 
     /**
+     * @return string
+     */
+    public function getMethod()
+    {
+        return $this->get('method');
+    }
+
+    /**
+     * @param string $method
+     *
+     * @return $this
+     */
+    public function setMethod($method)
+    {
+        return $this->set('method', "$method");
+    }
+
+    /**
      * @return array
      */
     public function getHeaders()
@@ -98,9 +116,29 @@ final class HttpOptions extends EncapsulatedOptions
     }
 
     /**
+     * @return string
+     */
+    public function getContent()
+    {
+        return $this->get('content');
+    }
+
+    /**
+     * @param string $content
+     *
+     * @return $this
+     */
+    public function setContent($content)
+    {
+        return $this->set('content', "$content");
+    }
+
+    /**
      * Extracts a list of HTTP context options only.
      *
      * @return array HTTP context options.
+     *
+     * @see http://php.net/manual/en/context.http.php
      */
     public function extractHttpContextOptions()
     {

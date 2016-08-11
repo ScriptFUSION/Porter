@@ -13,6 +13,19 @@ final class HttpOptionsTest extends \PHPUnit_Framework_TestCase
         self::assertSame([], $options->getHeaders());
     }
 
+    public function testQueryParameters()
+    {
+        self::assertSame(
+            $query = ['foo' => 'bar'],
+            (new HttpOptions)->setQueryParameters($query)->getQueryParameters()
+        );
+    }
+
+    public function testMethod()
+    {
+        self::assertSame('foo', (new HttpOptions)->setMethod('foo')->getMethod());
+    }
+
     public function testFindHeader()
     {
         $options = (new HttpOptions)->addHeader('Foo: bar')->addHeader($baz = 'Baz: bat');
@@ -54,5 +67,10 @@ final class HttpOptionsTest extends \PHPUnit_Framework_TestCase
         $options = (new HttpOptions)->addHeader('foo');
 
         self::assertSame(['header' => ['foo']], $options->extractHttpContextOptions());
+    }
+
+    public function testContent()
+    {
+        self::assertSame($content = "foo\nbar", (new HttpOptions)->setContent($content)->getContent());
     }
 }
