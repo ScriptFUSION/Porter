@@ -11,9 +11,16 @@ interface ProviderDataSource
     /**
      * Gets the class name of the provider this data source belongs to.
      *
-     * @return string
+     * @return string Provider class name.
      */
     public function getProviderClassName();
+
+    /**
+     * Gets the provider identifier tag.
+     *
+     * @return string|null Provider tag.
+     */
+    public function getProviderTag();
 
     /**
      * Fetches data from the provider using the the specified connector and

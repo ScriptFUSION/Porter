@@ -11,9 +11,9 @@ final class MockFactory
 {
     use StaticClass;
 
-    public static function mockImportSpecification()
+    public static function mockImportSpecification(ProviderDataSource $dataSource = null)
     {
-        return \Mockery::mock(ImportSpecification::class, [\Mockery::mock(ProviderDataSource::class)]);
+        return \Mockery::mock(ImportSpecification::class, [$dataSource ?: \Mockery::mock(ProviderDataSource::class)]);
     }
 
     /**
@@ -23,7 +23,7 @@ final class MockFactory
      */
     public static function mockDataSource(Provider $provider)
     {
-        return \Mockery::mock(ProviderDataSource::class)
+        return \Mockery::spy(ProviderDataSource::class)
             ->shouldReceive('getProviderClassName')
             ->andReturn(get_class($provider))
             ->getMock();

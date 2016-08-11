@@ -44,11 +44,7 @@ class Porter
      */
     public function import(ImportSpecification $specification)
     {
-        $records = $this->fetch(
-            $specification->getDataSource(),
-            $specification->getProviderTag(),
-            $specification->getCacheAdvice()
-        );
+        $records = $this->fetch($specification->getDataSource(), $specification->getCacheAdvice());
 
         if (!$records instanceof ProviderRecords) {
             // Wrap Iterator in ProviderRecords.
@@ -75,9 +71,9 @@ class Porter
         return new PorterRecords($records, $specification);
     }
 
-    private function fetch(ProviderDataSource $dataSource, $providerTag, CacheAdvice $cacheAdvice = null)
+    private function fetch(ProviderDataSource $dataSource, CacheAdvice $cacheAdvice = null)
     {
-        $provider = $this->getProvider($dataSource->getProviderClassName(), $providerTag);
+        $provider = $this->getProvider($dataSource->getProviderClassName(), $dataSource->getProviderTag());
         $this->applyCacheAdvice($provider, $cacheAdvice ?: $this->defaultCacheAdvice);
 
         return $provider->fetch($dataSource);

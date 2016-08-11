@@ -10,9 +10,6 @@ class ImportSpecification
     /** @var ProviderDataSource */
     private $dataSource;
 
-    /** @var string */
-    private $providerTag;
-
     /** @var Mapping */
     private $mapping;
 
@@ -43,26 +40,6 @@ class ImportSpecification
     final public function getDataSource()
     {
         return $this->dataSource;
-    }
-
-    /**
-     * @return string
-     */
-    final public function getProviderTag()
-    {
-        return $this->providerTag;
-    }
-
-    /**
-     * @param $providerTag
-     *
-     * @return $this
-     */
-    final public function setProviderTag($providerTag)
-    {
-        $this->providerTag = "$providerTag";
-
-        return $this;
     }
 
     /**

@@ -63,6 +63,13 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         $this->porter->registerProvider($this->provider);
     }
 
+    public function testRegisterSameProviderType()
+    {
+        $this->setExpectedException(ProviderAlreadyRegisteredException::class);
+
+        $this->porter->registerProvider(clone $this->provider);
+    }
+
     public function testRegisterProviderTag()
     {
         $this->porter->registerProvider($provider = clone $this->provider, 'foo');
@@ -94,6 +101,26 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         $this->setExpectedException(ProviderNotFoundException::class);
 
         $this->porter->getProvider(StaticDataProvider::class, 'foo');
+    }
+
+    public function testImportTaggedResource()
+    {
+        $this->porter->registerProvider(
+            $provider = \Mockery::mock(Provider::class)
+                ->shouldReceive('fetch')
+                ->andReturn(new \ArrayIterator([$output = 'bar']))
+                ->getMock(),
+            $tag = 'foo'
+        );
+
+        $records = $this->porter->import(MockFactory::mockImportSpecification(
+            MockFactory::mockDataSource($provider)
+                ->shouldReceive('getProviderTag')
+                ->andReturn($tag)
+                ->getMock()
+        ));
+
+        self::assertSame($output, $records->current());
     }
 
     public function testHasProvider()
