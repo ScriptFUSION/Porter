@@ -1,15 +1,15 @@
 <?php
-namespace ScriptFUSION\Porter\Provider\DataSource;
+namespace ScriptFUSION\Porter\Provider\Resource;
 
 use ScriptFUSION\Porter\Connector\Connector;
 
 /**
- * Defines methods for fetching data from a specific provider data source.
+ * Defines methods for fetching data from a specific provider resource.
  */
-interface ProviderDataSource
+interface ProviderResource
 {
     /**
-     * Gets the class name of the provider this data source belongs to.
+     * Gets the class name of the provider this resource belongs to.
      *
      * @return string Provider class name.
      */

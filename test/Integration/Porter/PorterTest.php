@@ -15,8 +15,8 @@ use ScriptFUSION\Porter\Collection\MappedRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Porter;
-use ScriptFUSION\Porter\Provider\DataSource\ProviderDataSource;
 use ScriptFUSION\Porter\Provider\Provider;
+use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Provider\StaticDataProvider;
 use ScriptFUSION\Porter\ProviderAlreadyRegisteredException;
 use ScriptFUSION\Porter\ProviderNotFoundException;
@@ -34,8 +34,8 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     /** @var Provider|MockInterface */
     private $provider;
 
-    /** @var ProviderDataSource */
-    private $dataSource;
+    /** @var ProviderResource */
+    private $resource;
 
     protected function setUp()
     {
@@ -48,7 +48,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
                     ->getMock()
         );
 
-        $this->dataSource = MockFactory::mockDataSource($this->provider);
+        $this->resource = MockFactory::mockResource($this->provider);
     }
 
     public function testGetProvider()
@@ -114,7 +114,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         );
 
         $records = $this->porter->import(MockFactory::mockImportSpecification(
-            MockFactory::mockDataSource($provider)
+            MockFactory::mockResource($provider)
                 ->shouldReceive('getProviderTag')
                 ->andReturn($tag)
                 ->getMock()
@@ -132,7 +132,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     public function testImport()
     {
-        $records = $this->porter->import($specification = new ImportSpecification($this->dataSource));
+        $records = $this->porter->import($specification = new ImportSpecification($this->resource));
 
         self::assertInstanceOf(PorterRecords::class, $records);
         self::assertNotSame($specification, $records->getSpecification());
@@ -141,14 +141,13 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Tests that when the data source is countable the count is propagated to
-     * the outermost collection.
+     * Tests that when the resource is countable the count is propagated to the outermost collection.
      */
     public function testImportCountableRecords()
     {
         $records = $this->porter->import(
             new StaticDataImportSpecification(
-                new CountableProviderRecords(\Mockery::mock(\Iterator::class), $count = rand(1, 9), $this->dataSource)
+                new CountableProviderRecords(\Mockery::mock(\Iterator::class), $count = rand(1, 9), $this->resource)
             )
         );
 
@@ -162,14 +161,14 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Tests that when the data source is countable the count is propagated to
-     * the outermost collection via a mapped collection.
+     * Tests that when the resource is countable the count is propagated to the outermost collection via a mapped
+     * collection.
      */
     public function testImportAndMapCountableRecords()
     {
         $records = $this->porter->import(
             (new StaticDataImportSpecification(
-                new CountableProviderRecords(\Mockery::mock(\Iterator::class), $count = rand(1, 9), $this->dataSource)
+                new CountableProviderRecords(\Mockery::mock(\Iterator::class), $count = rand(1, 9), $this->resource)
             ))->setMapping(\Mockery::mock(Mapping::class))
         );
 
@@ -179,14 +178,13 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Tests that when the data source is countable the count is lost when
-     * filtering is applied.
+     * Tests that when the resource is countable the count is lost when filtering is applied.
      */
     public function testImportAndFilterCountableRecords()
     {
         $records = $this->porter->import(
             (new StaticDataImportSpecification(
-                new CountableProviderRecords(\Mockery::mock(\Iterator::class), $count = rand(1, 9), $this->dataSource)
+                new CountableProviderRecords(\Mockery::mock(\Iterator::class), $count = rand(1, 9), $this->resource)
             ))->setFilter([$this, __FUNCTION__])
         );
 
@@ -202,7 +200,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         $this->provider->shouldReceive('fetch')->andReturn(new \ArrayIterator(range(1, 10)));
 
         $records = $this->porter->import(
-            (new ImportSpecification($this->dataSource))
+            (new ImportSpecification($this->resource))
                 ->setFilter(function ($record) {
                     return $record % 2;
                 })
@@ -223,7 +221,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
                 ->andReturn(new \ArrayIterator($result = ['foo' => 'bar']))
                 ->getMock()
         )->import(
-            (new ImportSpecification($this->dataSource))->setMapping(\Mockery::mock(Mapping::class))
+            (new ImportSpecification($this->resource))->setMapping(\Mockery::mock(Mapping::class))
         );
 
         self::assertInstanceOf(PorterRecords::class, $records);
@@ -241,7 +239,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
                 ->getMock()
         );
 
-        $this->porter->import($specification = new ImportSpecification(MockFactory::mockDataSource($provider)));
+        $this->porter->import($specification = new ImportSpecification(MockFactory::mockResource($provider)));
         $this->porter->import($specification->setCacheAdvice(CacheAdvice::SHOULD_CACHE()));
     }
 
@@ -249,6 +247,6 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     {
         $this->setExpectedException(CacheUnavailableException::class);
 
-        $this->porter->import((new ImportSpecification($this->dataSource))->setCacheAdvice(CacheAdvice::MUST_CACHE()));
+        $this->porter->import((new ImportSpecification($this->resource))->setCacheAdvice(CacheAdvice::MUST_CACHE()));
     }
 }

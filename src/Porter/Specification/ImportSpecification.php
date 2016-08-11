@@ -3,12 +3,12 @@ namespace ScriptFUSION\Porter\Specification;
 
 use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
-use ScriptFUSION\Porter\Provider\DataSource\ProviderDataSource;
+use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 
 class ImportSpecification
 {
-    /** @var ProviderDataSource */
-    private $dataSource;
+    /** @var ProviderResource */
+    private $resource;
 
     /** @var Mapping */
     private $mapping;
@@ -22,24 +22,24 @@ class ImportSpecification
     /** @var CacheAdvice */
     private $cacheAdvice;
 
-    public function __construct(ProviderDataSource $dataSource)
+    public function __construct(ProviderResource $resource)
     {
-        $this->dataSource = $dataSource;
+        $this->resource = $resource;
     }
 
     public function __clone()
     {
-        $this->dataSource = clone $this->dataSource;
+        $this->resource = clone $this->resource;
         $this->mapping !== null && $this->mapping = clone $this->mapping;
         is_object($this->context) && $this->context = clone $this->context;
     }
 
     /**
-     * @return ProviderDataSource
+     * @return ProviderResource
      */
-    final public function getDataSource()
+    final public function getResource()
     {
-        return $this->dataSource;
+        return $this->resource;
     }
 
     /**

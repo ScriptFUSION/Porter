@@ -14,10 +14,10 @@ use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Mapper\PorterMapper;
-use ScriptFUSION\Porter\Provider\DataSource\ProviderDataSource;
 use ScriptFUSION\Porter\Provider\ObjectNotCreatedException;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\ProviderFactory;
+use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 
 class Porter
@@ -44,11 +44,11 @@ class Porter
      */
     public function import(ImportSpecification $specification)
     {
-        $records = $this->fetch($specification->getDataSource(), $specification->getCacheAdvice());
+        $records = $this->fetch($specification->getResource(), $specification->getCacheAdvice());
 
         if (!$records instanceof ProviderRecords) {
             // Wrap Iterator in ProviderRecords.
-            $records = new ProviderRecords($records, $specification->getDataSource());
+            $records = new ProviderRecords($records, $specification->getResource());
         }
 
         if ($specification->getFilter()) {
@@ -71,12 +71,12 @@ class Porter
         return new PorterRecords($records, $specification);
     }
 
-    private function fetch(ProviderDataSource $dataSource, CacheAdvice $cacheAdvice = null)
+    private function fetch(ProviderResource $resource, CacheAdvice $cacheAdvice = null)
     {
-        $provider = $this->getProvider($dataSource->getProviderClassName(), $dataSource->getProviderTag());
+        $provider = $this->getProvider($resource->getProviderClassName(), $resource->getProviderTag());
         $this->applyCacheAdvice($provider, $cacheAdvice ?: $this->defaultCacheAdvice);
 
-        return $provider->fetch($dataSource);
+        return $provider->fetch($resource);
     }
 
     private function filter(ProviderRecords $records, callable $predicate, $context)

@@ -1,19 +1,19 @@
 <?php
 namespace ScriptFUSION\Porter\Provider;
 
-use ScriptFUSION\Porter\Provider\DataSource\ProviderDataSource;
+use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 
 /**
- * Provides a method for fetching data from a data source.
+ * Provides a method for fetching data from a resource.
  */
 interface Provider
 {
     /**
-     * Fetches data from the specified data source.
+     * Fetches data from the specified resource.
      *
-     * @param ProviderDataSource $dataSource Data source.
+     * @param ProviderResource $resource Resource.
      *
      * @return \Iterator Enumerable data series.
      */
-    public function fetch(ProviderDataSource $dataSource);
+    public function fetch(ProviderResource $resource);
 }

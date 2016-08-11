@@ -3,7 +3,7 @@ namespace ScriptFUSIONTest\Unit\Porter;
 
 use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
-use ScriptFUSION\Porter\Provider\DataSource\ProviderDataSource;
+use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 
 final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
@@ -11,13 +11,13 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
     /** @var ImportSpecification */
     private $specification;
 
-    /** @var ProviderDataSource */
-    private $dataSource;
+    /** @var ProviderResource */
+    private $resource;
 
     protected function setUp()
     {
         $this->specification = new ImportSpecification(
-            $this->dataSource = \Mockery::mock(ProviderDataSource::class)
+            $this->resource = \Mockery::mock(ProviderResource::class)
         );
     }
 
@@ -26,14 +26,14 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
         $this->specification->setMapping($mapping = \Mockery::mock(Mapping::class))->setContext($context = (object)[]);
         $specification = clone $this->specification;
 
-        self::assertNotSame($this->dataSource, $specification->getDataSource());
+        self::assertNotSame($this->resource, $specification->getResource());
         self::assertNotSame($mapping, $specification->getMapping());
         self::assertNotSame($context, $specification->getContext());
     }
 
     public function testProviderData()
     {
-        self::assertSame($this->dataSource, $this->specification->getDataSource());
+        self::assertSame($this->resource, $this->specification->getResource());
     }
 
     public function testMapping()

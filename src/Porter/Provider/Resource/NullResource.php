@@ -1,7 +1,7 @@
 <?php
-namespace ScriptFUSION\Porter\Provider\DataSource;
+namespace ScriptFUSION\Porter\Provider\Resource;
 
-class NullDataSource extends StaticDataSource
+class NullResource extends StaticResource
 {
     public function __construct()
     {
