@@ -86,11 +86,14 @@ final class HttpConnectorTest extends \PHPUnit_Framework_TestCase
     /**
      * @param string $script
      *
-     * @return Process
+     * @return Process Server.
      */
     private function startServer($script)
     {
-        $server = (new Process(sprintf('php -S %s %s.php', self::HOST, $script)))->setWorkingDirectory(self::$dir);
+        $server = (
+            // Prevent forking on some Unix systems.
+            new Process(sprintf('%sphp -S %s %s.php', file_exists('/bin/sh') ? 'exec ' : '', self::HOST, $script))
+        )->setWorkingDirectory(self::$dir);
         $server->start();
 
         return $server;
@@ -98,16 +101,6 @@ final class HttpConnectorTest extends \PHPUnit_Framework_TestCase
 
     private function stopServer(Process $server)
     {
-        /*
-         * Bizarrely, process IDs are one less than they should be on Travis.
-         * See https://github.com/symfony/symfony/issues/19611
-         */
-        if (array_key_exists('TRAVIS', $_SERVER)) {
-            posix_kill($server->getPid() + 1, SIGINT);
-
-            return;
-        }
-
         $server->stop();
     }
 
