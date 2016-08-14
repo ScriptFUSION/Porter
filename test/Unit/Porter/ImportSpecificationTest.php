@@ -3,7 +3,7 @@ namespace ScriptFUSIONTest\Unit\Porter;
 
 use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
-use ScriptFUSION\Porter\Provider\Resource\Resource;
+use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 
 final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
@@ -17,7 +17,7 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         $this->specification = new ImportSpecification(
-            $this->resource = \Mockery::mock(Resource::class)
+            $this->resource = \Mockery::mock(ProviderResource::class)
         );
     }
 

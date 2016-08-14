@@ -16,7 +16,6 @@ use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Porter;
 use ScriptFUSION\Porter\Provider\Provider;
-use ScriptFUSION\Porter\Provider\Resource\Resource;
 use ScriptFUSION\Porter\Provider\StaticDataProvider;
 use ScriptFUSION\Porter\ProviderAlreadyRegisteredException;
 use ScriptFUSION\Porter\ProviderNotFoundException;

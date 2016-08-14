@@ -4,7 +4,7 @@ namespace ScriptFUSION\Porter\Provider;
 use ScriptFUSION\Porter\Cache\CacheToggle;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Connector\Connector;
-use ScriptFUSION\Porter\Provider\Resource\Resource;
+use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 
 abstract class AbstractProvider implements Provider, CacheToggle
 {
@@ -22,7 +22,7 @@ abstract class AbstractProvider implements Provider, CacheToggle
      *
      * @throws ForeignResourceException A foreign resource was received.
      */
-    public function fetch(Resource $resource)
+    public function fetch(ProviderResource $resource)
     {
         if ($resource->getProviderClassName() !== static::class) {
             throw new ForeignResourceException(sprintf(

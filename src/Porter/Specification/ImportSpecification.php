@@ -3,7 +3,7 @@ namespace ScriptFUSION\Porter\Specification;
 
 use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
-use ScriptFUSION\Porter\Provider\Resource\Resource;
+use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 
 class ImportSpecification
 {
@@ -22,7 +22,7 @@ class ImportSpecification
     /** @var CacheAdvice */
     private $cacheAdvice;
 
-    public function __construct(Resource $resource)
+    public function __construct(ProviderResource $resource)
     {
         $this->resource = $resource;
     }

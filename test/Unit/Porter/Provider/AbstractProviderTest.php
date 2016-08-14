@@ -8,7 +8,7 @@ use ScriptFUSION\Porter\Connector\CachingConnector;
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Provider\AbstractProvider;
 use ScriptFUSION\Porter\Provider\ForeignResourceException;
-use ScriptFUSION\Porter\Provider\Resource\Resource;
+use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 
 final class AbstractProviderTest extends \PHPUnit_Framework_TestCase
 {
@@ -45,7 +45,7 @@ final class AbstractProviderTest extends \PHPUnit_Framework_TestCase
         self::assertSame(
             'foo',
             $this->provider->fetch(
-                \Mockery::mock(Resource::class)
+                \Mockery::mock(ProviderResource::class)
                     ->shouldReceive('fetch')
                     ->with($this->connector)
                     ->andReturn('foo')
@@ -62,7 +62,7 @@ final class AbstractProviderTest extends \PHPUnit_Framework_TestCase
         $this->setExpectedException(ForeignResourceException::class);
 
         $this->provider->fetch(
-            \Mockery::mock(Resource::class)
+            \Mockery::mock(ProviderResource::class)
                 ->shouldReceive('getProviderClassName')
                 ->andReturn('foo')
                 ->getMock()

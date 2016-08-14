@@ -2,9 +2,9 @@
 namespace ScriptFUSION\Porter\Provider\Resource;
 
 /**
- * Partially implements Resource.
+ * Partially implements ProviderResource.
  */
-abstract class AbstractResource implements Resource
+abstract class AbstractResource implements ProviderResource
 {
     /** @var string */
     private $providerTag;

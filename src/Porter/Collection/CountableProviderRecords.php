@@ -1,7 +1,7 @@
 <?php
 namespace ScriptFUSION\Porter\Collection;
 
-use ScriptFUSION\Porter\Provider\Resource\Resource;
+use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 
 class CountableProviderRecords extends ProviderRecords implements \Countable
 {
@@ -12,7 +12,7 @@ class CountableProviderRecords extends ProviderRecords implements \Countable
      * @param int $count
      * @param Resource $resource
      */
-    public function __construct(\Iterator $providerRecords, $count, Resource $resource)
+    public function __construct(\Iterator $providerRecords, $count, ProviderResource $resource)
     {
         parent::__construct($providerRecords, $resource);
 
