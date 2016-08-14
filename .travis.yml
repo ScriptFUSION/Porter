@@ -14,10 +14,10 @@ install:
   - alias composer=composer\ -n && composer selfupdate
   - composer validate
   - composer --prefer-source install
-  - composer --prefer-source require satooshi/php-coveralls
 
 script:
   - bin/test --coverage-clover=build/logs/clover.xml
 
 after_success:
+  - composer --prefer-source require satooshi/php-coveralls
   - vendor/bin/coveralls -v

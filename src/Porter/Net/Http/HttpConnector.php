@@ -6,8 +6,16 @@ use ScriptFUSION\Porter\Net\UrlBuilder;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 use ScriptFUSION\Retry\ErrorHandler\ExponentialBackoffErrorHandler;
 
+/**
+ * Fetches data from an HTTP server via the PHP wrapper.
+ *
+ * Enhanced error reporting is achieved by ignoring HTTP error codes in the wrapper, instead throwing
+ * HttpServerException which includes the body of the response in the error message.
+ */
 class HttpConnector extends CachingConnector
 {
+    const DEFAULT_TRIES = 5;
+
     /** @var HttpOptions */
     private $options;
 
@@ -17,6 +25,9 @@ class HttpConnector extends CachingConnector
     /** @var string */
     private $baseUrl;
 
+    /** @var int */
+    private $tries = self::DEFAULT_TRIES;
+
     public function __construct(HttpOptions $options = null)
     {
         parent::__construct();
@@ -24,13 +35,25 @@ class HttpConnector extends CachingConnector
         $this->options = $options ?: new HttpOptions;
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @param string $source Source.
+     * @param EncapsulatedOptions|null $options Optional. Options.
+     *
+     * @return string Response.
+     *
+     * @throws \InvalidArgumentException Options is not an instance of HttpOptions.
+     * @throws HttpConnectionException Failed to connect to source.
+     * @throws HttpServerException Server sent an error code.
+     */
     public function fetchFreshData($source, EncapsulatedOptions $options = null)
     {
         if ($options && !$options instanceof HttpOptions) {
             throw new \InvalidArgumentException('Options must be an instance of HttpOptions.');
         }
 
-        return \ScriptFUSION\Retry\retry(5, function () use ($source, $options) {
+        return \ScriptFUSION\Retry\retry($this->getTries(), function () use ($source, $options) {
             if (false === $response = @file_get_contents(
                 $this->getOrCreateUrlBuilder()->buildUrl(
                     $source,
@@ -39,13 +62,21 @@ class HttpConnector extends CachingConnector
                 ),
                 false,
                 stream_context_create([
-                    'http' => array_merge(
+                    'http' => ['ignore_errors' => true] + array_merge(
                         $this->options->extractHttpContextOptions(),
                         $options ? $options->extractHttpContextOptions() : []
                     ),
                 ])
             )) {
-                throw new HttpConnectionException(error_get_last()['message']);
+                $error = error_get_last();
+                throw new HttpConnectionException($error['message'], $error['type']);
+            }
+
+            $code = explode(' ', $http_response_header[0], 3)[1];
+            if ($code < 200 || $code >= 400) {
+                throw new HttpServerException(
+                    "HTTP server responded with error: \"$http_response_header[0]\".\n\n$response"
+                );
             }
 
             return $response;
@@ -73,6 +104,30 @@ class HttpConnector extends CachingConnector
     public function setBaseUrl($baseUrl)
     {
         $this->baseUrl = "$baseUrl";
+
+        return $this;
+    }
+
+    /**
+     * Gets the maximum number of fetch attempts
+     *
+     * @return int
+     */
+    public function getTries()
+    {
+        return $this->tries;
+    }
+
+    /**
+     * Sets the maximum number of fetch attempts.
+     *
+     * @param int $tries Maximum fetch attempts.
+     *
+     * @return $this
+     */
+    public function setTries($tries)
+    {
+        $this->tries = max(1, $tries|0);
 
         return $this;
     }
