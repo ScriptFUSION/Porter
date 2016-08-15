@@ -7,7 +7,7 @@ use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 
 class ImportSpecification
 {
-    /** @var Resource */
+    /** @var ProviderResource */
     private $resource;
 
     /** @var Mapping */
@@ -35,7 +35,7 @@ class ImportSpecification
     }
 
     /**
-     * @return Resource
+     * @return ProviderResource
      */
     final public function getResource()
     {

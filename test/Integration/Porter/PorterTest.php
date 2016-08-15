@@ -14,8 +14,10 @@ use ScriptFUSION\Porter\Collection\FilteredRecords;
 use ScriptFUSION\Porter\Collection\MappedRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
+use ScriptFUSION\Porter\ImportException;
 use ScriptFUSION\Porter\Porter;
 use ScriptFUSION\Porter\Provider\Provider;
+use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Provider\StaticDataProvider;
 use ScriptFUSION\Porter\ProviderAlreadyRegisteredException;
 use ScriptFUSION\Porter\ProviderNotFoundException;
@@ -33,8 +35,11 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     /** @var Provider|MockInterface */
     private $provider;
 
-    /** @var Resource */
+    /** @var ProviderResource */
     private $resource;
+
+    /** @var ImportSpecification */
+    private $specification;
 
     protected function setUp()
     {
@@ -48,6 +53,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         );
 
         $this->resource = MockFactory::mockResource($this->provider);
+        $this->specification = new ImportSpecification($this->resource);
     }
 
     public function testGetProvider()
@@ -85,14 +91,14 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     {
         $this->setExpectedException(ProviderNotFoundException::class);
 
-        (new Porter)->getProvider('foo');
+        $this->porter->getProvider('foo');
     }
 
     public function testGetInvalidTag()
     {
         $this->setExpectedException(ProviderNotFoundException::class);
 
-        (new Porter)->getProvider(get_class($this->provider), 'foo');
+        $this->porter->getProvider(get_class($this->provider), 'foo');
     }
 
     public function testGetStaticProviderTag()
@@ -100,26 +106,6 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         $this->setExpectedException(ProviderNotFoundException::class);
 
         $this->porter->getProvider(StaticDataProvider::class, 'foo');
-    }
-
-    public function testImportTaggedResource()
-    {
-        $this->porter->registerProvider(
-            $provider = \Mockery::mock(Provider::class)
-                ->shouldReceive('fetch')
-                ->andReturn(new \ArrayIterator([$output = 'bar']))
-                ->getMock(),
-            $tag = 'foo'
-        );
-
-        $records = $this->porter->import(MockFactory::mockImportSpecification(
-            MockFactory::mockResource($provider)
-                ->shouldReceive('getProviderTag')
-                ->andReturn($tag)
-                ->getMock()
-        ));
-
-        self::assertSame($output, $records->current());
     }
 
     public function testHasProvider()
@@ -131,10 +117,10 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     public function testImport()
     {
-        $records = $this->porter->import($specification = new ImportSpecification($this->resource));
+        $records = $this->porter->import($this->specification);
 
         self::assertInstanceOf(PorterRecords::class, $records);
-        self::assertNotSame($specification, $records->getSpecification());
+        self::assertNotSame($this->specification, $records->getSpecification());
         self::assertInstanceOf(ProviderRecords::class, $records->getPreviousCollection());
         self::assertSame('foo', $records->current());
     }
@@ -194,12 +180,57 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         self::assertNotInstanceOf(\Countable::class, $records);
     }
 
+    public function testImportOne()
+    {
+        $result = $this->porter->importOne($this->specification);
+
+        self::assertSame('foo', $result);
+    }
+
+    public function testImportOneOfNone()
+    {
+        $this->provider->shouldReceive('fetch')->andReturn(new \EmptyIterator);
+
+        $result = $this->porter->importOne($this->specification);
+
+        self::assertNull($result);
+    }
+
+    public function testImportOneOfMany()
+    {
+        $this->setExpectedException(ImportException::class);
+
+        $this->provider->shouldReceive('fetch')->andReturn(new \ArrayIterator(['foo', 'bar']));
+
+        $this->porter->importOne($this->specification);
+    }
+
+    public function testImportTaggedResource()
+    {
+        $this->porter->registerProvider(
+            $provider = \Mockery::mock(Provider::class)
+                ->shouldReceive('fetch')
+                ->andReturn(new \ArrayIterator([$output = 'bar']))
+                ->getMock(),
+            $tag = 'foo'
+        );
+
+        $records = $this->porter->import(MockFactory::mockImportSpecification(
+            MockFactory::mockResource($provider)
+                ->shouldReceive('getProviderTag')
+                ->andReturn($tag)
+                ->getMock()
+        ));
+
+        self::assertSame($output, $records->current());
+    }
+
     public function testFilter()
     {
         $this->provider->shouldReceive('fetch')->andReturn(new \ArrayIterator(range(1, 10)));
 
         $records = $this->porter->import(
-            (new ImportSpecification($this->resource))
+            $this->specification
                 ->setFilter(function ($record) {
                     return $record % 2;
                 })
@@ -219,9 +250,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
                 ->once()
                 ->andReturn(new \ArrayIterator($result = ['foo' => 'bar']))
                 ->getMock()
-        )->import(
-            (new ImportSpecification($this->resource))->setMapping(\Mockery::mock(Mapping::class))
-        );
+        )->import($this->specification->setMapping(\Mockery::mock(Mapping::class)));
 
         self::assertInstanceOf(PorterRecords::class, $records);
         self::assertInstanceOf(MappedRecords::class, $records->getPreviousCollection());
@@ -246,6 +275,6 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     {
         $this->setExpectedException(CacheUnavailableException::class);
 
-        $this->porter->import((new ImportSpecification($this->resource))->setCacheAdvice(CacheAdvice::MUST_CACHE()));
+        $this->porter->import($this->specification->setCacheAdvice(CacheAdvice::MUST_CACHE()));
     }
 }

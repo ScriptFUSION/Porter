@@ -15,7 +15,7 @@ class ProviderRecords extends RecordCollection
     }
 
     /**
-     * @return Resource
+     * @return ProviderResource
      */
     public function getResource()
     {

@@ -16,7 +16,7 @@ abstract class AbstractProvider implements Provider, CacheToggle
     }
 
     /**
-     * @param Resource $resource
+     * @param ProviderResource $resource
      *
      * @return \Iterator
      *

@@ -19,7 +19,7 @@ final class MockFactory
     /**
      * @param Provider $provider
      *
-     * @return MockInterface|Resource
+     * @return MockInterface|ProviderResource
      */
     public static function mockResource(Provider $provider)
     {

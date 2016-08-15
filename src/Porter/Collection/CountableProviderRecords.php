@@ -10,7 +10,7 @@ class CountableProviderRecords extends ProviderRecords implements \Countable
     /**
      * @param \Iterator $providerRecords
      * @param int $count
-     * @param Resource $resource
+     * @param ProviderResource $resource
      */
     public function __construct(\Iterator $providerRecords, $count, ProviderResource $resource)
     {

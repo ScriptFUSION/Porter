@@ -11,7 +11,7 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
     /** @var ImportSpecification */
     private $specification;
 
-    /** @var Resource */
+    /** @var ProviderResource */
     private $resource;
 
     protected function setUp()

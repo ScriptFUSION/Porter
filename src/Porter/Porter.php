@@ -62,6 +62,32 @@ class Porter
         return $this->createPorterRecords($records, clone $specification);
     }
 
+    /**
+     * Imports one record according to the design of the specified import specification.
+     *
+     * @param ImportSpecification $specification Import specification.
+     *
+     * @return mixed Data.
+     *
+     * @throws ImportException More than one record was imported.
+     */
+    public function importOne(ImportSpecification $specification)
+    {
+        $results = $this->import($specification);
+
+        if (!$results->valid()) {
+            return;
+        }
+
+        $one = $results->current();
+
+        if ($results->next() || $results->valid()) {
+            throw new ImportException('Cannot import one: more than one record imported.');
+        }
+
+        return $one;
+    }
+
     private function createPorterRecords(RecordCollection $records, ImportSpecification $specification)
     {
         if ($records instanceof \Countable) {
