@@ -11,7 +11,7 @@ use Symfony\Component\Process\Process;
 
 final class HttpConnectorTest extends \PHPUnit_Framework_TestCase
 {
-    const HOST = 'localhost:12345';
+    const HOST = '[::1]:12345';
     const URI = '/test?baz=qux';
 
     private static $dir;
