@@ -62,7 +62,7 @@ final class HttpOptionsTest extends \PHPUnit_Framework_TestCase
 
     public function testProxy()
     {
-        self::assertSame('https://foo.com:80', (new HttpOptions)->setProxy('https://foo.com:80')->getProxy());
+        self::assertSame($host = 'https://foo.com:80', (new HttpOptions)->setProxy($host)->getProxy());
     }
 
     public function testExtractHttpContextOptions()
