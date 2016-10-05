@@ -44,6 +44,20 @@ final class SoapOptionsTest extends \PHPUnit_Framework_TestCase
         self::assertFalse($options->setKeepAlive(false)->getKeepAlive());
     }
 
+    public function testProxy()
+    {
+        $options = (new SoapOptions)
+            ->setProxyHost($host = 'foo.com')
+            ->setProxyPort($port = 8080)
+            ->setProxyLogin($login = 'foo')
+            ->setProxyPassword($password = 'bar');
+
+        self::assertSame($host, $options->getProxyHost());
+        self::assertSame($port, $options->getProxyPort());
+        self::assertSame($login, $options->getProxyLogin());
+        self::assertSame($password, $options->getProxyPassword());
+    }
+
     public function testExtractSoapClientOptions()
     {
         $options = new SoapOptions;

@@ -60,6 +60,11 @@ final class HttpOptionsTest extends \PHPUnit_Framework_TestCase
         self::assertCount(2, $options->getHeaders());
     }
 
+    public function testProxy()
+    {
+        self::assertSame($host = 'https://foo.com:80', (new HttpOptions)->setProxy($host)->getProxy());
+    }
+
     public function testExtractHttpContextOptions()
     {
         self::assertSame(['header' => []], (new HttpOptions)->extractHttpContextOptions());
