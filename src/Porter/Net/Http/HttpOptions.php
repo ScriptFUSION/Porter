@@ -133,7 +133,7 @@ final class HttpOptions extends EncapsulatedOptions
         return $this->set('content', "$content");
     }
 
-     /**
+    /**
      * @return string
      */
     public function getProxy()
@@ -141,7 +141,7 @@ final class HttpOptions extends EncapsulatedOptions
         return $this->get('proxy');
     }
 
-     /**
+    /**
      * @param string $proxy
      *
      * @return $this
@@ -151,7 +151,7 @@ final class HttpOptions extends EncapsulatedOptions
         return $this->set('proxy', "$proxy");
     }
 
-     /**
+    /**
      * Extracts a list of HTTP context options only.
      *
      * @return array HTTP context options.
