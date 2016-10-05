@@ -55,6 +55,46 @@ final class SoapOptions extends EncapsulatedOptions
         return $this->set('keep_alive', (bool)$keepAlive);
     }
 
+    public function setProxyHost($host)
+    {
+        return $this->set('proxy_host', "$host");
+    }
+
+    public function getProxyHost()
+    {
+        return $this->get('proxy_host');
+    }
+
+    public function setProxyPort($port)
+    {
+        return $this->set('proxy_port', $port|0);
+    }
+
+    public function getProxyPort()
+    {
+        return $this->get('proxy_port');
+    }
+
+    public function setProxyLogin($login)
+    {
+        return $this->set('proxy_login', "$login");
+    }
+
+    public function getProxyLogin()
+    {
+        return $this->get('proxy_login');
+    }
+
+    public function setProxyPassword($password)
+    {
+        return $this->set('proxy_password', "$password");
+    }
+
+    public function getProxyPassword()
+    {
+        return $this->get('proxy_password');
+    }
+
     /**
      * Extracts a list of SOAP Client options only.
      *
