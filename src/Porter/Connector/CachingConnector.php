@@ -6,10 +6,19 @@ use ScriptFUSION\Porter\Cache\CacheToggle;
 use ScriptFUSION\Porter\Cache\MemoryCache;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 
+/**
+ * Caches remote data using PSR-6-compliant objects.
+ */
 abstract class CachingConnector implements Connector, CacheToggle
 {
+    /**
+     * @var CacheItemPoolInterface
+     */
     private $cache;
 
+    /**
+     * @var bool
+     */
     private $cacheEnabled = true;
 
     public function __construct(CacheItemPoolInterface $cache = null)
@@ -57,6 +66,6 @@ abstract class CachingConnector implements Connector, CacheToggle
 
     private function hash(array $structure)
     {
-        return sha1(json_encode($structure));
+        return json_encode($structure);
     }
 }

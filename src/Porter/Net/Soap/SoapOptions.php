@@ -98,7 +98,9 @@ final class SoapOptions extends EncapsulatedOptions
     /**
      * Extracts a list of SOAP Client options only.
      *
-     * @return array HTTP context options.
+     * @return array SOAP context options.
+     *
+     * @see http://php.net/manual/en/soapclient.soapclient.php
      */
     public function extractSoapClientOptions()
     {

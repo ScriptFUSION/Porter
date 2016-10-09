@@ -6,6 +6,9 @@ use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 use ScriptFUSION\Porter\Type\ObjectType;
 use ScriptFUSION\Retry\ErrorHandler\ExponentialBackoffErrorHandler;
 
+/**
+ * Fetches data from a SOAP service.
+ */
 class SoapConnector extends CachingConnector
 {
     private $client;

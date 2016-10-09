@@ -13,8 +13,7 @@ class SubImport implements Strategy, PorterAware
     private $specificationOrCallback;
 
     /**
-     * Initializes this instance with the specified import specification or
-     * the specification callback.
+     * Initializes this instance with the specified import specification or specification callback.
      *
      * @param ImportSpecification|callable $specificationOrCallback Import specification
      *     or specification callback.

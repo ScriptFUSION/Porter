@@ -20,14 +20,29 @@ use ScriptFUSION\Porter\Provider\ProviderFactory;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 
+/**
+ * Imports data according to an ImportSpecification.
+ */
 class Porter
 {
+    /**
+     * @var Provider[]
+     */
     private $providers;
 
+    /**
+     * @var ProviderFactory
+     */
     private $providerFactory;
 
+    /**
+     * @var CollectionMapper
+     */
     private $mapper;
 
+    /**
+     * @var CacheAdvice
+     */
     private $defaultCacheAdvice;
 
     public function __construct()
@@ -67,7 +82,7 @@ class Porter
      *
      * @param ImportSpecification $specification Import specification.
      *
-     * @return mixed Data.
+     * @return array Record.
      *
      * @throws ImportException More than one record was imported.
      */

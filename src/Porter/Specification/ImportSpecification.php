@@ -5,6 +5,9 @@ use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 
+/**
+ * Specifies which resource to import, how to import it, and how it should be transformed.
+ */
 class ImportSpecification
 {
     /** @var ProviderResource */
