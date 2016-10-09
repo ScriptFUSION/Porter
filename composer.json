@@ -7,6 +7,7 @@
       "email": "bilge@scriptfusion.com"
     }
   ],
+  "license": "LGPL-3.0",
   "require": {
     "php": ">=5.5",
     "scriptfusion/mapper": "^1|^0",
