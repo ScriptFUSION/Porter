@@ -22,7 +22,7 @@
   },
   "autoload": {
     "psr-4": {
-      "ScriptFUSION\\": "src"
+      "ScriptFUSION\\Porter\\": "src"
     }
   },
   "autoload-dev": {
