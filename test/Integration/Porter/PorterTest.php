@@ -180,8 +180,8 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
             ))->setMapping(\Mockery::mock(Mapping::class))
         );
 
-        self::assertNotInstanceOf(MappedRecords::class, $records->getPreviousCollection());
-        self::assertNotInstanceOf(\Iterator::class, $records);
+        self::assertInstanceOf(MappedRecords::class, $records->getPreviousCollection());
+        self::assertInstanceOf(\Iterator::class, $records);
         self::assertNotInstanceOf(CountableMappedRecords::class, $records->getPreviousCollection());
         self::assertNotInstanceOf(\Countable::class, $records);
     }
