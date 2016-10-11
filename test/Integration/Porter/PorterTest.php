@@ -121,8 +121,35 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
         self::assertInstanceOf(PorterRecords::class, $records);
         self::assertNotSame($this->specification, $records->getSpecification());
-        self::assertInstanceOf(ProviderRecords::class, $records->getPreviousCollection());
+        self::assertInstanceOf(CountableProviderRecords::class, $records->getPreviousCollection());
         self::assertSame('foo', $records->current());
+    }
+
+    public function testNonCountableIteratorImport()
+    {
+        $porter = (new Porter)->registerProvider(
+            $this->provider =
+                \Mockery::mock(Provider::class)
+                    ->shouldReceive('fetch')
+                    ->andReturn($this->iterateOne())
+                    ->byDefault()
+                    ->getMock()
+        );
+        $records = $porter->import($this->specification);
+
+        self::assertInstanceOf(PorterRecords::class, $records);
+        self::assertNotSame($this->specification, $records->getSpecification());
+        self::assertInstanceOf(ProviderRecords::class, $records->getPreviousCollection());
+        self::assertNotInstanceOf(CountableProviderRecords::class, $records->getPreviousCollection());
+        self::assertSame('foo', $records->current());
+    }
+
+    /**
+     * Iterates over one value.
+     */
+    private function iterateOne()
+    {
+        yield 'foo';
     }
 
     /**

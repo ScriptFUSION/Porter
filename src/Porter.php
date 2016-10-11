@@ -63,12 +63,7 @@ class Porter
         $records = $this->fetch($specification->getResource(), $specification->getCacheAdvice());
 
         if (!$records instanceof ProviderRecords) {
-            // Wrap Iterator in ProviderRecords.
-            if ($records instanceof \Countable) {
-                $records = new CountableProviderRecords($records, count($records), $specification->getResource());
-            } else {
-                $records = new ProviderRecords($records, $specification->getResource());
-            }
+            $this->createProviderRecords($records, $specification->getResource());
         }
 
         if ($specification->getFilter()) {
@@ -106,6 +101,15 @@ class Porter
         }
 
         return $one;
+    }
+
+    private function createProviderRecords(\Iterator $records, ProviderResource $resource)
+    {
+        if ($records instanceof \Countable) {
+            return new CountableProviderRecords($records, count($records), $resource);
+        }
+
+        return new ProviderRecords($records, $resource);
     }
 
     private function createPorterRecords(RecordCollection $records, ImportSpecification $specification)
