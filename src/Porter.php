@@ -63,7 +63,7 @@ class Porter
         $records = $this->fetch($specification->getResource(), $specification->getCacheAdvice());
 
         if (!$records instanceof ProviderRecords) {
-            $this->createProviderRecords($records, $specification->getResource());
+            $records = $this->createProviderRecords($records, $specification->getResource());
         }
 
         if ($specification->getFilter()) {
