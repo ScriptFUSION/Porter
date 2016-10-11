@@ -121,7 +121,22 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
         self::assertInstanceOf(PorterRecords::class, $records);
         self::assertNotSame($this->specification, $records->getSpecification());
+        self::assertInstanceOf(CountableProviderRecords::class, $records->getPreviousCollection());
+        self::assertSame('foo', $records->current());
+    }
+
+    public function testNonCountableIteratorImport()
+    {
+        $this->provider->shouldReceive('fetch')->andReturnUsing(function () {
+            yield 'foo';
+        });
+
+        $records = $this->porter->import($this->specification);
+
+        self::assertInstanceOf(PorterRecords::class, $records);
+        self::assertNotSame($this->specification, $records->getSpecification());
         self::assertInstanceOf(ProviderRecords::class, $records->getPreviousCollection());
+        self::assertNotInstanceOf(CountableProviderRecords::class, $records->getPreviousCollection());
         self::assertSame('foo', $records->current());
     }
 
@@ -143,6 +158,23 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         // Outermost collection.
         self::assertInstanceOf(\Countable::class, $records);
         self::assertCount($count, $records);
+    }
+
+    public function testImportAndMapNonCountableRecords()
+    {
+        $iterateOne = function () {
+            yield 'foo';
+        };
+        $records = $this->porter->import(
+            (new StaticDataImportSpecification(
+                new ProviderRecords($iterateOne(), $this->resource)
+            ))->setMapping(\Mockery::mock(Mapping::class))
+        );
+
+        self::assertInstanceOf(MappedRecords::class, $records->getPreviousCollection());
+        self::assertInstanceOf(\Iterator::class, $records);
+        self::assertNotInstanceOf(CountableMappedRecords::class, $records->getPreviousCollection());
+        self::assertNotInstanceOf(\Countable::class, $records);
     }
 
     /**
