@@ -172,6 +172,18 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         self::assertCount($count, $records);
     }
 
+    public function testImportAndMapNonCountableRecords()
+    {
+        $records = $this->porter->import(
+            (new StaticDataImportSpecification(
+                new ProviderRecords($this->iterateOne(), $this->resource)
+            ))->setMapping(\Mockery::mock(Mapping::class))
+        );
+
+        self::assertInstanceOf(CountableMappedRecords::class, $records->getPreviousCollection());
+        self::assertInstanceOf(\Countable::class, $records);
+    }
+
     /**
      * Tests that when the resource is countable the count is propagated to the outermost collection via a mapped
      * collection.
@@ -184,9 +196,10 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
             ))->setMapping(\Mockery::mock(Mapping::class))
         );
 
-        self::assertInstanceOf(CountableMappedRecords::class, $records->getPreviousCollection());
-        self::assertInstanceOf(\Countable::class, $records);
-        self::assertCount($count, $records);
+        self::assertNotInstanceOf(MappedRecords::class, $records->getPreviousCollection());
+        self::assertNotInstanceOf(\Iterator::class, $records);
+        self::assertNotInstanceOf(CountableMappedRecords::class, $records->getPreviousCollection());
+        self::assertNotInstanceOf(\Countable::class, $records);
     }
 
     /**
