@@ -127,15 +127,11 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     public function testNonCountableIteratorImport()
     {
-        $porter = (new Porter)->registerProvider(
-            $this->provider =
-                \Mockery::mock(Provider::class)
-                    ->shouldReceive('fetch')
-                    ->andReturn($this->iterateOne())
-                    ->byDefault()
-                    ->getMock()
-        );
-        $records = $porter->import($this->specification);
+        $this->provider->shouldReceive('fetch')->andReturnUsing(function () {
+            yield 'foo';
+        });
+
+        $records = $this->porter->import($this->specification);
 
         self::assertInstanceOf(PorterRecords::class, $records);
         self::assertNotSame($this->specification, $records->getSpecification());
@@ -174,9 +170,13 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     public function testImportAndMapNonCountableRecords()
     {
+        /** @var \Generator $iterateOne */
+        $iterateOne = function () {
+            yield 'foo';
+        };
         $records = $this->porter->import(
             (new StaticDataImportSpecification(
-                new ProviderRecords($this->iterateOne(), $this->resource)
+                new ProviderRecords($iterateOne, $this->resource)
             ))->setMapping(\Mockery::mock(Mapping::class))
         );
 
