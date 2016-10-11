@@ -162,13 +162,12 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     public function testImportAndMapNonCountableRecords()
     {
-        /** @var \Generator $iterateOne */
         $iterateOne = function () {
             yield 'foo';
         };
         $records = $this->porter->import(
             (new StaticDataImportSpecification(
-                new ProviderRecords($iterateOne, $this->resource)
+                new ProviderRecords($iterateOne(), $this->resource)
             ))->setMapping(\Mockery::mock(Mapping::class))
         );
 
