@@ -141,14 +141,6 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Iterates over one value.
-     */
-    private function iterateOne()
-    {
-        yield 'foo';
-    }
-
-    /**
      * Tests that when the resource is countable the count is propagated to the outermost collection.
      */
     public function testImportCountableRecords()
