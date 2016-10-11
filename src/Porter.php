@@ -8,6 +8,7 @@ use ScriptFUSION\Porter\Cache\CacheToggle;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Collection\CountableMappedRecords;
 use ScriptFUSION\Porter\Collection\CountablePorterRecords;
+use ScriptFUSION\Porter\Collection\CountableProviderRecords;
 use ScriptFUSION\Porter\Collection\FilteredRecords;
 use ScriptFUSION\Porter\Collection\MappedRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
@@ -63,7 +64,11 @@ class Porter
 
         if (!$records instanceof ProviderRecords) {
             // Wrap Iterator in ProviderRecords.
-            $records = new ProviderRecords($records, $specification->getResource());
+            if ($records instanceof \Countable) {
+                $records = new CountableProviderRecords($records, count($records), $specification->getResource());
+            } else {
+                $records = new ProviderRecords($records, $specification->getResource());
+            }
         }
 
         if ($specification->getFilter()) {
