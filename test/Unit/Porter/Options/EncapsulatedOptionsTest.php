@@ -1,6 +1,8 @@
 <?php
 namespace ScriptFUSIONTest\Unit\Porter\Options;
 
+use ScriptFUSION\Porter\Options\EncapsulatedOptions;
+use ScriptFUSION\Porter\Options\MergeException;
 use ScriptFUSIONTest\Porter\Options\TestOptions;
 
 final class EncapsulatedOptionsTest extends \PHPUnit_Framework_TestCase
@@ -39,6 +41,43 @@ final class EncapsulatedOptionsTest extends \PHPUnit_Framework_TestCase
         $this->options->setFoo('bar');
 
         self::assertSame(['foo' => 'bar'], $this->options->copy());
+    }
+
+    public function testMerge()
+    {
+        $a = $this->options;
+        $b = (new TestOptions)->setFoo('bar');
+        $c = clone $a;
+
+        self::assertSame('foo', $a->getFoo());
+        self::assertSame('bar', $b->getFoo());
+        self::assertSame('foo', $c->getFoo());
+
+        $c->merge($b);
+
+        self::assertSame('foo', $a->getFoo());
+        self::assertSame('bar', $b->getFoo());
+        self::assertSame('bar', $c->getFoo());
+
+        $c->merge($a);
+
+        self::assertSame('foo', $a->getFoo());
+        self::assertSame('bar', $b->getFoo());
+        self::assertSame('foo', $c->getFoo());
+    }
+
+    public function testMergeDerivedClass()
+    {
+        $this->options->merge(\Mockery::mock(TestOptions::class));
+
+        // PHPUnit asserts no exception is thrown.
+    }
+
+    public function testMergeNonDerivedClass()
+    {
+        $this->setExpectedException(MergeException::class, TestOptions::class);
+
+        $this->options->merge(\Mockery::mock(EncapsulatedOptions::class));
     }
 
     public function testGetReference()

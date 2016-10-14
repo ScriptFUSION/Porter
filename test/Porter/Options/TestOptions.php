@@ -3,7 +3,7 @@ namespace ScriptFUSIONTest\Porter\Options;
 
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 
-final class TestOptions extends EncapsulatedOptions
+class TestOptions extends EncapsulatedOptions
 {
     public function __construct()
     {
