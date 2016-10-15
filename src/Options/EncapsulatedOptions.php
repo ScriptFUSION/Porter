@@ -31,28 +31,21 @@ abstract class EncapsulatedOptions
             throw new MergeException('Cannot merge: options must be an instance of "' . get_class($this) . '".');
         }
 
-        $this->options = $this->mergeOptions($overridingOptions, $overridingOptions->options, $this->options);
+        $this->options = $this->mergeOptions($overridingOptions);
     }
 
     /**
      * Merges the specified overriding options with the options of this instance giving precedence to the overriding
      * options.
      *
-     * Overriding this method in a derived class allows it to implement a custom merging strategy using the overriding
-     * options or the specified explicit overriding options and the specified explicit options of this instance.
-     * Explicit options are those set explicitly and exclude any default values.
+     * Overriding this method in a derived class allows it to implement a custom merging strategy.
      *
      * @param EncapsulatedOptions $overridingOptions Overriding options.
-     * @param array $explicitOverridingOptions Overriding options excluding defaults.
-     * @param array $explicitOptions This instance's options excluding defaults.
      *
      * @return array Merged options.
      */
-    protected function mergeOptions(
-        EncapsulatedOptions $overridingOptions,
-        array $explicitOverridingOptions,
-        array $explicitOptions
-    ) {
+    protected function mergeOptions(EncapsulatedOptions $overridingOptions)
+    {
         return $overridingOptions->copy() + $this->copy();
     }
 
