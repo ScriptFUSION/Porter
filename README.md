@@ -1,4 +1,4 @@
-Porter
+Porter <img src="https://github.com/ScriptFUSION/Porter/wiki/images/porter%20222x.png" align="right">
 ======
 
 [![Latest version][Version image]][Releases]
@@ -228,12 +228,14 @@ Resources fetch data using the supplied connector and format it as a collection 
 ```php
 public function getProviderClassName() : string;
 public function getProviderTag() : string;
-public function fetch(Connector $connector) : Iterator;
+public function fetch(Connector $connector, EncapsulatedOptions $options = null) : Iterator;
 ```
 
 A resource supplies the class name of the provider it expects a connector from when `getProviderClassName()` is called. A used-defined tag can be specified to identify a particular Provider instance when `getProviderTag()` is called.
 
-When `fetch()` is called it is passed the connector from which data must be fetched. The resource must ensure data is formatted as iterator of array values whilst remaining as true to the original format as possible; that is, we must avoid renaming or restructuring data because it is the caller's prerogative to perform data customization if desired.
+When `fetch()` is called it is passed the connector from which data must be fetched. The resource must ensure data is formatted as an iterator of array values whilst remaining as true to the original format as possible; that is, we must avoid renaming or restructuring data because it is the caller's prerogative to perform data customization if desired.
+
+Providers may also supply options to `fetch()`. Such options are typically used to convey API keys or other options common to all of a provider's resources. When specified, a resource must ensure the options are transmitted to the connector.
 
 ### Writing a resource
 
@@ -331,7 +333,14 @@ Limitations
 Testing
 -------
 
-Porter is fully unit tested. Run the tests with `bin/test` from a shell.
+Porter is almost fully unit tested. Run the tests with `bin/test` from a shell.
+
+License
+-------
+
+Porter is published under the open source GNU Lesser General Public License v3.0. However, the original Porter character and artwork is copyright &copy; 2016 [Bilge](https://github.com/Bilge) and may not be reproduced or modified without express written permission.
+
+![][Porter icon]
 
 
   [Releases]: https://github.com/ScriptFUSION/Porter/releases
@@ -348,4 +357,5 @@ Porter is fully unit tested. Run the tests with `bin/test` from a shell.
   [Provider]: https://github.com/provider
   [Mapper]: https://github.com/ScriptFUSION/Mapper
   [PSR-6]: http://www.php-fig.org/psr/psr-6
+  [Porter icon]: https://github.com/ScriptFUSION/Porter/wiki/images/porter%20head%2032x.png
   [Class diagram]: https://github.com/ScriptFUSION/Porter/wiki/images/diagrams/Porter%20UML%20class%20diagram%201.0.png
