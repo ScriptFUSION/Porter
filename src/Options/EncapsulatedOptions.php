@@ -21,7 +21,8 @@ abstract class EncapsulatedOptions
     }
 
     /**
-     * Merges the specified overriding options into this instance giving precedence to the overriding options.
+     * Merges the specified overriding options into this instance giving precedence to the overriding options. Only
+     * option values that have been explicitly set are merged; that is, defaults are not merged.
      *
      * @param EncapsulatedOptions $overridingOptions Overriding options.
      */
@@ -31,22 +32,22 @@ abstract class EncapsulatedOptions
             throw new MergeException('Cannot merge: options must be an instance of "' . get_class($this) . '".');
         }
 
-        $this->options = $this->mergeOptions($overridingOptions);
+        $this->options = $this->mergeOptions($this->options, $overridingOptions->options);
     }
 
     /**
-     * Merges the specified overriding options with the options of this instance giving precedence to the overriding
-     * options.
+     * Merges the specified options with the specified overrides giving precedence to the overriding options.
      *
      * Overriding this method in a derived class allows it to implement a custom merging strategy.
      *
-     * @param EncapsulatedOptions $overridingOptions Overriding options.
+     * @param array $options Options of this instance.
+     * @param array $overrides Overriding options.
      *
      * @return array Merged options.
      */
-    protected function mergeOptions(EncapsulatedOptions $overridingOptions)
+    protected function mergeOptions(array $options, array $overrides)
     {
-        return $overridingOptions->copy() + $this->copy();
+        return $overrides + $options;
     }
 
     /**
@@ -90,6 +91,10 @@ abstract class EncapsulatedOptions
      */
     final protected function set($option, $value)
     {
+        if (is_object($value) || is_resource($value)) {
+            throw new \InvalidArgumentException('Value must not be an object or resource.');
+        }
+
         $this->options["$option"] = $value;
 
         return $this;

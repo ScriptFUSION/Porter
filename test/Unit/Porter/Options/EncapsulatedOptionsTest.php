@@ -27,6 +27,20 @@ final class EncapsulatedOptionsTest extends \PHPUnit_Framework_TestCase
         self::assertSame('bar', $this->options->getFoo());
     }
 
+    public function testSetObject()
+    {
+        $this->setExpectedException(\InvalidArgumentException::class);
+
+        $this->options->setFoo($this->options);
+    }
+
+    public function testSetResource()
+    {
+        $this->setExpectedException(\InvalidArgumentException::class);
+
+        $this->options->setFoo(STDIN);
+    }
+
     public function testSetNullOverridesDefault()
     {
         $this->options->setFoo(null);
@@ -53,12 +67,22 @@ final class EncapsulatedOptionsTest extends \PHPUnit_Framework_TestCase
         self::assertSame('bar', $b->getFoo());
         self::assertSame('foo', $c->getFoo());
 
+        // Merging in b sets c to 'bar'.
         $c->merge($b);
 
         self::assertSame('foo', $a->getFoo());
         self::assertSame('bar', $b->getFoo());
         self::assertSame('bar', $c->getFoo());
 
+        // Merging in a does not change the value of c because no options have been set explicitly for a.
+        $c->merge($a);
+
+        self::assertSame('foo', $a->getFoo());
+        self::assertSame('bar', $b->getFoo());
+        self::assertSame('bar', $c->getFoo());
+
+        // Merging in a sets c to 'foo' after it has been explicitly set for a.
+        $a->setFoo('foo');
         $c->merge($a);
 
         self::assertSame('foo', $a->getFoo());
