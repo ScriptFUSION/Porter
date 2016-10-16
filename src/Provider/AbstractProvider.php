@@ -4,11 +4,20 @@ namespace ScriptFUSION\Porter\Provider;
 use ScriptFUSION\Porter\Cache\CacheToggle;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Connector\Connector;
+use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 
 abstract class AbstractProvider implements Provider, CacheToggle
 {
+    /**
+     * @var Connector
+     */
     private $connector;
+
+    /**
+     * @var EncapsulatedOptions|null
+     */
+    private $options;
 
     public function __construct(Connector $connector)
     {
@@ -31,7 +40,7 @@ abstract class AbstractProvider implements Provider, CacheToggle
             ));
         }
 
-        return $resource->fetch($this->connector);
+        return $resource->fetch($this->connector, $this->options ? clone $this->options : null);
     }
 
     /**
@@ -73,5 +82,25 @@ abstract class AbstractProvider implements Provider, CacheToggle
         }
 
         return $connector->isCacheEnabled();
+    }
+
+    /**
+     * Gets the provider options.
+     *
+     * @return EncapsulatedOptions|null
+     */
+    protected function getOptions()
+    {
+        return $this->options;
+    }
+
+    /**
+     * Sets the provider options to the specified options.
+     *
+     * @param EncapsulatedOptions $options Options.
+     */
+    protected function setOptions(EncapsulatedOptions $options)
+    {
+        $this->options = $options;
     }
 }

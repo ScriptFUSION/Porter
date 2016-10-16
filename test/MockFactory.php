@@ -23,9 +23,12 @@ final class MockFactory
      */
     public static function mockResource(Provider $provider)
     {
-        return \Mockery::spy(ProviderResource::class)
+        return \Mockery::mock(ProviderResource::class)
             ->shouldReceive('getProviderClassName')
             ->andReturn(get_class($provider))
+            ->shouldReceive('getProviderTag')
+            ->andReturn(null)
+            ->byDefault()
             ->getMock();
     }
 }
