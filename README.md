@@ -29,6 +29,7 @@ Contents
   11. [Requirements](#requirements)
   12. [Limitations](#limitations)
   13. [Testing](#testing)
+  14. [License](#license)
 
 Usage
 -----
@@ -42,7 +43,7 @@ $records = $porter->import(new ImportSpecification(new MyResource));
 Provider resources, such as `MyResource`, specify the `Provider` class name they work with. Imports will only work when a resource's provider has been added to Porter, otherwise `ProviderNotFoundException` is thrown. To find which provider `MyResource` requires we examine its `getProviderClassName` method, which returns `MyProvider::class`, in this case. In the following example we register `MyProvider` with Porter.
 
 ```php
-$porter = (new Porter)->addProvider(new MyProvider);
+$porter = (new Porter)->registerProvider(new MyProvider);
 ```
 
 Calling `import()` returns an instance of `PorterRecords`, which implements `Iterator`, allowing us to enumerate each record in the collection using `foreach` as in the following example.
@@ -80,7 +81,7 @@ The result of a successful `Porter::import` call is an instance of `PorterRecord
 
 Record collections are composed by Porter using the decorator pattern. If provider data is not modified, `PorterRecords` will decorate the `ProviderRecords` returned from a `ProviderResource`. That is, `PorterRecords` has a pointer back to the previous collection, which could be written as: `PorterRecords` → `ProviderRecords`. If a mapping was applied, the collection stack would be `PorterRecords` → `MappedRecords` → `ProviderRecords`. In general this is an unimportant detail for most users but it can be useful for debugging. The stack of record collection types informs us of the transformations a collection has undergone and each type holds a pointer to relevant objects that participated in the transformation, for example, `PorterRecords` holds a reference to the `ImportSpecification` that was used to create it and can be accessed using `PorterRecords::getSpecification`.
 
-A collection may be `Countable`, depending on whether the imported data set was countable and whether any destructive operations were performed after import. Filtering is a destructive operation since it may remove records and therefore the count reported by a `ProviderResource` may no longer be accurate. It is the prerogative of the imported resource to supply the number of records in its collection by returning `CountableProviderRecords` which causes Porter to return `CountablePorterRecords` as long as no destructive operations were performed. This is possible because all non-destructive collection types have a `Countable` analogue.
+A collection may be `Countable`, depending on whether the imported data set was countable and whether any destructive operations were performed after import. Filtering is a destructive operation since it may remove records and therefore the count reported by a `ProviderResource` may no longer be accurate. It is the responsibility of the resource to supply the number of records in its collection by returning an iterator that implements `Countable`, such as `CountableProviderRecords`. When a countable iterator is detected, Porter returns `CountablePorterRecords` as long as no destructive operations were performed, which is only possible because all non-destructive operation's collection types have a countable analogue.
 
 Filtering
 ---------
@@ -183,7 +184,7 @@ Architecture
 
 Porter talks to *providers* to fetch data. Providers represent one or more *resources* from which data can be fetched. Providers pass a *connector* needed by their resources to fetch data. Resources define the provider they are compatible with and receive the provider's connector when fetching data. Resources must transform their data into one or more *records*, collectively known as *record collections*, which present data sets as an enumeration of array values.
 
-The following UML class diagram shows a partial architectural overview illustrating Porter's main components.
+The following UML class diagram shows a partial architectural overview illustrating Porter's main components. Note that [Mapper][Mapper] is a separate project with optional integration into Porter but is included for completeness.
 
 [![Class diagram][Class diagram]][Class diagram]
 
@@ -204,7 +205,9 @@ A provider knows whether a given resource belongs to it by calling `ProviderReso
 
 Note: before writing a provider be sure to check out the [Provider organization][Provider] to see if it has already been written!
 
-Providers must implement the `Provider` interface, however it is common to extend `AbstractProvider` instead. The abstract class provides a `fetch()` implementation, stores a connector and proxies cache methods for the connector. A typical `AbstractProvider` implementation only needs to override the constructor with a more specific type hint for the connector type it requires. Providers may also store state applicable to their resources, such as authentication data, and passed to resources when `fetch()` is called.
+Providers must implement the `Provider` interface, however it is common to extend `AbstractProvider` instead. The abstract class provides a `fetch()` implementation, forwards options, stores a connector and proxies cache methods for the connector. A typical `AbstractProvider` implementation only needs to override the constructor with a specialized type hint for the connector it requires.
+
+Providers may also store common state applicable to their resources, such as authentication data, that is passed to a resource's second `fetch()` parameter when the provider's `fetch()` method is called. The recommended way to pass state to resources is calling `AbstractProvider::setOptions()` in the provider's constructor, which causes the options to be forwarded automatically during `fetch()`.
 
 #### Implementation example
 
@@ -340,11 +343,11 @@ License
 
 Porter is published under the open source GNU Lesser General Public License v3.0. However, the original Porter character and artwork is copyright &copy; 2016 [Bilge](https://github.com/Bilge) and may not be reproduced or modified without express written permission.
 
-![][Porter icon]
+[![][Porter icon]][Provider]
 
 
   [Releases]: https://github.com/ScriptFUSION/Porter/releases
-  [Version image]: https://poser.pugx.org/scriptfusion/porter/v/stable "Latest version"
+  [Version image]: https://poser.pugx.org/scriptfusion/porter/version "Latest version"
   [Downloads]: https://packagist.org/packages/scriptfusion/porter
   [Downloads image]: https://poser.pugx.org/scriptfusion/porter/downloads "Total downloads"
   [Build]: http://travis-ci.org/ScriptFUSION/Porter
