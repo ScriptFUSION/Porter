@@ -9,8 +9,8 @@
   ],
   "license": "LGPL-3.0",
   "require": {
-    "php": ">=5.5",
-    "scriptfusion/mapper": "^1|^0",
+    "php": "^5.5|^7",
+    "scriptfusion/mapper": "^1",
     "scriptfusion/static-class": "^1",
     "scriptfusion/retry-error-handlers": "^1",
     "psr/cache": "^1",

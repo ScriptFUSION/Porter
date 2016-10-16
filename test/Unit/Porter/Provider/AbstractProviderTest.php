@@ -6,18 +6,24 @@ use Mockery\MockInterface;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Connector\CachingConnector;
 use ScriptFUSION\Porter\Connector\Connector;
+use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 use ScriptFUSION\Porter\Provider\AbstractProvider;
 use ScriptFUSION\Porter\Provider\ForeignResourceException;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
+use ScriptFUSIONTest\MockFactory;
 
 final class AbstractProviderTest extends \PHPUnit_Framework_TestCase
 {
     use MockeryPHPUnitIntegration;
 
-    /** @var AbstractProvider */
+    /**
+     * @var AbstractProvider
+     */
     private $provider;
 
-    /** @var MockInterface */
+    /**
+     * @var MockInterface|Connector
+     */
     private $connector;
 
     protected function setUp()
@@ -40,20 +46,38 @@ final class AbstractProviderTest extends \PHPUnit_Framework_TestCase
         return $connector;
     }
 
-    public function testFetch()
+    public function testFetchWithoutOptions()
     {
         self::assertSame(
             'foo',
             $this->provider->fetch(
-                \Mockery::mock(ProviderResource::class)
+                MockFactory::mockResource($this->provider)
                     ->shouldReceive('fetch')
-                    ->with($this->connector)
+                    ->with($this->connector, null)
                     ->andReturn('foo')
                     ->getMock()
-                    ->shouldReceive('getProviderClassName')
-                    ->andReturn(get_class($this->provider))
-                    ->getMock()
             )
+        );
+    }
+
+    /**
+     * Tests that a clone of the provider's options are passed to ProviderResource::fetch().
+     */
+    public function testFetchWithOptions()
+    {
+        $this->setOptions($options = \Mockery::mock(EncapsulatedOptions::class));
+
+        $this->provider->fetch(
+            MockFactory::mockResource($this->provider)
+                ->shouldReceive('fetch')
+                ->with($this->connector, \Mockery::on(
+                    function (EncapsulatedOptions $argument) use ($options) {
+                        self::assertNotSame($options, $argument);
+
+                        return get_class($options) === get_class($argument);
+                    }
+                ))
+                ->getMock()
         );
     }
 
@@ -113,5 +137,36 @@ final class AbstractProviderTest extends \PHPUnit_Framework_TestCase
 
         self::assertTrue($this->provider->isCacheEnabled());
         self::assertFalse($this->provider->isCacheEnabled());
+    }
+
+    public function testOptions()
+    {
+        $this->setOptions($options = \Mockery::mock(EncapsulatedOptions::class));
+
+        self::assertSame($options, $this->getOptions());
+    }
+
+    private function getOptions()
+    {
+        return call_user_func(
+            \Closure::bind(
+                function () {
+                    return $this->getOptions();
+                },
+                $this->provider
+            )
+        );
+    }
+
+    private function setOptions(EncapsulatedOptions $options)
+    {
+        call_user_func(
+            \Closure::bind(
+                function () use ($options) {
+                    $this->setOptions($options);
+                },
+                $this->provider
+            )
+        );
     }
 }

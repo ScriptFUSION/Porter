@@ -2,6 +2,7 @@
 namespace ScriptFUSION\Porter\Provider\Resource;
 
 use ScriptFUSION\Porter\Connector\Connector;
+use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 
 /**
  * Defines methods for fetching data from a specific provider resource.
@@ -27,8 +28,9 @@ interface ProviderResource
      * presents its data as an enumerable series.
      *
      * @param Connector $connector Connector.
+     * @param EncapsulatedOptions $options Optional. Options.
      *
      * @return \Iterator Enumerable data series.
      */
-    public function fetch(Connector $connector);
+    public function fetch(Connector $connector, EncapsulatedOptions $options = null);
 }
