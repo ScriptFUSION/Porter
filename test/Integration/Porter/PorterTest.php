@@ -9,7 +9,6 @@ use ScriptFUSION\Porter\Cache\CacheAdvice;
 use ScriptFUSION\Porter\Cache\CacheToggle;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Collection\CountableMappedRecords;
-use ScriptFUSION\Porter\Collection\CountableProviderRecords;
 use ScriptFUSION\Porter\Collection\FilteredRecords;
 use ScriptFUSION\Porter\Collection\MappedRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
@@ -47,7 +46,9 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
             $this->provider =
                 \Mockery::mock(Provider::class)
                     ->shouldReceive('fetch')
-                    ->andReturn(new \ArrayIterator(['foo']))
+                    ->andReturnUsing(function () {
+                        yield 'foo';
+                    })
                     ->byDefault()
                     ->getMock()
         );
@@ -55,6 +56,8 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         $this->resource = MockFactory::mockResource($this->provider);
         $this->specification = new ImportSpecification($this->resource);
     }
+
+    #region Providers
 
     public function testGetProvider()
     {
@@ -115,29 +118,21 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         self::assertFalse($this->porter->hasProvider('foo'));
     }
 
+    #endregion
+
+    #region Import
+
     public function testImport()
     {
         $records = $this->porter->import($this->specification);
 
         self::assertInstanceOf(PorterRecords::class, $records);
-        self::assertNotSame($this->specification, $records->getSpecification());
-        self::assertInstanceOf(CountableProviderRecords::class, $records->getPreviousCollection());
+        self::assertNotSame($this->specification, $records->getSpecification(), 'Specification was not cloned.');
         self::assertSame('foo', $records->current());
-    }
 
-    public function testNonCountableIteratorImport()
-    {
-        $this->provider->shouldReceive('fetch')->andReturnUsing(function () {
-            yield 'foo';
-        });
-
-        $records = $this->porter->import($this->specification);
-
-        self::assertInstanceOf(PorterRecords::class, $records);
-        self::assertNotSame($this->specification, $records->getSpecification());
-        self::assertInstanceOf(ProviderRecords::class, $records->getPreviousCollection());
-        self::assertNotInstanceOf(CountableProviderRecords::class, $records->getPreviousCollection());
-        self::assertSame('foo', $records->current());
+        /** @var ProviderRecords $previous */
+        self::assertInstanceOf(ProviderRecords::class, $previous = $records->getPreviousCollection());
+        self::assertNotSame($this->resource, $previous->getResource(), 'Resource was not cloned.');
     }
 
     /**
@@ -146,9 +141,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     public function testImportCountableRecords()
     {
         $records = $this->porter->import(
-            new StaticDataImportSpecification(
-                new CountableProviderRecords(\Mockery::mock(\Iterator::class), $count = rand(1, 9), $this->resource)
-            )
+            new StaticDataImportSpecification(new \ArrayIterator(range(1, $count = 10)))
         );
 
         // Innermost collection.
@@ -160,23 +153,6 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         self::assertCount($count, $records);
     }
 
-    public function testImportAndMapNonCountableRecords()
-    {
-        $iterateOne = function () {
-            yield 'foo';
-        };
-        $records = $this->porter->import(
-            (new StaticDataImportSpecification(
-                new ProviderRecords($iterateOne(), $this->resource)
-            ))->setMapping(\Mockery::mock(Mapping::class))
-        );
-
-        self::assertInstanceOf(MappedRecords::class, $records->getPreviousCollection());
-        self::assertInstanceOf(\Iterator::class, $records);
-        self::assertNotInstanceOf(CountableMappedRecords::class, $records->getPreviousCollection());
-        self::assertNotInstanceOf(\Countable::class, $records);
-    }
-
     /**
      * Tests that when the resource is countable the count is propagated to the outermost collection via a mapped
      * collection.
@@ -185,7 +161,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     {
         $records = $this->porter->import(
             (new StaticDataImportSpecification(
-                new CountableProviderRecords(\Mockery::mock(\Iterator::class), $count = rand(1, 9), $this->resource)
+                new \ArrayIterator(range(1, $count = 10))
             ))->setMapping(\Mockery::mock(Mapping::class))
         );
 
@@ -201,7 +177,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     {
         $records = $this->porter->import(
             (new StaticDataImportSpecification(
-                new CountableProviderRecords(\Mockery::mock(\Iterator::class), $count = rand(1, 9), $this->resource)
+                new \ArrayIterator(range(1, $count = 10))
             ))->setFilter([$this, __FUNCTION__])
         );
 
@@ -211,6 +187,30 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         // Outermost collection.
         self::assertNotInstanceOf(\Countable::class, $records);
     }
+
+    public function testImportTaggedResource()
+    {
+        $this->porter->registerProvider(
+            $provider = \Mockery::mock(Provider::class)
+                ->shouldReceive('fetch')
+                ->andReturn(new \ArrayIterator([$output = 'bar']))
+                ->getMock(),
+            $tag = 'foo'
+        );
+
+        $records = $this->porter->import(MockFactory::mockImportSpecification(
+            MockFactory::mockResource($provider)
+                ->shouldReceive('getProviderTag')
+                ->andReturn($tag)
+                ->getMock()
+        ));
+
+        self::assertSame($output, $records->current());
+    }
+
+    #endregion
+
+    #region Import one
 
     public function testImportOne()
     {
@@ -237,25 +237,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         $this->porter->importOne($this->specification);
     }
 
-    public function testImportTaggedResource()
-    {
-        $this->porter->registerProvider(
-            $provider = \Mockery::mock(Provider::class)
-                ->shouldReceive('fetch')
-                ->andReturn(new \ArrayIterator([$output = 'bar']))
-                ->getMock(),
-            $tag = 'foo'
-        );
-
-        $records = $this->porter->import(MockFactory::mockImportSpecification(
-            MockFactory::mockResource($provider)
-                ->shouldReceive('getProviderTag')
-                ->andReturn($tag)
-                ->getMock()
-        ));
-
-        self::assertSame($output, $records->current());
-    }
+    #endregion
 
     public function testFilter()
     {

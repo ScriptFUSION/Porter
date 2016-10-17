@@ -60,6 +60,7 @@ class Porter
      */
     public function import(ImportSpecification $specification)
     {
+        $specification = clone $specification;
         $records = $this->fetch($specification->getResource(), $specification->getCacheAdvice());
 
         if (!$records instanceof ProviderRecords) {
@@ -74,7 +75,7 @@ class Porter
             $records = $this->map($records, $specification->getMapping(), $specification->getContext());
         }
 
-        return $this->createPorterRecords($records, clone $specification);
+        return $this->createPorterRecords($records, $specification);
     }
 
     /**
@@ -82,7 +83,7 @@ class Porter
      *
      * @param ImportSpecification $specification Import specification.
      *
-     * @return array Record.
+     * @return array|null Record.
      *
      * @throws ImportException More than one record was imported.
      */
