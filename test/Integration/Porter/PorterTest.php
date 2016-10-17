@@ -251,8 +251,11 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         );
 
         self::assertInstanceOf(PorterRecords::class, $records);
-        self::assertInstanceOf(FilteredRecords::class, $records->getPreviousCollection());
         self::assertSame([1, 3, 5, 7, 9], iterator_to_array($records));
+
+        /** @var FilteredRecords $previous */
+        self::assertInstanceOf(FilteredRecords::class, $previous = $records->getPreviousCollection());
+        self::assertNotSame($previous->getFilter(), $this->specification->getFilter(), 'Filter was not cloned.');
     }
 
     public function testMap()
@@ -260,15 +263,18 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         $records = $this->porter->setMapper(
             \Mockery::mock(CollectionMapper::class)
                 ->shouldReceive('mapCollection')
-                ->with(\Mockery::type(\Iterator::class), \Mockery::type(Mapping::class), \Mockery::any())
+                ->with(\Mockery::type(\Iterator::class), $mapping = \Mockery::type(Mapping::class), \Mockery::any())
                 ->once()
                 ->andReturn(new \ArrayIterator($result = ['foo' => 'bar']))
                 ->getMock()
         )->import($this->specification->setMapping(\Mockery::mock(Mapping::class)));
 
         self::assertInstanceOf(PorterRecords::class, $records);
-        self::assertInstanceOf(MappedRecords::class, $records->getPreviousCollection());
         self::assertSame($result, iterator_to_array($records));
+
+        /** @var MappedRecords $previous */
+        self::assertInstanceOf(MappedRecords::class, $previous = $records->getPreviousCollection());
+        self::assertNotSame($mapping, $previous->getMapping(), 'Mapping was not cloned.');
     }
 
     public function testApplyCacheAdvice()

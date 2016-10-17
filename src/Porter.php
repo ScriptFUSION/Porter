@@ -140,24 +140,25 @@ class Porter
             }
         };
 
-        return new FilteredRecords($filter(), $records);
+        return new FilteredRecords($filter(), $records, $filter);
     }
 
     private function map(RecordCollection $records, Mapping $mapping, $context)
     {
         return $this->createMappedRecords(
             $this->getOrCreateMapper()->mapCollection($records, $mapping, $context),
-            $records
+            $records,
+            $mapping
         );
     }
 
-    private function createMappedRecords(\Iterator $records, RecordCollection $previous)
+    private function createMappedRecords(\Iterator $records, RecordCollection $previous, Mapping $mapping)
     {
         if ($previous instanceof \Countable) {
-            return new CountableMappedRecords($records, count($previous), $previous);
+            return new CountableMappedRecords($records, count($previous), $previous, $mapping);
         }
 
-        return new MappedRecords($records, $previous);
+        return new MappedRecords($records, $previous, $mapping);
     }
 
     private function applyCacheAdvice(Provider $provider, CacheAdvice $cacheAdvice)
