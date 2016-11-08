@@ -142,6 +142,14 @@ final class SoapOptions extends EncapsulatedOptions
     }
 
     /**
+     * @return int
+     */
+    public function getProxyPort()
+    {
+        return $this->get('proxy_port');
+    }
+
+    /**
      * @param int $port
      *
      * @return $this
@@ -152,11 +160,11 @@ final class SoapOptions extends EncapsulatedOptions
     }
 
     /**
-     * @return int
+     * @return string
      */
-    public function getProxyPort()
+    public function getProxyLogin()
     {
-        return $this->get('proxy_port');
+        return $this->get('proxy_login');
     }
 
     /**
@@ -172,9 +180,9 @@ final class SoapOptions extends EncapsulatedOptions
     /**
      * @return string
      */
-    public function getProxyLogin()
+    public function getProxyPassword()
     {
-        return $this->get('proxy_login');
+        return $this->get('proxy_password');
     }
 
     /**
@@ -190,15 +198,17 @@ final class SoapOptions extends EncapsulatedOptions
     /**
      * @return string
      */
-    public function getProxyPassword()
+    public function getEncoding()
     {
-        return $this->get('proxy_password');
+        return $this->get('encoding');
     }
 
     /**
-     * @param string $encoding A valid system encoding; e.g. utf-8, iso-8859-1.
+     * Sets the character encoding for strings.
      *
-     * @return void
+     * @param string $encoding Character encoding, e.g. utf-8.
+     *
+     * @return $this
      */
     public function setEncoding($encoding)
     {
@@ -206,11 +216,11 @@ final class SoapOptions extends EncapsulatedOptions
     }
 
     /**
-     * @return string
+     * @return bool
      */
-    public function getEncoding()
+    public function getTrace()
     {
-        return $this->get('encoding');
+        return $this->get('trace');
     }
 
     /**
@@ -226,9 +236,9 @@ final class SoapOptions extends EncapsulatedOptions
     /**
      * @return bool
      */
-    public function getTrace()
+    public function getExceptions()
     {
-        return $this->get('trace');
+        return $this->get('exceptions');
     }
 
     /**
@@ -242,11 +252,11 @@ final class SoapOptions extends EncapsulatedOptions
     }
 
     /**
-     * @return bool
+     * @return array
      */
-    public function getExceptions()
+    public function getClassmap()
     {
-        return $this->get('exceptions');
+        return $this->get('classmap');
     }
 
     /**
@@ -260,11 +270,11 @@ final class SoapOptions extends EncapsulatedOptions
     }
 
     /**
-     * @return array
+     * @return int
      */
-    public function getClassmap()
+    public function getConnectionTimeout()
     {
-        return $this->get('classmap');
+        return $this->get('connection_timeout');
     }
 
     /**
@@ -278,11 +288,11 @@ final class SoapOptions extends EncapsulatedOptions
     }
 
     /**
-     * @return int
+     * @return array
      */
-    public function getConnectionTimeout()
+    public function getTypemap()
     {
-        return $this->get('connection_timeout');
+        return $this->get('typemap');
     }
 
     /**
@@ -296,30 +306,31 @@ final class SoapOptions extends EncapsulatedOptions
     }
 
     /**
-     * @return array
-     */
-    public function getTypemap()
-    {
-        return $this->get('typemap');
-    }
-
-    /**
-     * @param int $cacheWsdl Sets the WSDL caching mode to one of WSDL_CACHE_NONE, WSDL_CACHE_DISK, WSDL_CACHE_MEMORY
-     * or WSDL_CACHE_BOTH.
-     *
-     * @return $this
-     */
-    public function setCacheWsdl($cacheWsdl)
-    {
-        return $this->set('cache_wsdl', $cacheWsdl|0);
-    }
-
-    /**
      * @return int
      */
     public function getCacheWsdl()
     {
         return $this->get('cache_wsdl');
+    }
+
+    /**
+     * Sets the WSDL caching mode.
+     *
+     * @param int $cacheMode One of WSDL_CACHE_NONE, WSDL_CACHE_DISK, WSDL_CACHE_MEMORY or WSDL_CACHE_BOTH.
+     *
+     * @return $this
+     */
+    public function setCacheWsdl($cacheMode)
+    {
+        return $this->set('cache_wsdl', $cacheMode|0);
+    }
+
+    /**
+     * @return string
+     */
+    public function getUserAgent()
+    {
+        return $this->get('user_agent');
     }
 
     /**
@@ -333,11 +344,11 @@ final class SoapOptions extends EncapsulatedOptions
     }
 
     /**
-     * @return string
+     * @return int
      */
-    public function getUserAgent()
+    public function getFeatures()
     {
-        return $this->get('user_agent');
+        return $this->get('features');
     }
 
     /**
@@ -354,9 +365,9 @@ final class SoapOptions extends EncapsulatedOptions
     /**
      * @return int
      */
-    public function getFeatures()
+    public function getSslMethod()
     {
-        return $this->get('features');
+        return $this->get('ssl_method');
     }
 
     /**
@@ -368,14 +379,6 @@ final class SoapOptions extends EncapsulatedOptions
     public function setSslMethod($method)
     {
         return $this->set('ssl_method', $method|0);
-    }
-
-    /**
-     * @return int
-     */
-    public function getSslMethod()
-    {
-        return $this->get('ssl_method');
     }
 
     /**

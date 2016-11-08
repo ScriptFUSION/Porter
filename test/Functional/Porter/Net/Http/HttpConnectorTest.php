@@ -49,7 +49,7 @@ final class HttpConnectorTest extends \PHPUnit_Framework_TestCase
             return;
         }
 
-        self::fail('Expected exception not thrown.');
+        self::fail('Expected exception was not thrown.');
     }
 
     public function testErrorResponse()
@@ -66,7 +66,7 @@ final class HttpConnectorTest extends \PHPUnit_Framework_TestCase
             $this->stopServer($server);
         }
 
-        self::fail('Expected exception not thrown.');
+        self::fail('Expected exception was not thrown.');
     }
 
     public function testOneTry()
