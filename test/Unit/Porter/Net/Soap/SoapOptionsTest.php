@@ -60,7 +60,7 @@ final class SoapOptionsTest extends \PHPUnit_Framework_TestCase
 
     public function testEncoding()
     {
-        self::assertSame($encoding = "iso-8859-1", (new SoapOptions)->setEncoding($encoding)->getEncoding());
+        self::assertSame($encoding = 'iso-8859-1', (new SoapOptions)->setEncoding($encoding)->getEncoding());
     }
 
     public function testTrace()

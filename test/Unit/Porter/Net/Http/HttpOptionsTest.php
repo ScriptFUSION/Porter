@@ -83,7 +83,7 @@ final class HttpOptionsTest extends \PHPUnit_Framework_TestCase
         $options = (new HttpOptions)->setRequestFullUri(true);
 
         self::assertTrue($options->getRequestFullUri());
-        self::assertFalse((new HttpOptions)->setRequestFullUri(false)->getRequestFullUri());
+        self::assertFalse($options->setRequestFullUri(false)->getRequestFullUri());
     }
 
     public function testMaxRedirects()
@@ -93,7 +93,10 @@ final class HttpOptionsTest extends \PHPUnit_Framework_TestCase
 
     public function testProtocolVersion()
     {
-        self::assertSame($protocolVersion = 1.1, (new HttpOptions)->setProtocolVersion($protocolVersion)->getProtocolVersion());
+        self::assertSame(
+            $protocolVersion = 1.1,
+            (new HttpOptions)->setProtocolVersion($protocolVersion)->getProtocolVersion()
+        );
     }
 
     public function testTimeout()

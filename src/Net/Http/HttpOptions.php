@@ -5,7 +5,7 @@ use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 use ScriptFUSION\Porter\Type\StringType;
 
 /**
- * Encapsulates HTTP stream context options
+ * Encapsulates HTTP stream context options.
  */
 final class HttpOptions extends EncapsulatedOptions
 {
@@ -161,6 +161,7 @@ final class HttpOptions extends EncapsulatedOptions
 
     /**
      * @param string $userAgent
+     *
      * @return $this
      */
     public function setUserAgent($userAgent)
@@ -169,7 +170,7 @@ final class HttpOptions extends EncapsulatedOptions
     }
 
     /**
-     * @return boolean
+     * @return bool
      */
     public function getFollowLocation()
     {
@@ -177,7 +178,8 @@ final class HttpOptions extends EncapsulatedOptions
     }
 
     /**
-     * @param boolean $followLocation
+     * @param bool $followLocation
+     *
      * @return $this
      */
     public function setFollowLocation($followLocation)
@@ -186,7 +188,7 @@ final class HttpOptions extends EncapsulatedOptions
     }
 
     /**
-     * @return boolean
+     * @return bool
      */
     public function getRequestFullUri()
     {
@@ -194,7 +196,8 @@ final class HttpOptions extends EncapsulatedOptions
     }
 
     /**
-     * @param boolean $requestFullUri
+     * @param bool $requestFullUri
+     *
      * @return $this
      */
     public function setRequestFullUri($requestFullUri)
@@ -212,6 +215,7 @@ final class HttpOptions extends EncapsulatedOptions
 
     /**
      * @param int $maxRedirects
+     *
      * @return $this
      */
     public function setMaxRedirects($maxRedirects)
@@ -229,11 +233,12 @@ final class HttpOptions extends EncapsulatedOptions
 
     /**
      * @param float $protocolVersion
+     *
      * @return $this
      */
     public function setProtocolVersion($protocolVersion)
     {
-        return $this->set('protocol_version', $protocolVersion);
+        return $this->set('protocol_version', (float)$protocolVersion);
     }
 
     /**
@@ -246,15 +251,16 @@ final class HttpOptions extends EncapsulatedOptions
 
     /**
      * @param float $timeout
+     *
      * @return $this
      */
     public function setTimeout($timeout)
     {
-        return $this->set('timeout', $timeout);
+        return $this->set('timeout', (float)$timeout);
     }
 
     /**
-     * @return boolean
+     * @return bool
      */
     public function getIgnoreErrors()
     {
@@ -262,7 +268,8 @@ final class HttpOptions extends EncapsulatedOptions
     }
 
     /**
-     * @param boolean $ignoreErrors
+     * @param bool $ignoreErrors
+     *
      * @return $this
      */
     public function setIgnoreErrors($ignoreErrors)
