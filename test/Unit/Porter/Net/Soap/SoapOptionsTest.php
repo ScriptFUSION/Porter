@@ -22,6 +22,16 @@ final class SoapOptionsTest extends \PHPUnit_Framework_TestCase
         self::assertSame($params, $options->getParameters());
     }
 
+    public function testLocation()
+    {
+        self::assertSame($location = 'http://foo.com', (new SoapOptions)->setLocation($location)->getLocation());
+    }
+
+    public function testUri()
+    {
+        self::assertSame($uri = 'http://foo.com', (new SoapOptions)->setUri($uri)->getUri());
+    }
+
     public function testVersion()
     {
         $options = (new SoapOptions)->setVersion(SOAP_1_2);

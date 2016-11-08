@@ -34,6 +34,42 @@ final class SoapOptions extends EncapsulatedOptions
     }
 
     /**
+     * @return string
+     */
+    public function getLocation()
+    {
+        return $this->get('location');
+    }
+
+    /**
+     * @param string $location
+     *
+     * @return $this
+     */
+    public function setLocation($location)
+    {
+        return $this->set('location', "$location");
+    }
+
+    /**
+     * @return string
+     */
+    public function getUri()
+    {
+        return $this->get('uri');
+    }
+
+    /**
+     * @param string $uri
+     *
+     * @return $this
+     */
+    public function setUri($uri)
+    {
+        return $this->set('uri', "$uri");
+    }
+
+    /**
      * @return int
      */
     public function getVersion()
