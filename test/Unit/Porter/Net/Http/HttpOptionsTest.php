@@ -101,7 +101,7 @@ final class HttpOptionsTest extends \PHPUnit_Framework_TestCase
 
     public function testTimeout()
     {
-        self::assertSame($timeout = 20, (new HttpOptions)->setTimeout($timeout)->getTimeout());
+        self::assertSame($timeout = 20.0, (new HttpOptions)->setTimeout($timeout)->getTimeout());
     }
 
     public function testIgnoreErrors()
