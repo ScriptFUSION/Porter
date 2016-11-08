@@ -5,7 +5,7 @@ use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 use ScriptFUSION\Porter\Type\StringType;
 
 /**
- * TODO. Add missing HTTP context option accessors and mutators.
+ * Encapsulates HTTP stream context options
  */
 final class HttpOptions extends EncapsulatedOptions
 {
@@ -149,6 +149,125 @@ final class HttpOptions extends EncapsulatedOptions
     public function setProxy($proxy)
     {
         return $this->set('proxy', "$proxy");
+    }
+
+    /**
+     * @return string
+     */
+    public function getUserAgent()
+    {
+        return $this->get('user_agent');
+    }
+
+    /**
+     * @param string $userAgent
+     * @return $this
+     */
+    public function setUserAgent($userAgent)
+    {
+        return $this->set('user_agent', "$userAgent");
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getFollowLocation()
+    {
+        return $this->get('follow_location');
+    }
+
+    /**
+     * @param boolean $followLocation
+     * @return $this
+     */
+    public function setFollowLocation($followLocation)
+    {
+        return $this->set('follow_location', (bool)$followLocation);
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getRequestFullUri()
+    {
+        return $this->get('request_fulluri');
+    }
+
+    /**
+     * @param boolean $requestFullUri
+     * @return $this
+     */
+    public function setRequestFullUri($requestFullUri)
+    {
+        return $this->set('request_fulluri', (bool)$requestFullUri);
+    }
+
+    /**
+     * @return int
+     */
+    public function getMaxRedirects()
+    {
+        return $this->get('max_redirects');
+    }
+
+    /**
+     * @param int $maxRedirects
+     * @return $this
+     */
+    public function setMaxRedirects($maxRedirects)
+    {
+        return $this->set('max_redirects', $maxRedirects|0);
+    }
+
+    /**
+     * @return float
+     */
+    public function getProtocolVersion()
+    {
+        return $this->get('protocol_version');
+    }
+
+    /**
+     * @param float $protocolVersion
+     * @return $this
+     */
+    public function setProtocolVersion($protocolVersion)
+    {
+        return $this->set('protocol_version', $protocolVersion);
+    }
+
+    /**
+     * @return float
+     */
+    public function getTimeout()
+    {
+        return $this->get('timeout');
+    }
+
+    /**
+     * @param float $timeout
+     * @return $this
+     */
+    public function setTimeout($timeout)
+    {
+        return $this->set('timeout', $timeout);
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getIgnoreErrors()
+    {
+        return $this->get('ignore_errors');
+    }
+
+    /**
+     * @param boolean $ignoreErrors
+     * @return $this
+     */
+    public function setIgnoreErrors($ignoreErrors)
+    {
+        return $this->set('ignore_errors', (bool)$ignoreErrors);
     }
 
     /**

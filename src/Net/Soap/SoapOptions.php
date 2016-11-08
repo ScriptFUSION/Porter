@@ -4,7 +4,7 @@ namespace ScriptFUSION\Porter\Net\Soap;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 
 /**
- * TODO. Add missing SOAP context option accessors and mutators.
+ * Encapsulates SOAP context options
  */
 final class SoapOptions extends EncapsulatedOptions
 {
@@ -93,6 +93,106 @@ final class SoapOptions extends EncapsulatedOptions
     public function getProxyPassword()
     {
         return $this->get('proxy_password');
+    }
+
+    public function setEncoding($encoding)
+    {
+        return $this->set('encoding', "$encoding");
+    }
+
+    public function getEncoding()
+    {
+        return $this->get('encoding');
+    }
+
+    public function setTrace($trace)
+    {
+        return $this->set('trace', (bool)$trace);
+    }
+
+    public function getTrace()
+    {
+        return $this->get('trace');
+    }
+
+    public function setExceptions($exceptions)
+    {
+        return $this->set('exceptions', (bool)$exceptions);
+    }
+
+    public function getExceptions()
+    {
+        return $this->get('exceptions');
+    }
+
+    public function setClassmap(array $classmap)
+    {
+        return $this->set('classmap', $classmap);
+    }
+
+    public function getClassmap()
+    {
+        return $this->get('classmap');
+    }
+
+    public function setConnectionTimeout($timeout)
+    {
+        return $this->set('connection_timeout', $timeout|0);
+    }
+
+    public function getConnectionTimeout()
+    {
+        return $this->get('connection_timeout');
+    }
+
+    public function setTypemap(array $typemap)
+    {
+        return $this->set('typemap', $typemap);
+    }
+
+    public function getTypemap()
+    {
+        return $this->get('typemap');
+    }
+
+    public function setCacheWsdl($cacheWsdl)
+    {
+        return $this->set('cache_wsdl', $cacheWsdl|0);
+    }
+
+    public function getCacheWsdl()
+    {
+        return $this->get('cache_wsdl');
+    }
+
+    public function setUserAgent($userAgent)
+    {
+        return $this->set('user_agent', "$userAgent");
+    }
+
+    public function getUserAgent()
+    {
+        return $this->get('user_agent');
+    }
+
+    public function setFeatures($features)
+    {
+        return $this->set('features', $features|0);
+    }
+
+    public function getFeatures()
+    {
+        return $this->get('features');
+    }
+
+    public function setSslMethod($method)
+    {
+        return $this->set('ssl_method', $method);
+    }
+
+    public function getSslMethod()
+    {
+        return $this->get('ssl_method');
     }
 
     /**
