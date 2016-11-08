@@ -65,6 +65,50 @@ final class HttpOptionsTest extends \PHPUnit_Framework_TestCase
         self::assertSame($host = 'https://foo.com:80', (new HttpOptions)->setProxy($host)->getProxy());
     }
 
+    public function testUserAgent()
+    {
+        self::assertSame($userAgent = 'Foo/Bar', (new HttpOptions)->setUserAgent($userAgent)->getUserAgent());
+    }
+
+    public function testFollowLocation()
+    {
+        $options = (new HttpOptions)->setFollowLocation(true);
+
+        self::assertTrue($options->getFollowLocation());
+        self::assertFalse($options->setFollowLocation(false)->getFollowLocation());
+    }
+
+    public function testRequestFullUri()
+    {
+        $options = (new HttpOptions)->setRequestFullUri(true);
+
+        self::assertTrue($options->getRequestFullUri());
+        self::assertFalse($options->setRequestFullUri(false)->getRequestFullUri());
+    }
+
+    public function testMaxRedirects()
+    {
+        self::assertSame($maxRedirects = 10, (new HttpOptions)->setMaxRedirects($maxRedirects)->getMaxRedirects());
+    }
+
+    public function testProtocolVersion()
+    {
+        self::assertSame(
+            $protocolVersion = 1.1,
+            (new HttpOptions)->setProtocolVersion($protocolVersion)->getProtocolVersion()
+        );
+    }
+
+    public function testTimeout()
+    {
+        self::assertSame($timeout = 20.0, (new HttpOptions)->setTimeout($timeout)->getTimeout());
+    }
+
+    public function testIgnoreErrors()
+    {
+        self::assertTrue((new HttpOptions)->setIgnoreErrors(true)->getIgnoreErrors());
+    }
+
     public function testExtractHttpContextOptions()
     {
         self::assertSame(['header' => []], (new HttpOptions)->extractHttpContextOptions());

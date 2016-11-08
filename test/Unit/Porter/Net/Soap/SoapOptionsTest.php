@@ -22,6 +22,16 @@ final class SoapOptionsTest extends \PHPUnit_Framework_TestCase
         self::assertSame($params, $options->getParameters());
     }
 
+    public function testLocation()
+    {
+        self::assertSame($location = 'http://foo.com', (new SoapOptions)->setLocation($location)->getLocation());
+    }
+
+    public function testUri()
+    {
+        self::assertSame($uri = 'http://foo.com', (new SoapOptions)->setUri($uri)->getUri());
+    }
+
     public function testVersion()
     {
         $options = (new SoapOptions)->setVersion(SOAP_1_2);
@@ -56,6 +66,65 @@ final class SoapOptionsTest extends \PHPUnit_Framework_TestCase
         self::assertSame($port, $options->getProxyPort());
         self::assertSame($login, $options->getProxyLogin());
         self::assertSame($password, $options->getProxyPassword());
+    }
+
+    public function testEncoding()
+    {
+        self::assertSame($encoding = 'iso-8859-1', (new SoapOptions)->setEncoding($encoding)->getEncoding());
+    }
+
+    public function testTrace()
+    {
+        $options = (new SoapOptions)->setTrace(true);
+
+        self::assertTrue($options->getTrace());
+        self::assertFalse($options->setTrace(false)->getTrace());
+    }
+
+    public function testExceptions()
+    {
+        $options = (new SoapOptions)->setExceptions(true);
+
+        self::assertTrue($options->getExceptions());
+        self::assertFalse($options->setExceptions(false)->getExceptions());
+    }
+
+    public function testClassmap()
+    {
+        $classmap = ['foo' => 'bar'];
+
+        self::assertSame($classmap, (new SoapOptions)->setClassmap($classmap)->getClassmap());
+    }
+
+    public function testConnectionTimeout()
+    {
+        self::assertSame($timeout = 45, (new SoapOptions)->setConnectionTimeout($timeout)->getConnectionTimeout());
+    }
+
+    public function testTypemap()
+    {
+        $typemap = ['foo' => 'bar'];
+        self::assertSame($typemap, (new SoapOptions)->setTypemap($typemap)->getTypemap());
+    }
+
+    public function testCacheWsdl()
+    {
+        self::assertSame($option = WSDL_CACHE_MEMORY, (new SoapOptions)->setCacheWsdl($option)->getCacheWsdl());
+    }
+
+    public function testUserAgent()
+    {
+        self::assertSame($userAgent = 'Foo/Bar', (new SoapOptions)->setUserAgent($userAgent)->getUserAgent());
+    }
+
+    public function testFeatures()
+    {
+        self::assertSame($features = SOAP_USE_XSI_ARRAY_TYPE, (new SoapOptions)->setFeatures($features)->getFeatures());
+    }
+
+    public function testSslMethod()
+    {
+        self::assertSame($method = SOAP_SSL_METHOD_SSLv2, (new SoapOptions)->setSslMethod($method)->getSslMethod());
     }
 
     public function testExtractSoapClientOptions()
