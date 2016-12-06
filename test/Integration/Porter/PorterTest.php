@@ -156,6 +156,8 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that when the resource is countable the count is propagated to the outermost collection via a mapped
      * collection.
+     *
+     * @group Mapper
      */
     public function testImportAndMapCountableRecords()
     {

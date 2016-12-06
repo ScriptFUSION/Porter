@@ -10,16 +10,20 @@
   "license": "LGPL-3.0",
   "require": {
     "php": "^5.5|^7",
-    "scriptfusion/mapper": "^1",
     "scriptfusion/static-class": "^1",
     "scriptfusion/retry-error-handlers": "^1",
+    "eloquent/enumeration": "^5",
     "psr/cache": "^1",
     "zendframework/zend-uri": "^2"
   },
   "require-dev": {
+    "scriptfusion/mapper": "^1",
     "phpunit/phpunit": "^4",
     "mockery/mockery": "^0",
     "symfony/process": "^3"
+  },
+  "suggest" : {
+    "scriptfusion/mapper": "Transforms imported data."
   },
   "autoload": {
     "psr-4": {

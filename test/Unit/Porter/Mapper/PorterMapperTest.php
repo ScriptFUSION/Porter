@@ -9,6 +9,10 @@ use ScriptFUSION\Porter\Mapper\PorterMapper;
 use ScriptFUSION\Porter\Porter;
 use ScriptFUSION\Porter\PorterAware;
 
+/**
+ * @see PorterMapper
+ * @group Mapper
+ */
 final class PorterMapperTest extends \PHPUnit_Framework_TestCase
 {
     use MockeryPHPUnitIntegration;

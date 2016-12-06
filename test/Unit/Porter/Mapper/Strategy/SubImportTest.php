@@ -10,6 +10,7 @@ use ScriptFUSIONTest\MockFactory;
 
 /**
  * @see SubImport
+ * @group Mapper
  */
 final class SubImportTest extends \PHPUnit_Framework_TestCase
 {

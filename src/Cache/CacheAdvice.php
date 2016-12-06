@@ -5,6 +5,11 @@ use Eloquent\Enumeration\AbstractEnumeration;
 
 /**
  * Specifies cache behaviour.
+ *
+ * @method static SHOULD_CACHE
+ * @method static SHOULD_NOT_CACHE
+ * @method static MUST_CACHE
+ * @method static MUST_NOT_CACHE
  */
 final class CacheAdvice extends AbstractEnumeration
 {

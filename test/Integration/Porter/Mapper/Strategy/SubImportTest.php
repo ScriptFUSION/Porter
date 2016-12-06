@@ -7,6 +7,7 @@ use ScriptFUSION\Porter\Specification\StaticDataImportSpecification;
 
 /**
  * @see SubImport
+ * @group Mapper
  */
 final class SubImportTest extends \PHPUnit_Framework_TestCase
 {
