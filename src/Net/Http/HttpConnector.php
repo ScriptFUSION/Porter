@@ -4,7 +4,6 @@ namespace ScriptFUSION\Porter\Net\Http;
 use ScriptFUSION\Porter\Connector\CachingConnector;
 use ScriptFUSION\Porter\Net\UrlBuilder;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
-use ScriptFUSION\Retry\ErrorHandler\ExponentialBackoffErrorHandler;
 
 /**
  * Fetches data from an HTTP server via the PHP wrapper.
@@ -14,8 +13,6 @@ use ScriptFUSION\Retry\ErrorHandler\ExponentialBackoffErrorHandler;
  */
 class HttpConnector extends CachingConnector
 {
-    const DEFAULT_TRIES = 5;
-
     /** @var HttpOptions */
     private $options;
 
@@ -24,9 +21,6 @@ class HttpConnector extends CachingConnector
 
     /** @var string */
     private $baseUrl;
-
-    /** @var int */
-    private $tries = self::DEFAULT_TRIES;
 
     public function __construct(HttpOptions $options = null)
     {
@@ -53,34 +47,32 @@ class HttpConnector extends CachingConnector
             throw new \InvalidArgumentException('Options must be an instance of HttpOptions.');
         }
 
-        return \ScriptFUSION\Retry\retry($this->getTries(), function () use ($source, $options) {
-            if (false === $response = @file_get_contents(
-                $this->getOrCreateUrlBuilder()->buildUrl(
-                    $source,
-                    $options ? $options->getQueryParameters() : [],
-                    $this->getBaseUrl()
+        if (false === $response = @file_get_contents(
+            $this->getOrCreateUrlBuilder()->buildUrl(
+                $source,
+                $options ? $options->getQueryParameters() : [],
+                $this->getBaseUrl()
+            ),
+            false,
+            stream_context_create([
+                'http' => ['ignore_errors' => true] + array_merge(
+                    $this->options->extractHttpContextOptions(),
+                    $options ? $options->extractHttpContextOptions() : []
                 ),
-                false,
-                stream_context_create([
-                    'http' => ['ignore_errors' => true] + array_merge(
-                        $this->options->extractHttpContextOptions(),
-                        $options ? $options->extractHttpContextOptions() : []
-                    ),
-                ])
-            )) {
-                $error = error_get_last();
-                throw new HttpConnectionException($error['message'], $error['type']);
-            }
+            ])
+        )) {
+            $error = error_get_last();
+            throw new HttpConnectionException($error['message'], $error['type']);
+        }
 
-            $code = explode(' ', $http_response_header[0], 3)[1];
-            if ($code < 200 || $code >= 400) {
-                throw new HttpServerException(
-                    "HTTP server responded with error: \"$http_response_header[0]\".\n\n$response"
-                );
-            }
+        $code = explode(' ', $http_response_header[0], 3)[1];
+        if ($code < 200 || $code >= 400) {
+            throw new HttpServerException(
+                "HTTP server responded with error: \"$http_response_header[0]\".\n\n$response"
+            );
+        }
 
-            return $response;
-        }, new ExponentialBackoffErrorHandler);
+        return $response;
     }
 
     private function getOrCreateUrlBuilder()
@@ -104,30 +96,6 @@ class HttpConnector extends CachingConnector
     public function setBaseUrl($baseUrl)
     {
         $this->baseUrl = "$baseUrl";
-
-        return $this;
-    }
-
-    /**
-     * Gets the maximum number of fetch attempts
-     *
-     * @return int
-     */
-    public function getTries()
-    {
-        return $this->tries;
-    }
-
-    /**
-     * Sets the maximum number of fetch attempts.
-     *
-     * @param int $tries Maximum fetch attempts.
-     *
-     * @return $this
-     */
-    public function setTries($tries)
-    {
-        $this->tries = max(1, $tries|0);
 
         return $this;
     }

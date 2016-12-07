@@ -22,6 +22,7 @@ use ScriptFUSION\Porter\ProviderAlreadyRegisteredException;
 use ScriptFUSION\Porter\ProviderNotFoundException;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\Porter\Specification\StaticDataImportSpecification;
+use ScriptFUSION\Retry\FailingTooHardException;
 use ScriptFUSIONTest\MockFactory;
 
 final class PorterTest extends \PHPUnit_Framework_TestCase
@@ -208,6 +209,22 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         ));
 
         self::assertSame($output, $records->current());
+    }
+
+    public function testOneTry()
+    {
+        $this->setExpectedException(FailingTooHardException::class, '1');
+
+        $this->provider->shouldReceive('fetch')->once()->andThrow(\Exception::class);
+        $this->porter->setMaxFetchAttempts(1)->import($this->specification);
+    }
+
+    public function testDefaultTries()
+    {
+        $this->setExpectedException(FailingTooHardException::class, (string)Porter::DEFAULT_FETCH_ATTEMPTS);
+
+        $this->provider->shouldReceive('fetch')->times(Porter::DEFAULT_FETCH_ATTEMPTS)->andThrow(\Exception::class);
+        $this->porter->import($this->specification);
     }
 
     #endregion

@@ -4,7 +4,6 @@ namespace ScriptFUSION\Porter\Net\Soap;
 use ScriptFUSION\Porter\Connector\CachingConnector;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 use ScriptFUSION\Porter\Type\ObjectType;
-use ScriptFUSION\Retry\ErrorHandler\ExponentialBackoffErrorHandler;
 
 /**
  * Fetches data from a SOAP service.
@@ -33,11 +32,7 @@ class SoapConnector extends CachingConnector
 
         $params = array_merge($this->options->getParameters(), $options ? $options->getParameters() : []);
 
-        return ObjectType::toArray(
-            \ScriptFUSION\Retry\retry(5, function () use ($source, $params) {
-                return $this->getOrCreateClient()->$source($params);
-            }, new ExponentialBackoffErrorHandler)
-        );
+        return ObjectType::toArray($this->getOrCreateClient()->$source($params));
     }
 
     private function getOrCreateClient()

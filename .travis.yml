@@ -21,7 +21,7 @@ script:
 
   # Remove mapper and run all non-Mapper tests again.
   - composer --dev --no-update-with-dependencies remove scriptfusion/mapper
-  - '! composer info | awk ''{print $1}'' | grep ^scriptfusion/mapper'
+  - '! composer info | grep ^scriptfusion/mapper\\b'
   - bin/test --exclude-group Mapper
 
 after_success:

@@ -6,7 +6,7 @@ use ScriptFUSION\Porter\Net\Http\HttpConnectionException;
 use ScriptFUSION\Porter\Net\Http\HttpConnector;
 use ScriptFUSION\Porter\Net\Http\HttpOptions;
 use ScriptFUSION\Porter\Net\Http\HttpServerException;
-use ScriptFUSION\Retry\FailingTooHardException;
+use ScriptFUSION\Retry\ErrorHandler\ExponentialBackoffErrorHandler;
 use Symfony\Component\Process\Process;
 
 final class HttpConnectorTest extends \PHPUnit_Framework_TestCase
@@ -41,46 +41,22 @@ final class HttpConnectorTest extends \PHPUnit_Framework_TestCase
 
     public function testConnectionTimeout()
     {
-        try {
-            $this->fetch($this->connector->setTries(1));
-        } catch (FailingTooHardException $exception) {
-            self::assertInstanceOf(HttpConnectionException::class, $exception->getPrevious());
+        $this->setExpectedException(HttpConnectionException::class);
 
-            return;
-        }
-
-        self::fail('Expected exception was not thrown.');
+        $this->fetch();
     }
 
     public function testErrorResponse()
     {
         $server = $this->startServer('404');
+
+        $this->setExpectedExceptionRegExp(HttpServerException::class, '[^foo\z]m');
+
         try {
             $this->fetch();
-        } catch (FailingTooHardException $exception) {
-            self::assertInstanceOf(HttpServerException::class, $exception->getPrevious(), $exception->getMessage());
-            self::assertStringEndsWith('foo', $exception->getPrevious()->getMessage());
-
-            return;
         } finally {
             $this->stopServer($server);
         }
-
-        self::fail('Expected exception was not thrown.');
-    }
-
-    public function testOneTry()
-    {
-        $this->setExpectedException(FailingTooHardException::class, '1');
-
-        $this->fetch($this->connector->setTries(1));
-    }
-
-    public function testDefaultTries()
-    {
-        $this->setExpectedException(FailingTooHardException::class, (string)HttpConnector::DEFAULT_TRIES);
-
-        $this->fetch();
     }
 
     /**
@@ -91,10 +67,29 @@ final class HttpConnectorTest extends \PHPUnit_Framework_TestCase
     private function startServer($script)
     {
         $server = (
-            // Prevent forking on some Unix systems.
-            new Process(sprintf('%sphp -S %s %s.php', file_exists('/bin/sh') ? 'exec ' : '', self::HOST, $script))
+            new Process(sprintf(
+                '%sphp -S %s %s.php',
+                // Prevent forking on some Unix systems.
+                file_exists('/bin/sh') ? 'exec ' : '',
+                self::HOST,
+                $script
+            ))
         )->setWorkingDirectory(self::$dir);
         $server->start();
+
+        // Wait for server to spawn.
+        \ScriptFUSION\Retry\retry(5, function () {
+            $this->fetch();
+        }, function (\Exception $exception) {
+            static $handler;
+            $handler = $handler ?: new ExponentialBackoffErrorHandler;
+
+            if (!$exception instanceof HttpConnectionException) {
+                return false;
+            }
+
+            return $handler();
+        });
 
         return $server;
     }

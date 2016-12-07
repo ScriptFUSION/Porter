@@ -20,12 +20,15 @@ use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\ProviderFactory;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
+use ScriptFUSION\Retry\ErrorHandler\ExponentialBackoffErrorHandler;
 
 /**
  * Imports data according to an ImportSpecification.
  */
 class Porter
 {
+    const DEFAULT_FETCH_ATTEMPTS = 5;
+
     /**
      * @var Provider[]
      */
@@ -45,6 +48,11 @@ class Porter
      * @var CacheAdvice
      */
     private $defaultCacheAdvice;
+
+    /**
+     * @var int
+     */
+    private $maxFetchAttempts = self::DEFAULT_FETCH_ATTEMPTS;
 
     public function __construct()
     {
@@ -127,7 +135,13 @@ class Porter
         $provider = $this->getProvider($resource->getProviderClassName(), $resource->getProviderTag());
         $this->applyCacheAdvice($provider, $cacheAdvice ?: $this->defaultCacheAdvice);
 
-        return $provider->fetch($resource);
+        return \ScriptFUSION\Retry\retry(
+            $this->maxFetchAttempts,
+            function () use ($provider, $resource) {
+                return $provider->fetch($resource);
+            },
+            new ExponentialBackoffErrorHandler
+        );
     }
 
     private function filter(ProviderRecords $records, callable $predicate, $context)
@@ -286,6 +300,30 @@ class Porter
     public function setMapper(CollectionMapper $mapper)
     {
         $this->mapper = $mapper;
+
+        return $this;
+    }
+
+    /**
+     * Gets the maximum number of fetch attempts per import.
+     *
+     * @return int
+     */
+    public function getMaxFetchAttempts()
+    {
+        return $this->maxFetchAttempts;
+    }
+
+    /**
+     * Sets the maximum number of fetch attempts per import.
+     *
+     * @param int $attempts Maximum fetch attempts.
+     *
+     * @return $this
+     */
+    public function setMaxFetchAttempts($attempts)
+    {
+        $this->maxFetchAttempts = max(1, $attempts|0);
 
         return $this;
     }
