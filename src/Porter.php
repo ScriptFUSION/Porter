@@ -14,13 +14,14 @@ use ScriptFUSION\Porter\Collection\MappedRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
+use ScriptFUSION\Porter\Connector\RecoverableConnectorException;
 use ScriptFUSION\Porter\Mapper\PorterMapper;
 use ScriptFUSION\Porter\Provider\ObjectNotCreatedException;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\ProviderFactory;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
-use ScriptFUSION\Retry\ErrorHandler\ExponentialBackoffErrorHandler;
+use ScriptFUSION\Retry\ExceptionHandler\ExponentialBackoffExceptionHandler;
 
 /**
  * Imports data according to an ImportSpecification.
@@ -54,9 +55,15 @@ class Porter
      */
     private $maxFetchAttempts = self::DEFAULT_FETCH_ATTEMPTS;
 
+    /**
+     * @var callable
+     */
+    private $fetchExceptionHandler;
+
     public function __construct()
     {
         $this->defaultCacheAdvice = CacheAdvice::SHOULD_NOT_CACHE();
+        $this->fetchExceptionHandler = new ExponentialBackoffExceptionHandler;
     }
 
     /**
@@ -65,6 +72,8 @@ class Porter
      * @param ImportSpecification $specification Import specification.
      *
      * @return PorterRecords
+     *
+     * @throws ImportException Provider failed to return an iterator.
      */
     public function import(ImportSpecification $specification)
     {
@@ -100,7 +109,7 @@ class Porter
         $results = $this->import($specification);
 
         if (!$results->valid()) {
-            return;
+            return null;
         }
 
         $one = $results->current();
@@ -135,13 +144,24 @@ class Porter
         $provider = $this->getProvider($resource->getProviderClassName(), $resource->getProviderTag());
         $this->applyCacheAdvice($provider, $cacheAdvice ?: $this->defaultCacheAdvice);
 
-        return \ScriptFUSION\Retry\retry(
-            $this->maxFetchAttempts,
+        if (($records = \ScriptFUSION\Retry\retry(
+            $this->getMaxFetchAttempts(),
             function () use ($provider, $resource) {
                 return $provider->fetch($resource);
             },
-            new ExponentialBackoffErrorHandler
-        );
+            function (\Exception $exception) {
+                // Throw exception if unrecoverable.
+                if (!$exception instanceof RecoverableConnectorException) {
+                    throw $exception;
+                }
+
+                call_user_func($this->getFetchExceptionHandler(), $exception);
+            }
+        )) instanceof \Iterator) {
+            return $records;
+        }
+
+        throw new ImportException(get_class($provider) . '::fetch() did not return an Iterator.');
     }
 
     private function filter(ProviderRecords $records, callable $predicate, $context)
@@ -326,5 +346,21 @@ class Porter
         $this->maxFetchAttempts = max(1, $attempts|0);
 
         return $this;
+    }
+
+    /**
+     * @return callable
+     */
+    private function getFetchExceptionHandler()
+    {
+        return $this->fetchExceptionHandler;
+    }
+
+    /**
+     * @param callable $fetchExceptionHandler
+     */
+    public function setFetchExceptionHandler(callable $fetchExceptionHandler)
+    {
+        $this->fetchExceptionHandler = $fetchExceptionHandler;
     }
 }

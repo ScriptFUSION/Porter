@@ -13,6 +13,7 @@ use ScriptFUSION\Porter\Collection\FilteredRecords;
 use ScriptFUSION\Porter\Collection\MappedRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
+use ScriptFUSION\Porter\Connector\RecoverableConnectorException;
 use ScriptFUSION\Porter\ImportException;
 use ScriptFUSION\Porter\Porter;
 use ScriptFUSION\Porter\Provider\Provider;
@@ -22,6 +23,7 @@ use ScriptFUSION\Porter\ProviderAlreadyRegisteredException;
 use ScriptFUSION\Porter\ProviderNotFoundException;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\Porter\Specification\StaticDataImportSpecification;
+use ScriptFUSION\Retry\ExceptionHandler\ExponentialBackoffExceptionHandler;
 use ScriptFUSION\Retry\FailingTooHardException;
 use ScriptFUSIONTest\MockFactory;
 
@@ -211,19 +213,11 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         self::assertSame($output, $records->current());
     }
 
-    public function testOneTry()
+    public function testImportFailure()
     {
-        $this->setExpectedException(FailingTooHardException::class, '1');
+        $this->provider->shouldReceive('fetch')->andReturn(null);
 
-        $this->provider->shouldReceive('fetch')->once()->andThrow(\Exception::class);
-        $this->porter->setMaxFetchAttempts(1)->import($this->specification);
-    }
-
-    public function testDefaultTries()
-    {
-        $this->setExpectedException(FailingTooHardException::class, (string)Porter::DEFAULT_FETCH_ATTEMPTS);
-
-        $this->provider->shouldReceive('fetch')->times(Porter::DEFAULT_FETCH_ATTEMPTS)->andThrow(\Exception::class);
+        $this->setExpectedException(ImportException::class, get_class($this->provider));
         $this->porter->import($this->specification);
     }
 
@@ -254,6 +248,58 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         $this->provider->shouldReceive('fetch')->andReturn(new \ArrayIterator(['foo', 'bar']));
 
         $this->porter->importOne($this->specification);
+    }
+
+    #endregion
+
+    #region Durability
+
+    public function testOneTry()
+    {
+        $this->provider->shouldReceive('fetch')->once()->andThrow(RecoverableConnectorException::class);
+
+        $this->setExpectedException(FailingTooHardException::class, '1');
+        $this->porter->setMaxFetchAttempts(1)->import($this->specification);
+    }
+
+    public function testDerivedRecoverableException()
+    {
+        $this->provider->shouldReceive('fetch')->once()->andThrow(\Mockery::mock(RecoverableConnectorException::class));
+
+        $this->setExpectedException(FailingTooHardException::class);
+        $this->porter->setMaxFetchAttempts(1)->import($this->specification);
+    }
+
+    public function testDefaultTries()
+    {
+        $this->provider->shouldReceive('fetch')->times(Porter::DEFAULT_FETCH_ATTEMPTS)
+            ->andThrow(RecoverableConnectorException::class);
+
+        $this->setExpectedException(FailingTooHardException::class, (string)Porter::DEFAULT_FETCH_ATTEMPTS);
+        $this->porter->import($this->specification);
+    }
+
+    public function testUnrecoverableException()
+    {
+        $this->provider->shouldReceive('fetch')->once()->andThrow(\Exception::class);
+
+        $this->setExpectedException(\Exception::class);
+        $this->porter->import($this->specification);
+    }
+
+    public function testCustomFetchExceptionHandler()
+    {
+        $this->porter->setFetchExceptionHandler(
+            \Mockery::mock(ExponentialBackoffExceptionHandler::class)
+                ->shouldReceive('__invoke')
+                ->times(Porter::DEFAULT_FETCH_ATTEMPTS - 1)
+                ->getMock()
+        );
+        $this->provider->shouldReceive('fetch')->times(Porter::DEFAULT_FETCH_ATTEMPTS)
+            ->andThrow(RecoverableConnectorException::class);
+
+        $this->setExpectedException(FailingTooHardException::class);
+        $this->porter->import($this->specification);
     }
 
     #endregion

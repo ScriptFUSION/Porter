@@ -2,6 +2,7 @@
 namespace ScriptFUSION\Porter\Net\Soap;
 
 use ScriptFUSION\Porter\Connector\CachingConnector;
+use ScriptFUSION\Porter\Connector\RecoverableConnectorException;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 use ScriptFUSION\Porter\Type\ObjectType;
 
@@ -32,7 +33,13 @@ class SoapConnector extends CachingConnector
 
         $params = array_merge($this->options->getParameters(), $options ? $options->getParameters() : []);
 
-        return ObjectType::toArray($this->getOrCreateClient()->$source($params));
+        try {
+            $response = $this->getOrCreateClient()->$source($params);
+        } catch (\Exception $exception) {
+            throw new RecoverableConnectorException($exception->getMessage(), $exception->getCode(), $exception);
+        }
+
+        return ObjectType::toArray($response);
     }
 
     private function getOrCreateClient()

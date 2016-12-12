@@ -68,7 +68,8 @@ class HttpConnector extends CachingConnector
         $code = explode(' ', $http_response_header[0], 3)[1];
         if ($code < 200 || $code >= 400) {
             throw new HttpServerException(
-                "HTTP server responded with error: \"$http_response_header[0]\".\n\n$response"
+                "HTTP server responded with error: \"$http_response_header[0]\".\n\n$response",
+                $code
             );
         }
 

@@ -6,7 +6,7 @@ use ScriptFUSION\Porter\Net\Http\HttpConnectionException;
 use ScriptFUSION\Porter\Net\Http\HttpConnector;
 use ScriptFUSION\Porter\Net\Http\HttpOptions;
 use ScriptFUSION\Porter\Net\Http\HttpServerException;
-use ScriptFUSION\Retry\ErrorHandler\ExponentialBackoffErrorHandler;
+use ScriptFUSION\Retry\ExceptionHandler\ExponentialBackoffExceptionHandler;
 use Symfony\Component\Process\Process;
 
 final class HttpConnectorTest extends \PHPUnit_Framework_TestCase
@@ -82,7 +82,7 @@ final class HttpConnectorTest extends \PHPUnit_Framework_TestCase
             $this->fetch();
         }, function (\Exception $exception) {
             static $handler;
-            $handler = $handler ?: new ExponentialBackoffErrorHandler;
+            $handler = $handler ?: new ExponentialBackoffExceptionHandler();
 
             if (!$exception instanceof HttpConnectionException) {
                 return false;
