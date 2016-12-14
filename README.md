@@ -42,7 +42,8 @@ Porter is useful for anyone importing data into PHP applications. Data typically
  * Provides a [framework](#architecture) for structuring data import concepts, such a [providers](#providers) offering data via one or more [resources](#resources).
  * Offers useful post-import data augmentation operations such as [filtering](#filtering) and [mapping](#mapping).
  * Protects against intermittent network failure with [durability](#durability) features.
- * Supports raw data caching, at the connector level, for each import.
+ * Supports raw data [caching](#caching), at the connector level, for each import.
+ * Joins many data sets together using [sub-imports](#sub-imports).
 
 ### How to start using Porter
 
