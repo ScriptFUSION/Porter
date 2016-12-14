@@ -7,29 +7,48 @@ Porter <img src="https://github.com/ScriptFUSION/Porter/wiki/images/porter%20222
 [![Test coverage][Coverage image]][Coverage]
 [![Code style][Style image]][Style]
 
-Porter is a data import abstraction library to import any data from anywhere. To achieve this she must be able to generalize about the structure of data. Porter believes all data sets are either a single record or repeating collection of records with consistent structure, where *record* is either a list or tree of name and value pairs.
+Porter is a data import abstraction library to import any data from anywhere. To achieve this she must be able to generalize about the structure of data. Porter believes all data sets are either a single record, repeating collection of records with consistent structure, or both, where *record* is either a list or tree of name and value pairs.
 
-Porter must be able to abstract data importing requirements so that she can import any type of data, in a similar way that a database must be able to abstract data storage requirements such that it can store any type of data. To be clear, Porter is only interested in data import, not storage. To facilitate this Porter's interfaces use arrays, also known as *records* and array iterators, also known as *record collections*. Arrays are useful because we can store any data type as values and iterators are useful because we can iterate over an unlimited number of records, thus allowing Porter to theoretically import any data format of any size.
+Porter must be able to abstract data importing requirements so that she can import any data format, similar to how a database must be able to abstract data storage requirements such that it can store any type of data. But unlike a database, Porter is only interested in data import, not storage. To facilitate this, Porter's interfaces use arrays, also known as *records*, and array iterators, also known as [*record collections*](#record-collections). Arrays allow us to store any data type and iterators allow us to iterate over an unlimited number of records, thus allowing Porter to stream any data format of any size.
 
-The [Provider][Provider] organization hosts projects that use Porter to provide useful data. These repositories are ready-to-use Porter providers that grant access to popular third-party APIs and data services. Check it out before writing a new provider to see if it has already been written! Anyone writing new providers is encouraged to contribute them to the organization.
+The [Provider organization][Provider] hosts projects using Porter to provide useful data. These repositories are ready-to-use Porter providers granting access to popular third-party APIs and data services. Check it out before writing a new provider to see if it has already been written. Anyone writing new providers is encouraged to contribute them to the organization.
 
 Contents
 --------
 
+  1. [Audience](#audience)
   1. [Usage](#usage)
-  2. [Import specifications](#import-specifications)
-  3. [Record collections](#record-collections)
-  4. [Filtering](#filtering)
-  5. [Mapping](#mapping)
-  6. [Caching](#caching)
-  7. [Architecture](#architecture)
-  8. [Providers](#providers)
-  9. [Resources](#resources)
-  10. [Connectors](#connectors)
-  11. [Requirements](#requirements)
-  12. [Limitations](#limitations)
-  13. [Testing](#testing)
-  14. [License](#license)
+  1. [Import specifications](#import-specifications)
+  1. [Record collections](#record-collections)
+  1. [Durability](#durability)
+  1. [Filtering](#filtering)
+  1. [Mapping](#mapping)
+  1. [Caching](#caching)
+  1. [Architecture](#architecture)
+  1. [Providers](#providers)
+  1. [Resources](#resources)
+  1. [Connectors](#connectors)
+  1. [Requirements](#requirements)
+  1. [Limitations](#limitations)
+  1. [Testing](#testing)
+  1. [Contributing](#contributing)
+  1. [License](#license)
+
+Audience
+--------
+
+Porter is useful for anyone importing data into PHP applications. Data typically comes from third-party APIs, but it could come from any source, including web scraping or even first-party APIs, using Porter to consume our own data services. Porter is simply a uniform way to abstract the task of importing data with the following benefits.
+
+ * Provides a [framework](#architecture) for structuring data import concepts, such a [providers](#providers) offering data via one or more [resources](#resources).
+ * Offers useful post-import data augmentation operations such as [filtering](#filtering) and [mapping](#mapping).
+ * Protects against intermittent network failure with [durability](#durability) features.
+ * Supports raw data caching, at the connector level, for each import.
+
+### How to start using Porter
+
+If we already have a provider that's ready to use, start reading from [usage](#usage) and continue until [architecture](#architecture). If we do not have a provider yet we will need to write one.
+
+We typically start by writing the [provider](#providers) that defines how to connect to a data service using one of the supplied [connectors](#list-of-connectors). We then define one or more [resources](#resources) that fetch data using the connector and yield it as a [record collection](#record-collections). For more information, see [writing a provider](#writing-a-provider) and [writing a resource](#writing-a-resource).
 
 Usage
 -----
@@ -77,18 +96,33 @@ Since the order is fixed, it is not currently possible to exclude records based 
 Record collections
 ------------------
 
-The result of a successful `Porter::import` call is an instance of `PorterRecords` or one of its specialisations. All collection types returned by Porter extend `RecordCollection`, which implements `Iterator`, and guarantees the collection is enumerable using `foreach`.
+Record collections are a type of `Iterator` whose values are always arrays. The result of a successful `Porter::import` call is an instance of `PorterRecords` or one of its specialisations, which implement `Iterator`, guaranteeing the collection is enumerable using `foreach`.
 
 Record collections are composed by Porter using the decorator pattern. If provider data is not modified, `PorterRecords` will decorate the `ProviderRecords` returned from a `ProviderResource`. That is, `PorterRecords` has a pointer back to the previous collection, which could be written as: `PorterRecords` → `ProviderRecords`. If a mapping was applied, the collection stack would be `PorterRecords` → `MappedRecords` → `ProviderRecords`. In general this is an unimportant detail for most users but it can be useful for debugging. The stack of record collection types informs us of the transformations a collection has undergone and each type holds a pointer to relevant objects that participated in the transformation, for example, `PorterRecords` holds a reference to the `ImportSpecification` that was used to create it and can be accessed using `PorterRecords::getSpecification`.
 
-A collection may be `Countable`, depending on whether the imported data set was countable and whether any destructive operations were performed after import. Filtering is a destructive operation since it may remove records and therefore the count reported by a `ProviderResource` may no longer be accurate. It is the responsibility of the resource to supply the number of records in its collection by returning an iterator that implements `Countable`, such as `CountableProviderRecords`. When a countable iterator is detected, Porter returns `CountablePorterRecords` as long as no destructive operations were performed, which is only possible because all non-destructive operation's collection types have a countable analogue.
+Record collections may be `Countable`, depending on whether the imported data was countable and whether any destructive operations were performed after import. Filtering is a destructive operation since it may remove records and therefore the count reported by a `ProviderResource` would no longer be accurate. It is the responsibility of the resource to supply the number of records in its collection by returning an iterator that implements `Countable`, such as `ArrayIterator` or `CountableProviderRecords`. When a countable iterator is detected, Porter returns `CountablePorterRecords` as long as no destructive operations were performed, which is possible because all non-destructive operation's collection types have a countable analogue.
+
+Durability
+----------
+
+Porter automatically retries connections when an exception occurs during `Connector::fetch`. This helps mitigate intermittent network conditions that can cause data fetches to fail temporarily. The number of retry attempts can be configured by calling `Porter::setMaxFetchAttempts`.
+
+The default exception handler, `ExponentialBackoffExceptionHandler`, causes the program to pause for an exponentially increasing series of delays. Given that the default number of retry attempts is *five*, the exception handler may be called up to *four* times, delaying each retry attempt for ~0.1, ~0.2, ~0.4, and finally, ~0.8 seconds.
+
+The exception handler can be changed by calling `Porter::setFetchExceptionHandler`. For example, the following code changes the initial retry delay to one second.
+
+```php
+$porter->setFetchExceptionHandler(new ExponentialBackoffExceptionHandler(1000000));
+```
+
+Durability only applies when connectors throw a recoverable exception type. If an unexpected exception occurs the fetch attempt will be aborted. For more information, see [implementing connector durability](#durability-1). Exception handlers receive the exception type as their first argument. An exception handler can inspect the recoverable exception and throw its own exception if it decides the exception should be treated as fatal.
 
 Filtering
 ---------
 
-Filtering provides a way to remove some of the records. For each record, if the specified predicate function returns false or another falsy value the record will be removed, otherwise the record will be kept. The predicate receives the current record as an array as its first parameter and context as its second parameter.
+Filtering provides a way to remove some records. For each record, if the specified predicate function returns `false` or a falsy value, the record will be removed, otherwise the record will be kept. The predicate receives the current record as an array as its first parameter and context as its second parameter.
 
-In general we would like to avoid filtering because it is inefficient to import data and then immediately remove some of it, but some immature APIs do not provide a way to reduce the data set on the server, so filtering on the client is our only option. Filtering also invalidates the record count reported by some resources, meaning we no longer know how many records are in the collection before iteration.
+In general we would like to avoid filtering because it is inefficient to import data and then immediately remove some of it, but some immature APIs do not provide a way to reduce the data set on the server, so filtering on the client is the only alternative. Filtering also invalidates the record count reported by some resources, meaning we no longer know how many records are in the collection before iteration.
 
 #### Example
 
@@ -157,7 +191,7 @@ Caching
 
 Caching is available at the connector level if the connector implements `CacheToggle`. Connectors typically extend `CachingConnector` which implements [PSR-6][PSR-6]-compatible caching. Porter ships with just one cache implementation, `MemoryCache`, which stores data in memory but this can be substituted for any PSR-6 cache if the connector permits it.
 
-When available, the connector caches raw responses for each unique cache key which is comprised of source and options parameters. Options are sorted before the cache key is created so the order of options is unimportant.
+When available, the connector caches raw responses for each unique cache key. The cache key is comprised of the source and options parameters passed to `Connector::fetch`. Options are sorted before the cache key is created so the order of options are insignificant.
 
 Caching behaviour is specified by one of the `CacheAdvice` enumeration constants listed below.
 
@@ -305,13 +339,7 @@ class MyResource extends AbstractResource
 Connectors
 ----------
 
-Connectors fetch remote data from the specified source. A connector implements `Connector` that defines one method with the following signature.
-
-```php
-public function fetch(string $source, EncapsulatedOptions $options = null);
-```
-
-When `fetch()` is called the connector fetches data from the specified source whilst applying any options that may have been specified. If a connector accepts options it must define its own options class and ensure its type is passed. Connectors may return data in any format that's convenient for resources to consume, but in general, such data should be as raw as possible and without modification.
+Connectors fetch remote data from the specified source. Connectors for some popular protocols are included but it may be necessary to write a new connector when dealing with unsupported protocols.
 
 ### List of connectors
 
@@ -319,6 +347,32 @@ The following connectors are provided with Porter.
 
  - `HttpConnector` &ndash; Fetches data from an HTTP server via the PHP wrapper.
  - `SoapConnector` &ndash; Fetches data from a SOAP service.
+
+### Writing a connector
+
+A connector implements the `Connector` interface that defines one method with the following signature.
+
+```php
+public function fetch(string $source, EncapsulatedOptions $options = null);
+```
+
+When `fetch()` is called the connector fetches data from the specified source whilst applying any options specified. If a connector accepts options it must define its own options class and ensure that type is passed. Connectors may return data in any format that's convenient for resources to consume, but in general, such data should be as raw as possible and without modification.
+
+#### Durability
+
+To support Porter's durability features a connector may throw `RecoverableConnectorException` to signal that the fetch operation can be retried. Execution will halt as normal if any other exception type is thrown. It is recommended to always throw a recoverable exception type unless it is certain that any number of subsequent attempts will always fail.
+
+To promote an ordinary exception to a recoverable exception, wrap the fetch code in a try-catch block and pass the original exception into `RecoverableConnectorException` as its inner exception, as shown in the following example.
+
+```php
+try {
+    $response = $client->fetch();
+} catch (Exception $e) {
+    throw new RecoverableConnectorException($e->getMessage(), $e->getCode(), $e);
+}
+```
+
+When dealing with clients that do not throw exceptions, or when writing low-level socket code, it is recommended to throw custom exceptions that extend `RecoverableConnectorException`.
 
 Requirements
 ------------
@@ -337,6 +391,11 @@ Testing
 -------
 
 Porter is almost fully unit tested. Run the tests with `bin/test` from a shell.
+
+Contributing
+------------
+
+Everyone is welcome to contribute anything, from [ideas and issues][Issues] to [documentation and code][PRs]! For inspiration, consider the listen of open [issues][Issues].
 
 License
 -------
@@ -357,6 +416,8 @@ Porter is published under the open source GNU Lesser General Public License v3.0
   [Style]: https://styleci.io/repos/49824895
   [Style image]: https://styleci.io/repos/49824895/shield?style=flat "Code style"
   
+  [Issues]: https://github.com/ScriptFUSION/Porter/issues
+  [PRs]: https://github.com/ScriptFUSION/Porter/pulls
   [Provider]: https://github.com/provider
   [Mapper]: https://github.com/ScriptFUSION/Mapper
   [PSR-6]: http://www.php-fig.org/psr/psr-6
