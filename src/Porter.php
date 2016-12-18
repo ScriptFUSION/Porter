@@ -1,21 +1,15 @@
 <?php
 namespace ScriptFUSION\Porter;
 
-use ScriptFUSION\Mapper\CollectionMapper;
-use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
 use ScriptFUSION\Porter\Cache\CacheToggle;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
-use ScriptFUSION\Porter\Collection\CountableMappedRecords;
 use ScriptFUSION\Porter\Collection\CountablePorterRecords;
 use ScriptFUSION\Porter\Collection\CountableProviderRecords;
-use ScriptFUSION\Porter\Collection\FilteredRecords;
-use ScriptFUSION\Porter\Collection\MappedRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Connector\RecoverableConnectorException;
-use ScriptFUSION\Porter\Mapper\PorterMapper;
 use ScriptFUSION\Porter\Provider\ObjectNotCreatedException;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\ProviderFactory;
@@ -41,11 +35,6 @@ class Porter
     private $providerFactory;
 
     /**
-     * @var CollectionMapper
-     */
-    private $mapper;
-
-    /**
      * @var CacheAdvice
      */
     private $defaultCacheAdvice;
@@ -63,7 +52,6 @@ class Porter
     public function __construct()
     {
         $this->defaultCacheAdvice = CacheAdvice::SHOULD_NOT_CACHE();
-        $this->fetchExceptionHandler = new ExponentialBackoffExceptionHandler;
     }
 
     /**
@@ -84,12 +72,12 @@ class Porter
             $records = $this->createProviderRecords($records, $specification->getResource());
         }
 
-        if ($specification->getFilter()) {
-            $records = $this->filter($records, $specification->getFilter(), $specification->getContext());
-        }
+        foreach ($specification->getTransformers() as $transformer) {
+            if ($transformer instanceof PorterAware) {
+                $transformer->setPorter($this);
+            }
 
-        if ($specification->getMapping()) {
-            $records = $this->map($records, $specification->getMapping(), $specification->getContext());
+            $records = $transformer->transform($records, $specification->getContext());
         }
 
         return $this->createPorterRecords($records, $specification);
@@ -162,37 +150,6 @@ class Porter
         }
 
         throw new ImportException(get_class($provider) . '::fetch() did not return an Iterator.');
-    }
-
-    private function filter(ProviderRecords $records, callable $predicate, $context)
-    {
-        $filter = function () use ($records, $predicate, $context) {
-            foreach ($records as $record) {
-                if ($predicate($record, $context)) {
-                    yield $record;
-                }
-            }
-        };
-
-        return new FilteredRecords($filter(), $records, $filter);
-    }
-
-    private function map(RecordCollection $records, Mapping $mapping, $context)
-    {
-        return $this->createMappedRecords(
-            $this->getOrCreateMapper()->mapCollection($records, $mapping, $context),
-            $records,
-            $mapping
-        );
-    }
-
-    private function createMappedRecords(\Iterator $records, RecordCollection $previous, Mapping $mapping)
-    {
-        if ($previous instanceof \Countable) {
-            return new CountableMappedRecords($records, count($previous), $previous, $mapping);
-        }
-
-        return new MappedRecords($records, $previous, $mapping);
     }
 
     private function applyCacheAdvice(Provider $provider, CacheAdvice $cacheAdvice)
@@ -305,26 +262,6 @@ class Porter
     }
 
     /**
-     * @return CollectionMapper
-     */
-    private function getOrCreateMapper()
-    {
-        return $this->mapper ?: $this->mapper = new PorterMapper($this);
-    }
-
-    /**
-     * @param CollectionMapper $mapper
-     *
-     * @return $this
-     */
-    public function setMapper(CollectionMapper $mapper)
-    {
-        $this->mapper = $mapper;
-
-        return $this;
-    }
-
-    /**
      * Gets the maximum number of fetch attempts per import.
      *
      * @return int
@@ -353,7 +290,7 @@ class Porter
      */
     private function getFetchExceptionHandler()
     {
-        return $this->fetchExceptionHandler;
+        return $this->fetchExceptionHandler ?: $this->fetchExceptionHandler = new ExponentialBackoffExceptionHandler;
     }
 
     /**

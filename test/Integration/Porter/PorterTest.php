@@ -3,19 +3,17 @@ namespace ScriptFUSIONTest\Integration\Porter;
 
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
-use ScriptFUSION\Mapper\CollectionMapper;
-use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
 use ScriptFUSION\Porter\Cache\CacheToggle;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
-use ScriptFUSION\Porter\Collection\CountableMappedRecords;
 use ScriptFUSION\Porter\Collection\FilteredRecords;
-use ScriptFUSION\Porter\Collection\MappedRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
+use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Connector\RecoverableConnectorException;
 use ScriptFUSION\Porter\ImportException;
 use ScriptFUSION\Porter\Porter;
+use ScriptFUSION\Porter\PorterAware;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Provider\StaticDataProvider;
@@ -23,6 +21,8 @@ use ScriptFUSION\Porter\ProviderAlreadyRegisteredException;
 use ScriptFUSION\Porter\ProviderNotFoundException;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\Porter\Specification\StaticDataImportSpecification;
+use ScriptFUSION\Porter\Transform\FilterTransformer;
+use ScriptFUSION\Porter\Transform\Transformer;
 use ScriptFUSION\Retry\ExceptionHandler\ExponentialBackoffExceptionHandler;
 use ScriptFUSION\Retry\FailingTooHardException;
 use ScriptFUSIONTest\MockFactory;
@@ -157,33 +157,14 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Tests that when the resource is countable the count is propagated to the outermost collection via a mapped
-     * collection.
-     *
-     * @group Mapper
-     */
-    public function testImportAndMapCountableRecords()
-    {
-        $records = $this->porter->import(
-            (new StaticDataImportSpecification(
-                new \ArrayIterator(range(1, $count = 10))
-            ))->setMapping(\Mockery::mock(Mapping::class))
-        );
-
-        self::assertInstanceOf(CountableMappedRecords::class, $records->getPreviousCollection());
-        self::assertInstanceOf(\Countable::class, $records);
-        self::assertCount($count, $records);
-    }
-
-    /**
      * Tests that when the resource is countable the count is lost when filtering is applied.
      */
     public function testImportAndFilterCountableRecords()
     {
         $records = $this->porter->import(
             (new StaticDataImportSpecification(
-                new \ArrayIterator(range(1, $count = 10))
-            ))->setFilter([$this, __FUNCTION__])
+                new \ArrayIterator(range(1, 10))
+            ))->addTransformer(new FilterTransformer([$this, __FUNCTION__]))
         );
 
         // Innermost collection.
@@ -191,6 +172,24 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
         // Outermost collection.
         self::assertNotInstanceOf(\Countable::class, $records);
+    }
+
+    /**
+     * Tests that when a Transformer is PorterAware it receives the Porter instance that invoked it.
+     */
+    public function testPorterAwareTransformer()
+    {
+        $this->porter->import(
+            $this->specification->addTransformer(
+                \Mockery::mock(implode(',', [Transformer::class, PorterAware::class]))
+                    ->shouldReceive('setPorter')
+                    ->with($this->porter)
+                    ->once()
+                    ->shouldReceive('transform')
+                    ->andReturn(\Mockery::mock(RecordCollection::class))
+                    ->getMock()
+            )
+        );
     }
 
     public function testImportTaggedResource()
@@ -243,10 +242,9 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     public function testImportOneOfMany()
     {
-        $this->setExpectedException(ImportException::class);
-
         $this->provider->shouldReceive('fetch')->andReturn(new \ArrayIterator(['foo', 'bar']));
 
+        $this->setExpectedException(ImportException::class);
         $this->porter->importOne($this->specification);
     }
 
@@ -310,9 +308,9 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
         $records = $this->porter->import(
             $this->specification
-                ->setFilter(function ($record) {
+                ->addTransformer(new FilterTransformer($filter = function ($record) {
                     return $record % 2;
-                })
+                }))
         );
 
         self::assertInstanceOf(PorterRecords::class, $records);
@@ -320,26 +318,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
         /** @var FilteredRecords $previous */
         self::assertInstanceOf(FilteredRecords::class, $previous = $records->getPreviousCollection());
-        self::assertNotSame($previous->getFilter(), $this->specification->getFilter(), 'Filter was not cloned.');
-    }
-
-    public function testMap()
-    {
-        $records = $this->porter->setMapper(
-            \Mockery::mock(CollectionMapper::class)
-                ->shouldReceive('mapCollection')
-                ->with(\Mockery::type(\Iterator::class), $mapping = \Mockery::type(Mapping::class), \Mockery::any())
-                ->once()
-                ->andReturn(new \ArrayIterator($result = ['foo' => 'bar']))
-                ->getMock()
-        )->import($this->specification->setMapping(\Mockery::mock(Mapping::class)));
-
-        self::assertInstanceOf(PorterRecords::class, $records);
-        self::assertSame($result, iterator_to_array($records));
-
-        /** @var MappedRecords $previous */
-        self::assertInstanceOf(MappedRecords::class, $previous = $records->getPreviousCollection());
-        self::assertNotSame($mapping, $previous->getMapping(), 'Mapping was not cloned.');
+        self::assertNotSame($previous->getFilter(), $filter, 'Filter was not cloned.');
     }
 
     public function testApplyCacheAdvice()

@@ -18,13 +18,12 @@
     "zendframework/zend-uri": "^2"
   },
   "require-dev": {
-    "scriptfusion/mapper": "^1",
     "phpunit/phpunit": "^4.8",
     "mockery/mockery": "^0.9.4",
     "symfony/process": "^3"
   },
   "suggest" : {
-    "scriptfusion/mapper": "Transforms imported data."
+    "transformers/mapping": "Transforms array collections using Mappings."
   },
   "autoload": {
     "psr-4": {

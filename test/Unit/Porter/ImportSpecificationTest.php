@@ -1,10 +1,11 @@
 <?php
 namespace ScriptFUSIONTest\Unit\Porter;
 
-use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
+use ScriptFUSION\Porter\Specification\DuplicateTransformerException;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
+use ScriptFUSION\Porter\Transform\Transformer;
 
 final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
 {
@@ -23,11 +24,23 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
 
     public function testClone()
     {
-        $this->specification->setMapping($mapping = \Mockery::mock(Mapping::class))->setContext($context = (object)[]);
+        $this->specification
+            ->addTransformer(\Mockery::mock(Transformer::class))
+            ->setContext($context = (object)[]);
         $specification = clone $this->specification;
 
         self::assertNotSame($this->resource, $specification->getResource());
-        self::assertNotSame($mapping, $specification->getMapping());
+
+        self::assertNotSame(
+            array_values($this->specification->getTransformers()),
+            array_values($specification->getTransformers())
+        );
+        self::assertNotSame(
+            array_keys($this->specification->getTransformers()),
+            array_keys($specification->getTransformers())
+        );
+        self::assertCount(count($this->specification->getTransformers()), $specification->getTransformers());
+
         self::assertNotSame($context, $specification->getContext());
     }
 
@@ -36,25 +49,45 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
         self::assertSame($this->resource, $this->specification->getResource());
     }
 
-    public function testMapping()
+    public function testAddTransformer()
     {
-        self::assertSame(
-            $mapping = \Mockery::mock(Mapping::class),
-            $this->specification->setMapping($mapping)->getMapping()
-        );
+        self::assertEmpty($this->specification->getTransformers());
+
+        $this->specification->addTransformer($transformer1 = \Mockery::mock(Transformer::class));
+        self::assertCount(1, $this->specification->getTransformers());
+        self::assertContains($transformer1, $this->specification->getTransformers());
+
+        $this->specification->addTransformer($transformer2 = \Mockery::mock(Transformer::class));
+        self::assertCount(2, $this->specification->getTransformers());
+        self::assertContains($transformer1, $this->specification->getTransformers());
+        self::assertContains($transformer2, $this->specification->getTransformers());
+    }
+
+    public function testAddTransformers()
+    {
+        self::assertEmpty($this->specification->getTransformers());
+
+        $this->specification->addTransformers([
+            $transformer1 = \Mockery::mock(Transformer::class),
+            $transformer2 = \Mockery::mock(Transformer::class),
+        ]);
+
+        self::assertCount(2, $this->specification->getTransformers());
+        self::assertContains($transformer1, $this->specification->getTransformers());
+        self::assertContains($transformer2, $this->specification->getTransformers());
+    }
+
+    public function testAddSameTransformer()
+    {
+        $this->specification->addTransformer($transformer1 = \Mockery::mock(Transformer::class));
+
+        $this->setExpectedException(DuplicateTransformerException::class);
+        $this->specification->addTransformer($transformer1);
     }
 
     public function testContext()
     {
         self::assertSame('foo', $this->specification->setContext('foo')->getContext());
-    }
-
-    public function testFilter()
-    {
-        self::assertSame(
-            $filter = [$this, __FUNCTION__],
-            $this->specification->setFilter($filter)->getFilter()
-        );
     }
 
     public function testCacheAdvice()

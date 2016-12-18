@@ -1,39 +1,53 @@
 <?php
 namespace ScriptFUSION\Porter\Specification;
 
-use ScriptFUSION\Mapper\Mapping;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
+use ScriptFUSION\Porter\Transform\Transformer;
 
 /**
- * Specifies which resource to import, how to import it, and how it should be transformed.
+ * Specifies which resource to import and how the data should be transformed.
  */
 class ImportSpecification
 {
-    /** @var ProviderResource */
+    /**
+     * @var ProviderResource
+     */
     private $resource;
 
-    /** @var Mapping */
-    private $mapping;
+    /**
+     * @var Transformer[]
+     */
+    private $transformers;
 
-    /** @var mixed */
+    /**
+     * @var mixed
+     */
     private $context;
 
-    /** @var callable */
-    private $filter;
-
-    /** @var CacheAdvice */
+    /**
+     * @var CacheAdvice
+     */
     private $cacheAdvice;
 
     public function __construct(ProviderResource $resource)
     {
         $this->resource = $resource;
+        $this->clearTransformers();
     }
 
     public function __clone()
     {
         $this->resource = clone $this->resource;
-        $this->mapping !== null && $this->mapping = clone $this->mapping;
+
+        $transformers = $this->transformers;
+        $this->clearTransformers()->addTransformers(array_map(
+            function (Transformer $transformer) {
+                return clone $transformer;
+            },
+            $transformers
+        ));
+
         is_object($this->context) && $this->context = clone $this->context;
     }
 
@@ -46,23 +60,60 @@ class ImportSpecification
     }
 
     /**
-     * @return Mapping
+     * @return Transformer[]
      */
-    final public function getMapping()
+    final public function getTransformers()
     {
-        return $this->mapping;
+        return $this->transformers;
     }
 
     /**
-     * @param Mapping $mapping
+     * Adds the specified transformer.
+     *
+     * @param Transformer $transformer Transformer.
      *
      * @return $this
      */
-    final public function setMapping(Mapping $mapping = null)
+    final public function addTransformer(Transformer $transformer)
     {
-        $this->mapping = $mapping;
+        if ($this->hasTransformer($transformer)) {
+            throw new DuplicateTransformerException('Transformer already added.');
+        }
+
+        $this->transformers[spl_object_hash($transformer)] = $transformer;
 
         return $this;
+    }
+
+    /**
+     * Adds one or more transformers.
+     *
+     * @param Transformer[] $transformers Transformers.
+     *
+     * @return $this
+     */
+    final public function addTransformers(array $transformers)
+    {
+        foreach ($transformers as $transformer) {
+            $this->addTransformer($transformer);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    final public function clearTransformers()
+    {
+        $this->transformers = [];
+
+        return $this;
+    }
+
+    private function hasTransformer(Transformer $transformer)
+    {
+        return isset($this->transformers[spl_object_hash($transformer)]);
     }
 
     /**
@@ -81,26 +132,6 @@ class ImportSpecification
     final public function setContext($context)
     {
         $this->context = $context;
-
-        return $this;
-    }
-
-    /**
-     * @return callable
-     */
-    final public function getFilter()
-    {
-        return $this->filter;
-    }
-
-    /**
-     * @param callable $filter
-     *
-     * @return $this
-     */
-    final public function setFilter(callable $filter = null)
-    {
-        $this->filter = $filter;
 
         return $this;
     }

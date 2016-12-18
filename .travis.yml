@@ -31,11 +31,6 @@ install:
 script:
   - composer test -- --coverage-clover=build/logs/clover.xml
 
-  # Remove mapper and run all non-Mapper tests again.
-  - composer --dev --no-update-with-dependencies remove scriptfusion/mapper
-  - '! composer info | grep ^scriptfusion/mapper\\b'
-  - composer test -- --exclude-group Mapper
-
 after_success:
   - composer require satooshi/php-coveralls
   - vendor/bin/coveralls -v
