@@ -19,8 +19,8 @@
   },
   "require-dev": {
     "scriptfusion/mapper": "^1",
-    "phpunit/phpunit": "^4",
-    "mockery/mockery": "^0",
+    "phpunit/phpunit": "^4.8",
+    "mockery/mockery": "^0.9.4",
     "symfony/process": "^3"
   },
   "suggest" : {

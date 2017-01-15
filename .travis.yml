@@ -11,10 +11,22 @@ php:
   - 7.0
   - 7.1
 
+env:
+  matrix:
+    -
+    - DEPENDENCIES=--prefer-lowest
+
+matrix:
+  fast_finish: true
+
+cache:
+  directories:
+    - .composer/cache
+
 install:
   - alias composer=composer\ -n && composer selfupdate
   - composer validate
-  - composer --prefer-source install
+  - composer update $DEPENDENCIES
 
 script:
   - composer test -- --coverage-clover=build/logs/clover.xml
@@ -25,5 +37,5 @@ script:
   - composer test -- --exclude-group Mapper
 
 after_success:
-  - composer --prefer-source require satooshi/php-coveralls
+  - composer require satooshi/php-coveralls
   - vendor/bin/coveralls -v
