@@ -36,21 +36,6 @@ class ImportSpecification
         $this->clearTransformers();
     }
 
-    public function __clone()
-    {
-        $this->resource = clone $this->resource;
-
-        $transformers = $this->transformers;
-        $this->clearTransformers()->addTransformers(array_map(
-            function (Transformer $transformer) {
-                return clone $transformer;
-            },
-            $transformers
-        ));
-
-        is_object($this->context) && $this->context = clone $this->context;
-    }
-
     /**
      * @return ProviderResource
      */

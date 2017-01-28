@@ -1,6 +1,13 @@
 <?php
 namespace ScriptFUSION\Porter;
 
+use DeepCopy\DeepCopy;
+use DeepCopy\Filter\KeepFilter;
+use DeepCopy\Matcher\PropertyTypeMatcher;
+use DeepCopy\TypeFilter\ShallowCopyFilter;
+use DeepCopy\TypeMatcher\TypeMatcher;
+use Eloquent\Enumeration\MultitonInterface;
+use Mockery\MockInterface;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
 use ScriptFUSION\Porter\Cache\CacheToggle;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
@@ -46,6 +53,11 @@ class Porter
     private $maxFetchAttempts = self::DEFAULT_FETCH_ATTEMPTS;
 
     /**
+     * @var DeepCopy
+     */
+    private $deepCopy;
+
+    /**
      * @var callable
      */
     private $fetchExceptionHandler;
@@ -53,6 +65,7 @@ class Porter
     public function __construct()
     {
         $this->defaultCacheAdvice = CacheAdvice::SHOULD_NOT_CACHE();
+        $this->deepCopy = $this->createDeepCopier();
     }
 
     /**
@@ -66,7 +79,9 @@ class Porter
      */
     public function import(ImportSpecification $specification)
     {
-        $specification = clone $specification;
+        /** @var ImportSpecification $specification */
+        $specification = $this->deepCopy->copy($specification);
+
         $records = $this->fetch($specification->getResource(), $specification->getCacheAdvice());
 
         if (!$records instanceof ProviderRecords) {
@@ -315,5 +330,20 @@ class Porter
     public function setFetchExceptionHandler(callable $fetchExceptionHandler)
     {
         $this->fetchExceptionHandler = $fetchExceptionHandler;
+    }
+
+    /**
+     * @return DeepCopy
+     */
+    private function createDeepCopier()
+    {
+        $copier = new DeepCopy;
+
+        // Enumerations are immutable thus do not require cloning.
+        $copier->addFilter(new KeepFilter, new PropertyTypeMatcher(MultitonInterface::class));
+
+        $copier->addTypeFilter(new ShallowCopyFilter, new TypeMatcher(MockInterface::class));
+
+        return $copier;
     }
 }
