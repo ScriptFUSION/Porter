@@ -257,7 +257,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         $this->provider->shouldReceive('fetch')->once()->andThrow(RecoverableConnectorException::class);
 
         $this->setExpectedException(FailingTooHardException::class, '1');
-        $this->porter->setMaxFetchAttempts(1)->import($this->specification);
+        $this->porter->import($this->specification->setMaxFetchAttempts(1));
     }
 
     public function testDerivedRecoverableException()
@@ -265,15 +265,15 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         $this->provider->shouldReceive('fetch')->once()->andThrow(\Mockery::mock(RecoverableConnectorException::class));
 
         $this->setExpectedException(FailingTooHardException::class);
-        $this->porter->setMaxFetchAttempts(1)->import($this->specification);
+        $this->porter->import($this->specification->setMaxFetchAttempts(1));
     }
 
     public function testDefaultTries()
     {
-        $this->provider->shouldReceive('fetch')->times(Porter::DEFAULT_FETCH_ATTEMPTS)
+        $this->provider->shouldReceive('fetch')->times(ImportSpecification::DEFAULT_FETCH_ATTEMPTS)
             ->andThrow(RecoverableConnectorException::class);
 
-        $this->setExpectedException(FailingTooHardException::class, (string)Porter::DEFAULT_FETCH_ATTEMPTS);
+        $this->setExpectedException(FailingTooHardException::class, (string)ImportSpecification::DEFAULT_FETCH_ATTEMPTS);
         $this->porter->import($this->specification);
     }
 
@@ -287,13 +287,13 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     public function testCustomFetchExceptionHandler()
     {
-        $this->porter->setFetchExceptionHandler(
+        $this->specification->setFetchExceptionHandler(
             \Mockery::mock(ExponentialBackoffExceptionHandler::class)
                 ->shouldReceive('__invoke')
-                ->times(Porter::DEFAULT_FETCH_ATTEMPTS - 1)
+                ->times(ImportSpecification::DEFAULT_FETCH_ATTEMPTS - 1)
                 ->getMock()
         );
-        $this->provider->shouldReceive('fetch')->times(Porter::DEFAULT_FETCH_ATTEMPTS)
+        $this->provider->shouldReceive('fetch')->times(ImportSpecification::DEFAULT_FETCH_ATTEMPTS)
             ->andThrow(RecoverableConnectorException::class);
 
         $this->setExpectedException(FailingTooHardException::class);

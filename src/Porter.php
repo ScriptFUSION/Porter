@@ -16,15 +16,12 @@ use ScriptFUSION\Porter\Provider\ProviderFactory;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\Porter\Transform\Transformer;
-use ScriptFUSION\Retry\ExceptionHandler\ExponentialBackoffExceptionHandler;
 
 /**
  * Imports data according to an ImportSpecification.
  */
 class Porter
 {
-    const DEFAULT_FETCH_ATTEMPTS = 5;
-
     /**
      * @var Provider[]
      */
@@ -34,16 +31,6 @@ class Porter
      * @var ProviderFactory
      */
     private $providerFactory;
-
-    /**
-     * @var int
-     */
-    private $maxFetchAttempts = self::DEFAULT_FETCH_ATTEMPTS;
-
-    /**
-     * @var callable
-     */
-    private $fetchExceptionHandler;
 
     /**
      * Imports data according to the design of the specified import specification.
@@ -57,7 +44,13 @@ class Porter
     public function import(ImportSpecification $specification)
     {
         $specification = clone $specification;
-        $records = $this->fetch($specification->getResource(), $specification->getCacheAdvice());
+
+        $records = $this->fetch(
+            $specification->getResource(),
+            $specification->getCacheAdvice(),
+            $specification->getMaxFetchAttempts(),
+            $specification->getFetchExceptionHandler()
+        );
 
         if (!$records instanceof ProviderRecords) {
             $records = $this->createProviderRecords($records, $specification->getResource());
@@ -94,24 +87,24 @@ class Porter
         return $one;
     }
 
-    private function fetch(ProviderResource $resource, CacheAdvice $cacheAdvice = null)
+    private function fetch(ProviderResource $resource, CacheAdvice $cacheAdvice, $fetchAttempts, $fetchExceptionHandler)
     {
         $provider = $this->getProvider($resource->getProviderClassName(), $resource->getProviderTag());
 
         $this->applyCacheAdvice($provider, $cacheAdvice);
 
         if (($records = \ScriptFUSION\Retry\retry(
-            $this->getMaxFetchAttempts(),
+            $fetchAttempts,
             function () use ($provider, $resource) {
                 return $provider->fetch($resource);
             },
-            function (\Exception $exception) {
+            function (\Exception $exception) use ($fetchExceptionHandler) {
                 // Throw exception if unrecoverable.
                 if (!$exception instanceof RecoverableConnectorException) {
                     throw $exception;
                 }
 
-                call_user_func($this->getFetchExceptionHandler(), $exception);
+                $fetchExceptionHandler($exception);
             }
         )) instanceof \Iterator) {
             return $records;
@@ -265,45 +258,5 @@ class Porter
     private function getOrCreateProviderFactory()
     {
         return $this->providerFactory ?: $this->providerFactory = new ProviderFactory;
-    }
-
-    /**
-     * Gets the maximum number of fetch attempts per import.
-     *
-     * @return int
-     */
-    public function getMaxFetchAttempts()
-    {
-        return $this->maxFetchAttempts;
-    }
-
-    /**
-     * Sets the maximum number of fetch attempts per import.
-     *
-     * @param int $attempts Maximum fetch attempts.
-     *
-     * @return $this
-     */
-    public function setMaxFetchAttempts($attempts)
-    {
-        $this->maxFetchAttempts = max(1, $attempts|0);
-
-        return $this;
-    }
-
-    /**
-     * @return callable
-     */
-    private function getFetchExceptionHandler()
-    {
-        return $this->fetchExceptionHandler ?: $this->fetchExceptionHandler = new ExponentialBackoffExceptionHandler;
-    }
-
-    /**
-     * @param callable $fetchExceptionHandler
-     */
-    public function setFetchExceptionHandler(callable $fetchExceptionHandler)
-    {
-        $this->fetchExceptionHandler = $fetchExceptionHandler;
     }
 }

@@ -4,12 +4,15 @@ namespace ScriptFUSION\Porter\Specification;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Transform\Transformer;
+use ScriptFUSION\Retry\ExceptionHandler\ExponentialBackoffExceptionHandler;
 
 /**
  * Specifies which resource to import and how the data should be transformed.
  */
 class ImportSpecification
 {
+    const DEFAULT_FETCH_ATTEMPTS = 5;
+
     /**
      * @var ProviderResource
      */
@@ -35,6 +38,16 @@ class ImportSpecification
      */
     private $defaultCacheAdvice;
 
+    /**
+     * @var int
+     */
+    private $maxFetchAttempts = self::DEFAULT_FETCH_ATTEMPTS;
+
+    /**
+     * @var callable
+     */
+    private $fetchExceptionHandler;
+
     public function __construct(ProviderResource $resource)
     {
         $this->resource = $resource;
@@ -56,6 +69,7 @@ class ImportSpecification
         ));
 
         is_object($this->context) && $this->context = clone $this->context;
+        is_object($this->fetchExceptionHandler) && $this->fetchExceptionHandler = clone $this->fetchExceptionHandler;
     }
 
     /**
@@ -159,6 +173,54 @@ class ImportSpecification
     final public function setCacheAdvice(CacheAdvice $cacheAdvice)
     {
         $this->cacheAdvice = $cacheAdvice;
+
+        return $this;
+    }
+
+    /**
+     * Gets the maximum number of fetch attempts per import.
+     *
+     * @return int Maximum fetch attempts.
+     */
+    final public function getMaxFetchAttempts()
+    {
+        return $this->maxFetchAttempts;
+    }
+
+    /**
+     * Sets the maximum number of fetch attempts per import.
+     *
+     * @param int $attempts Maximum fetch attempts.
+     *
+     * @return $this
+     */
+    final public function setMaxFetchAttempts($attempts)
+    {
+        $this->maxFetchAttempts = max(1, $attempts|0);
+
+        return $this;
+    }
+
+    /**
+     * Gets the exception handler invoked each time a fetch attempt fails.
+     *
+     * @return callable Exception handler.
+     */
+    final public function getFetchExceptionHandler()
+    {
+        return $this->fetchExceptionHandler ?: $this->fetchExceptionHandler = new ExponentialBackoffExceptionHandler;
+    }
+
+    /**
+     * Sets the exception handler invoked each time a fetch attempt fails.
+     *
+     * @param callable $fetchExceptionHandler Exception handler.
+     *
+     * @return $this
+     */
+    final public function setFetchExceptionHandler(callable $fetchExceptionHandler)
+    {
+        $this->fetchExceptionHandler = $fetchExceptionHandler;
 
         return $this;
     }
