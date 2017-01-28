@@ -26,14 +26,21 @@ class ImportSpecification
     private $context;
 
     /**
-     * @var CacheAdvice
+     * @var CacheAdvice|null
      */
     private $cacheAdvice;
+
+    /**
+     * @var CacheAdvice
+     */
+    private $defaultCacheAdvice;
 
     public function __construct(ProviderResource $resource)
     {
         $this->resource = $resource;
+
         $this->clearTransformers();
+        $this->defaultCacheAdvice = CacheAdvice::SHOULD_NOT_CACHE();
     }
 
     public function __clone()
@@ -141,7 +148,7 @@ class ImportSpecification
      */
     final public function getCacheAdvice()
     {
-        return $this->cacheAdvice;
+        return $this->cacheAdvice ?: $this->defaultCacheAdvice;
     }
 
     /**

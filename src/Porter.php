@@ -36,11 +36,6 @@ class Porter
     private $providerFactory;
 
     /**
-     * @var CacheAdvice
-     */
-    private $defaultCacheAdvice;
-
-    /**
      * @var int
      */
     private $maxFetchAttempts = self::DEFAULT_FETCH_ATTEMPTS;
@@ -49,11 +44,6 @@ class Porter
      * @var callable
      */
     private $fetchExceptionHandler;
-
-    public function __construct()
-    {
-        $this->defaultCacheAdvice = CacheAdvice::SHOULD_NOT_CACHE();
-    }
 
     /**
      * Imports data according to the design of the specified import specification.
@@ -108,7 +98,7 @@ class Porter
     {
         $provider = $this->getProvider($resource->getProviderClassName(), $resource->getProviderTag());
 
-        $this->applyCacheAdvice($provider, $cacheAdvice ?: $this->defaultCacheAdvice);
+        $this->applyCacheAdvice($provider, $cacheAdvice);
 
         if (($records = \ScriptFUSION\Retry\retry(
             $this->getMaxFetchAttempts(),
