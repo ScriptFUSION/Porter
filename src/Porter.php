@@ -15,6 +15,7 @@ use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\ProviderFactory;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
+use ScriptFUSION\Porter\Transform\Transformer;
 use ScriptFUSION\Retry\ExceptionHandler\ExponentialBackoffExceptionHandler;
 
 /**
@@ -72,13 +73,7 @@ class Porter
             $records = $this->createProviderRecords($records, $specification->getResource());
         }
 
-        foreach ($specification->getTransformers() as $transformer) {
-            if ($transformer instanceof PorterAware) {
-                $transformer->setPorter($this);
-            }
-
-            $records = $transformer->transform($records, $specification->getContext());
-        }
+        $records = $this->transformRecords($records, $specification->getTransformers(), $specification->getContext());
 
         return $this->createPorterRecords($records, $specification);
     }
@@ -109,27 +104,10 @@ class Porter
         return $one;
     }
 
-    private function createProviderRecords(\Iterator $records, ProviderResource $resource)
-    {
-        if ($records instanceof \Countable) {
-            return new CountableProviderRecords($records, count($records), $resource);
-        }
-
-        return new ProviderRecords($records, $resource);
-    }
-
-    private function createPorterRecords(RecordCollection $records, ImportSpecification $specification)
-    {
-        if ($records instanceof \Countable) {
-            return new CountablePorterRecords($records, count($records), $specification);
-        }
-
-        return new PorterRecords($records, $specification);
-    }
-
     private function fetch(ProviderResource $resource, CacheAdvice $cacheAdvice = null)
     {
         $provider = $this->getProvider($resource->getProviderClassName(), $resource->getProviderTag());
+
         $this->applyCacheAdvice($provider, $cacheAdvice ?: $this->defaultCacheAdvice);
 
         if (($records = \ScriptFUSION\Retry\retry(
@@ -150,6 +128,44 @@ class Porter
         }
 
         throw new ImportException(get_class($provider) . '::fetch() did not return an Iterator.');
+    }
+
+    /**
+     * @param RecordCollection $records
+     * @param Transformer[] $transformers
+     * @param mixed $context
+     *
+     * @return RecordCollection
+     */
+    private function transformRecords(RecordCollection $records, array $transformers, $context)
+    {
+        foreach ($transformers as $transformer) {
+            if ($transformer instanceof PorterAware) {
+                $transformer->setPorter($this);
+            }
+
+            $records = $transformer->transform($records, $context);
+        }
+
+        return $records;
+    }
+
+    private function createProviderRecords(\Iterator $records, ProviderResource $resource)
+    {
+        if ($records instanceof \Countable) {
+            return new CountableProviderRecords($records, count($records), $resource);
+        }
+
+        return new ProviderRecords($records, $resource);
+    }
+
+    private function createPorterRecords(RecordCollection $records, ImportSpecification $specification)
+    {
+        if ($records instanceof \Countable) {
+            return new CountablePorterRecords($records, count($records), $specification);
+        }
+
+        return new PorterRecords($records, $specification);
     }
 
     private function applyCacheAdvice(Provider $provider, CacheAdvice $cacheAdvice)
@@ -223,7 +239,7 @@ class Porter
                 return $provider;
             }
         } catch (ObjectNotCreatedException $exception) {
-            // Intentionally empty.
+            // We will throw our own exception.
         }
 
         throw new ProviderNotFoundException(
