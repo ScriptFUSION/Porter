@@ -9,20 +9,23 @@ Porter <img src="https://github.com/ScriptFUSION/Porter/wiki/images/porter%20222
 
 Porter is a data import abstraction library to import any data from anywhere. To achieve this she must be able to generalize about the structure of data. Porter believes all data sets are either a single record, repeating collection of records with consistent structure, or both, where *record* is either a list or tree of name and value pairs.
 
-Porter must be able to abstract data importing requirements so that she can import any data format, similar to how a database must be able to abstract data storage requirements such that it can store any type of data. But unlike a database, Porter is only interested in data import, not storage. To facilitate this, Porter's interfaces use arrays, also known as *records*, and array iterators, also known as [*record collections*](#record-collections). Arrays allow us to store any data type and iterators allow us to iterate over an unlimited number of records, thus allowing Porter to stream any data format of any size.
+Porter's interfaces use arrays, also known as *records*, and array iterators, also known as *record collections*. Arrays allow us to store any data type and iterators allow us to iterate over an unlimited number of records, thus allowing Porter to stream any data format of any size.
 
-The [Provider organization][Provider] hosts projects using Porter to provide useful data. These repositories are ready-to-use Porter providers granting access to popular third-party APIs and data services. Check it out before writing a new provider to see if it has already been written. Anyone writing new providers is encouraged to contribute them to the organization.
+The [Provider organization][Provider] hosts ready-to-use Porter providers to help quickly gain access to popular third-party APIs and data services. Check it out before writing a new provider to see if it has already been written. Anyone writing new providers is encouraged to contribute them to the organization to share with other Porter users.
 
 Contents
 --------
 
   1. [Audience](#audience)
+  1. [Benefits](#benefits)
+  1. [Quick start](#quick-start)
   1. [Usage](#usage)
+  1. [Porter's API](#porters-api)
   1. [Import specifications](#import-specifications)
   1. [Record collections](#record-collections)
-  1. [Durability](#durability)
+  1. [Transformers](#transformers)
   1. [Filtering](#filtering)
-  1. [Mapping](#mapping)
+  1. [Durability](#durability)
   1. [Caching](#caching)
   1. [Architecture](#architecture)
   1. [Providers](#providers)
@@ -37,30 +40,35 @@ Contents
 Audience
 --------
 
-Porter is useful for anyone importing data into PHP applications. Data typically comes from third-party APIs, but it could come from any source, including web scraping or even first-party APIs, using Porter to consume our own data services. Porter is simply a uniform way to abstract the task of importing data with the following benefits.
+Porter is useful for anyone wanting a [simple API](#porters-api) to import data into PHP applications. Data typically comes from third-party APIs, but it could come from any source, including web scraping or even first-party APIs (using Porter to consume our own data services). Porter is a uniform way to abstract importing data, with benefits.
 
- * Provides a [framework](#architecture) for structuring data import concepts, such a [providers](#providers) offering data via one or more [resources](#resources).
- * Offers useful post-import data augmentation operations such as [filtering](#filtering) and [mapping](#mapping).
+Benefits
+--------
+
+ * Provides a [framework](#architecture) for structuring data imports.
+ * Defines structured import concepts, such as [providers](#providers) that provide data via one or more [resources](#resources).
+ * Offers post-import [transformations](#transformers), such as [filtering](#filtering), to translate third-party data into useful data.
  * Protects against intermittent network failure with [durability](#durability) features.
  * Supports raw data [caching](#caching), at the connector level, for each import.
- * Joins many data sets together using [sub-imports](#sub-imports).
+ * Joins many disparate data sets together using [sub-imports][MappingTransformer].
 
-### How to start using Porter
+Quick start
+-----------
 
-If we already have a provider that's ready to use, start reading from [usage](#usage) and continue until [architecture](#architecture). If we do not have a provider yet we will need to write one.
+The quickest start is with a [ready-made provider][Provider]. Reading [usage](#usage) shows how to register a provider and import its resources.
 
-We typically start by writing the [provider](#providers) that defines how to connect to a data service using one of the supplied [connectors](#list-of-connectors). We then define one or more [resources](#resources) that fetch data using the connector and yield it as a [record collection](#record-collections). For more information, see [writing a provider](#writing-a-provider) and [writing a resource](#writing-a-resource).
+If we do not already have a provider we must write one; this isn't as quick but has been designed to be fairly easy. We typically start by writing the [provider](#providers) that defines how to connect to a data service using one of the supplied [connectors](#list-of-connectors). We then define one or more [resources](#resources) that fetch data using the connector and yield it as a [record collection](#record-collections). For more information, see [writing a provider](#writing-a-provider) and [writing a resource](#writing-a-resource).
 
 Usage
 -----
 
-Porter's `import` method accepts an `ImportSpecification` that describes which data should be imported and how the data should be transformed. To import `MyResource` we might write the following.
+Porter's `import` method accepts an `ImportSpecification` that describes which data should be imported and how the data should be transformed. To import `MyResource` without applying any transformations we can write the following.
 
 ```php
 $records = $porter->import(new ImportSpecification(new MyResource));
 ```
 
-Provider resources, such as `MyResource`, specify the `Provider` class name they work with. Imports will only work when a resource's provider has been added to Porter, otherwise `ProviderNotFoundException` is thrown. To find which provider `MyResource` requires we examine its `getProviderClassName` method, which returns `MyProvider::class`, in this case. In the following example we register `MyProvider` with Porter.
+Provider resources, such as `MyResource`, specify the `Provider` class name they work with internally. Imports will only work when a resource's provider has been added to Porter, otherwise `ProviderNotFoundException` is thrown. To find which provider `MyResource` requires we examine its `getProviderClassName` method, which returns `MyProvider::class`, in this case. In the following example we register `MyProvider` with Porter.
 
 ```php
 $porter = (new Porter)->registerProvider(new MyProvider);
@@ -74,49 +82,60 @@ foreach ($records as $record) {
 }
 ```
 
+Porter's API
+------------
+
+`Porter`'s API comprises data import and provider management methods. `Porter` should always be used to orchestrate data imports, instead of calling methods directly on providers or resources, in order to take advantage of Porter's features such as [durability](#durability) and [caching](#caching).
+
+`Porter` provides the following methods.
+
+* `import(ImportSpecification)` &ndash; Imports data according to the design of the specified import specification.
+* `importOne(ImportSpecification)` &ndash; Imports one record according to the design of the specified import specification. If more than one record is imported, `ImportException` will be thrown.
+* `registerProvider(Provider, string|null $tag)` &ndash; Registers the specified provider optionally identified by the specified tag. A tag is any user-defined identifier used to distinguish between different instances of the same provider type.
+* `getProvider(string $name, string|null $tag)` &ndash; Gets the provider matching the specified class name and optionally a tag.
+* `hasProvider(string $name, string|null $tag)` &ndash; Gets a value indicating whether the specified provider is registered.
+
 Import specifications
 ---------------------
 
-Import specifications specify *what* to import, and optionally, *how* it should be transformed thereafter and whether to use caching. The only mandatory parameter, passed to the constructor, is a `ProviderResource` that specifies the data we want to import.
+Import specifications specify *what* to import, and optionally, *how* it should be transformed thereafter and whether to use caching. The only required parameter, passed to the constructor, is a `ProviderResource` that specifies the data we want to import.
 
-Options may be configured by the setters listed below.
+Options may be configured by some of the methods listed below.
 
- - `setFilter(callable)` &ndash; Specifies a predicate that may remove records; see [filtering](#filtering) for more.
- - `setMapping(Mapping)` &ndash; Specifies a mapping to transform each record; see [mapping](#mapping) for more.
- - `setContext(mixed)` &ndash; Specifies user-defined data to be passed to Mapper and filters.
+ - `addTransformer(Transformer)` &ndash; Adds a transformer to the end of the post-import transformation queue.
+ - `addTransformers(Transformer[])` &ndash; Adds one or more transformers to the end of the transformation queue.
+ - `setContext(mixed)` &ndash; Specifies user-defined data to be passed to transformers.
  - `setCacheAdvice(CacheAdvice)` &ndash; Specifies a caching strategy; see [caching](#caching) for more.
-
-The order of operations is fixed and occur in the following order.
-
- 1. Fetch records from `ProviderResource`.
- 2. Filtering.
- 3. Mapping.
-
-Since the order is fixed, it is not currently possible to exclude records based on data that only exists after mapping.
+ - `setMaxFetchAttempts(int)` &ndash; Sets the maximum number of fetch attempts per import.
+ - `setFetchExceptionHandler(callable)` &ndash; Sets the exception handler invoked each time a fetch attempt fails.
 
 Record collections
 ------------------
 
-Record collections are a type of `Iterator` whose values are always arrays. The result of a successful `Porter::import` call is an instance of `PorterRecords` or one of its specialisations, which implement `Iterator`, guaranteeing the collection is enumerable using `foreach`.
+Record collections are a type of `Iterator` whose values are arrays. The result of a successful `Porter::import` call is an instance of `PorterRecords` or one of its specialisations, which implement `Iterator`, guaranteeing the collection is enumerable using `foreach`.
 
-Record collections are composed by Porter using the decorator pattern. If provider data is not modified, `PorterRecords` will decorate the `ProviderRecords` returned from a `ProviderResource`. That is, `PorterRecords` has a pointer back to the previous collection, which could be written as: `PorterRecords` → `ProviderRecords`. If a mapping was applied, the collection stack would be `PorterRecords` → `MappedRecords` → `ProviderRecords`. In general this is an unimportant detail for most users but it can be useful for debugging. The stack of record collection types informs us of the transformations a collection has undergone and each type holds a pointer to relevant objects that participated in the transformation, for example, `PorterRecords` holds a reference to the `ImportSpecification` that was used to create it and can be accessed using `PorterRecords::getSpecification`.
+Record collections are composed by Porter using the decorator pattern. If provider data is not modified, `PorterRecords` will decorate the `ProviderRecords` returned from a `ProviderResource`. That is, `PorterRecords` has a pointer back to the previous collection, which could be written as: `PorterRecords` → `ProviderRecords`. If a [filter](#filtering) was applied, the collection stack would be `PorterRecords` → `FilteredRecords` → `ProviderRecords`. In general this is an unimportant detail for most users but it can be useful for debugging. The stack of record collection types informs us of the transformations a collection has undergone and each type holds a pointer to relevant objects that participated in the transformation, for example, `PorterRecords` holds a reference to the `ImportSpecification` that was used to create it and can be accessed using `PorterRecords::getSpecification`.
 
 Record collections may be `Countable`, depending on whether the imported data was countable and whether any destructive operations were performed after import. Filtering is a destructive operation since it may remove records and therefore the count reported by a `ProviderResource` would no longer be accurate. It is the responsibility of the resource to supply the number of records in its collection by returning an iterator that implements `Countable`, such as `ArrayIterator` or `CountableProviderRecords`. When a countable iterator is detected, Porter returns `CountablePorterRecords` as long as no destructive operations were performed, which is possible because all non-destructive operation's collection types have a countable analogue.
 
-Durability
-----------
+Transformers
+------------
 
-Porter automatically retries connections when an exception occurs during `Connector::fetch`. This helps mitigate intermittent network conditions that can cause data fetches to fail temporarily. The number of retry attempts can be configured by calling `Porter::setMaxFetchAttempts`.
+Transformers manipulate imported data. Transforming data is useful because third-party data seldom arrives in a format we can immediately work with. Transformers are added to the transformation queue of an `ImportSpecification` by calling its `addTransformer` method and are executed in the order they are added.
 
-The default exception handler, `ExponentialBackoffExceptionHandler`, causes the program to pause for an exponentially increasing series of delays. Given that the default number of retry attempts is *five*, the exception handler may be called up to *four* times, delaying each retry attempt for ~0.1, ~0.2, ~0.4, and finally, ~0.8 seconds.
+Porter includes one transformer, `FilterTransformer`, that removes records from the collection based on a predicate. For more information, see [filtering](#filtering). More powerful data transformations can be designed with [MappingTransformer][MappingTransformer]. More transformers may be available from [Porter transformers][Porter transformers].
 
-The exception handler can be changed by calling `Porter::setFetchExceptionHandler`. For example, the following code changes the initial retry delay to one second.
+### Writing a transformer
+
+Transformers implement the `Transformer` interface that defines one method with the following signature.
 
 ```php
-$porter->setFetchExceptionHandler(new ExponentialBackoffExceptionHandler(1000000));
+public function transform(RecordCollection $records, $context) : RecordCollection;
 ```
 
-Durability only applies when connectors throw a recoverable exception type. If an unexpected exception occurs the fetch attempt will be aborted. For more information, see [implementing connector durability](#durability-1). Exception handlers receive the exception type as their first argument. An exception handler can inspect the recoverable exception and throw its own exception if it decides the exception should be treated as fatal.
+When `transform()` is called the transformer may iterate each record and change it in any way, including removing or inserting additional records. The record collection must be returned by the method, whether or not changes were made.
+
+Transformers should also implement the `__clone` magic method if the they store any object state in order to facilitate deep copy when Porter clones the owning `ImportSpecification` during an import.
 
 Filtering
 ---------
@@ -132,60 +151,28 @@ The following example filters out any records that do not have an *id* field pre
 ```php
 $records = $porter->import(
     (new ImportSpecification(new MyResource))
-        ->setFilter(function (array $record) {
-            return isset($record['id']);
-        })
+        ->addTransformer(
+            new FilterTransformer(function (array $record) {
+                return array_key_exists('id', $record);
+            })
+        )
 );
 ```
 
-Mapping
--------
+Durability
+----------
 
-Porter integrates [Mapper][Mapper] to support data transformations using `Mapping` objects. A full discussion of Mapper is beyond the scope of this document but the linked repository contains comprehensive documentation. Porter builds on Mapper by providing a powerful mapping strategy called `SubImport`.
+Porter automatically retries connections when an exception occurs during `Connector::fetch`. This helps mitigate intermittent network conditions that cause data fetches to fail temporarily. The number of retry attempts can be configured by calling the `setMaxFetchAttempts` method of an `ImportSpecification`.
 
-### Sub-imports
+The default exception handler, `ExponentialBackoffExceptionHandler`, causes a failed import to pause for an exponentially increasing series of delays. Given that the default number of retry attempts is *five*, the exception handler may be called up to *four* times, delaying each retry attempt for ~0.1, ~0.2, ~0.4, and finally, ~0.8 seconds.
 
-Porter's `SubImport` strategy provides a way to join data sets together. A mapping may contain any number of sub-imports, each of which may receive a different `ImportSpecification`. A sub-import causes Porter to begin a new import operation and thus supports all import options without limitation, including importing from different providers and applying a separate mapping to each sub-import.
-
-#### Signature
+The exception handler can be changed by calling `setFetchExceptionHandler`. For example, the following code changes the initial retry delay to one second.
 
 ```php
-SubImport(ImportSpecification|callable $specificationOrCallback)
+$specification->setFetchExceptionHandler(new ExponentialBackoffExceptionHandler(1000000));
 ```
 
- 1. `$specificationOrCallback` &ndash; Either an `ImportSpecification` instance or `callable` that returns such an instance.
-
-#### ImportSpecification Example
-
-The following example imports `MyImportSpecification` and copies the *foo* field from the input data into the output mapping. Next it performs a sub-import using `MyDetailsSpecification` and stores the result in the *details* key of the output mapping.
-
-```php
-$records = $porter->import(
-    (new MyImportSpecification)
-        ->setMapping(new AnonymousMapping([
-            'foo' => new Copy('foo'),
-            'details' => new SubImport(MyDetailsSpecification),
-        ]))
-);
-```
-
-#### Callback example
-
-The following example is the same as the previous except `MyDetailsSpecification` now requires an identifier that is copied from *details_id* present in the input data. This is only possible using a callback since we cannot inject strategies inside specifications.
-
-```php
-$records = $porter->import(
-    (new MyImportSpecification)
-        ->setMapping(new AnonymousMapping([
-            'foo' => new Copy('foo'),
-            'details' => new SubImport(
-                function (array $record) {
-                    return new MyDetailsSpecification($record['details_id']);
-                }
-            ),
-        ]))
-);
-```
+Durability only applies when connectors throw a recoverable exception type. If an unexpected exception occurs the fetch attempt will be aborted. For more information, see [implementing connector durability](#durability-1). Exception handlers receive the exception type as their first argument. An exception handler can inspect the recoverable exception and throw its own exception if it decides the exception should be treated as fatal.
 
 Caching
 -------
@@ -354,7 +341,7 @@ The following connectors are provided with Porter.
 A connector implements the `Connector` interface that defines one method with the following signature.
 
 ```php
-public function fetch(string $source, EncapsulatedOptions $options = null);
+public function fetch(string $source, EncapsulatedOptions $options = null) : mixed;
 ```
 
 When `fetch()` is called the connector fetches data from the specified source whilst applying any options specified. If a connector accepts options it must define its own options class and ensure that type is passed. Connectors may return data in any format that's convenient for resources to consume, but in general, such data should be as raw as possible and without modification.
@@ -384,14 +371,13 @@ Requirements
 Limitations
 -----------
 
- - Filtering always occurs before mapping.
  - Imports must complete synchronously. That is, calls to `import()` are blocking.
  - Sub-imports must complete synchronously. That is, the previous sub-import must finish before the next starts.
 
 Testing
 -------
 
-Porter is almost fully unit tested. Run the tests with `bin/test` from a shell.
+Porter is almost fully unit tested. Run the tests with the `composer test` command.
 
 Contributing
 ------------
@@ -420,6 +406,8 @@ Porter is published under the open source GNU Lesser General Public License v3.0
   [Issues]: https://github.com/ScriptFUSION/Porter/issues
   [PRs]: https://github.com/ScriptFUSION/Porter/pulls
   [Provider]: https://github.com/provider
+  [Porter transformers]: https://github.com/Porter-transformers
+  [MappingTransformer]: https://github.com/Porter-transformers/MappingTransformer
   [Mapper]: https://github.com/ScriptFUSION/Mapper
   [PSR-6]: http://www.php-fig.org/psr/psr-6
   [Porter icon]: https://github.com/ScriptFUSION/Porter/wiki/images/porter%20head%2032x.png
