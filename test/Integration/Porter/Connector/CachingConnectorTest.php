@@ -5,7 +5,7 @@ use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
 use ScriptFUSION\Porter\Connector\CachingConnector;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
-use ScriptFUSIONTest\Porter\Options\TestOptions;
+use ScriptFUSIONTest\Stubs\TestOptions;
 
 final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
 {

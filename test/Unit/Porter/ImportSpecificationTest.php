@@ -6,6 +6,7 @@ use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Specification\DuplicateTransformerException;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\Porter\Transform\Transformer;
+use ScriptFUSIONTest\Stubs\Invokable;
 
 final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
 {
@@ -26,7 +27,10 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
     {
         $this->specification
             ->addTransformer(\Mockery::mock(Transformer::class))
-            ->setContext($context = (object)[]);
+            ->setContext($context = (object)[])
+            ->setFetchExceptionHandler($handler = new Invokable)
+        ;
+
         $specification = clone $this->specification;
 
         self::assertNotSame($this->resource, $specification->getResource());
@@ -42,6 +46,7 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
         self::assertCount(count($this->specification->getTransformers()), $specification->getTransformers());
 
         self::assertNotSame($context, $specification->getContext());
+        self::assertNotSame($handler, $specification->getFetchExceptionHandler());
     }
 
     public function testProviderData()
@@ -79,10 +84,10 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
 
     public function testAddSameTransformer()
     {
-        $this->specification->addTransformer($transformer1 = \Mockery::mock(Transformer::class));
+        $this->specification->addTransformer($transformer = \Mockery::mock(Transformer::class));
 
         $this->setExpectedException(DuplicateTransformerException::class);
-        $this->specification->addTransformer($transformer1);
+        $this->specification->addTransformer($transformer);
     }
 
     public function testContext()
@@ -95,6 +100,39 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
         self::assertSame(
             $advice = CacheAdvice::MUST_CACHE(),
             $this->specification->setCacheAdvice($advice)->getCacheAdvice()
+        );
+    }
+
+    /**
+     * @param mixed $input
+     * @param int $output
+     *
+     * @dataProvider provideFetchAttempts
+     */
+    public function testMaxFetchAttempts($input, $output)
+    {
+        self::assertSame($output, $this->specification->setMaxFetchAttempts($input)->getMaxFetchAttempts());
+    }
+
+    public function provideFetchAttempts()
+    {
+        return [
+            // Valid.
+            [1, 1],
+            [2, 2],
+
+            // Invalid.
+            'Too low, positive' => [0, 1],
+            'Too low, negative' => [-1, 1],
+            'Float in range' => [1.9, 1],
+        ];
+    }
+
+    public function testExceptionHandler()
+    {
+        self::assertSame(
+            $handler = new Invokable,
+            $this->specification->setFetchExceptionHandler($handler)->getFetchExceptionHandler()
         );
     }
 }
