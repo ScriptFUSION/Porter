@@ -89,8 +89,17 @@ Porter's API
 
 `Porter` provides the following methods.
 
+### Importing data
+
+These are the methods to be most familiar with, where the life of a data import operation begins.
+
 * `import(ImportSpecification)` &ndash; Imports data according to the design of the specified import specification.
-* `importOne(ImportSpecification)` &ndash; Imports one record according to the design of the specified import specification. If more than one record is imported, `ImportException` will be thrown.
+* `importOne(ImportSpecification)` &ndash; Imports one record according to the design of the specified import specification. If more than one record is imported, `ImportException` is thrown.
+
+### Provider registry
+
+Porter acts as a provider registry; before data can be imported from a provider it must be registered with Porter. The tagging system is provided to distinguishing between provider instances of the same type, for scenarios where more than one instance of a specific provider is needed.
+
 * `registerProvider(Provider, string|null $tag)` &ndash; Registers the specified provider optionally identified by the specified tag. A tag is any user-defined identifier used to distinguish between different instances of the same provider type.
 * `getProvider(string $name, string|null $tag)` &ndash; Gets the provider matching the specified class name and optionally a tag.
 * `hasProvider(string $name, string|null $tag)` &ndash; Gets a value indicating whether the specified provider is registered.
@@ -112,7 +121,9 @@ Options may be configured by some of the methods listed below.
 Record collections
 ------------------
 
-Record collections are a type of `Iterator` whose values are arrays. The result of a successful `Porter::import` call is an instance of `PorterRecords` or one of its specialisations, which implement `Iterator`, guaranteeing the collection is enumerable using `foreach`.
+Record collections are a type of `Iterator`, whose values are arrays of imported data, and are sometimes `Countable`. The result of a successful `Porter::import` call is an instance of `PorterRecords` or one of its specialisations, guaranteeing the collection is enumerable using `foreach`. That's all you need to know! The following details are just for nerds.
+
+### Details
 
 Record collections are composed by Porter using the decorator pattern. If provider data is not modified, `PorterRecords` will decorate the `ProviderRecords` returned from a `ProviderResource`. That is, `PorterRecords` has a pointer back to the previous collection, which could be written as: `PorterRecords` → `ProviderRecords`. If a [filter](#filtering) was applied, the collection stack would be `PorterRecords` → `FilteredRecords` → `ProviderRecords`. In general this is an unimportant detail for most users but it can be useful for debugging. The stack of record collection types informs us of the transformations a collection has undergone and each type holds a pointer to relevant objects that participated in the transformation, for example, `PorterRecords` holds a reference to the `ImportSpecification` that was used to create it and can be accessed using `PorterRecords::getSpecification`.
 
