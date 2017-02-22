@@ -98,7 +98,7 @@ These are the methods to be most familiar with, where the life of a data import 
 
 ### Provider registry
 
-Porter acts as a provider registry; before data can be imported from a provider it must be registered with Porter. The tagging system is provided to distinguishing between provider instances of the same type, for scenarios where more than one instance of a specific provider is needed.
+Porter acts as a provider registry; before data can be imported from a provider it must be registered with Porter. The tagging system is provided to distinguishing between provider instances of the same type, for scenarios where the same provider is needed with different configurations.
 
 * `registerProvider(Provider, string|null $tag)` &ndash; Registers the specified provider optionally identified by the specified tag. A tag is any user-defined identifier used to distinguish between different instances of the same provider type.
 * `getProvider(string $name, string|null $tag)` &ndash; Gets the provider matching the specified class name and optionally a tag.
@@ -111,7 +111,7 @@ Import specifications specify *what* to import, and optionally, *how* it should 
 
 Options may be configured by some of the methods listed below.
 
- - `addTransformer(Transformer)` &ndash; Adds a transformer to the end of the post-import transformation queue.
+ - `addTransformer(Transformer)` &ndash; Adds a transformer to the end of the transformation queue.
  - `addTransformers(Transformer[])` &ndash; Adds one or more transformers to the end of the transformation queue.
  - `setContext(mixed)` &ndash; Specifies user-defined data to be passed to transformers.
  - `setCacheAdvice(CacheAdvice)` &ndash; Specifies a caching strategy; see [caching](#caching) for more.
@@ -217,7 +217,7 @@ Architecture
 
 Porter talks to *providers* to fetch data. Providers represent one or more *resources* from which data can be fetched. Providers pass a *connector* needed by their resources to fetch data. Resources define the provider they are compatible with and receive the provider's connector when fetching data. Resources must transform their data into one or more *records*, collectively known as *record collections*, which present data sets as an enumeration of array values.
 
-The following UML class diagram shows a partial architectural overview illustrating Porter's main components. Note that [Mapper][Mapper] is a separate project with optional integration into Porter but is included for completeness.
+The following UML class diagram shows a partial architectural overview illustrating Porter's main components.
 
 [![Class diagram][Class diagram]][Class diagram]
 
@@ -422,4 +422,4 @@ Porter is published under the open source GNU Lesser General Public License v3.0
   [Mapper]: https://github.com/ScriptFUSION/Mapper
   [PSR-6]: http://www.php-fig.org/psr/psr-6
   [Porter icon]: https://github.com/ScriptFUSION/Porter/wiki/images/porter%20head%2032x.png
-  [Class diagram]: https://github.com/ScriptFUSION/Porter/wiki/images/diagrams/Porter%20UML%20class%20diagram%201.0.png
+  [Class diagram]: https://github.com/ScriptFUSION/Porter/wiki/images/diagrams/Porter%20UML%20class%20diagram%203.0.png
