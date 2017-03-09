@@ -54,6 +54,10 @@ final class HttpConnectorTest extends \PHPUnit_Framework_TestCase
 
         try {
             $this->fetch();
+        } catch (HttpServerException $exception) {
+            $this->assertSame('foo', $exception->getBody());
+
+            throw $exception;
         } finally {
             $this->stopServer($server);
         }
