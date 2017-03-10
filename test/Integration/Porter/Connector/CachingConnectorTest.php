@@ -46,8 +46,8 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
 
     public function testCache()
     {
-        /** @var MemoryCache $cache */
-        $cache = \Mockery::mock(MemoryCache::class);
+        /** @var CacheItemPoolInterface $cache */
+        $cache = \Mockery::mock(CacheItemPoolInterface::class);
         $this->connector->setCache($cache);
 
         self::assertSame($cache, $this->connector->getCache());
