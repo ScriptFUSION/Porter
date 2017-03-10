@@ -4,8 +4,6 @@ namespace ScriptFUSIONTest\Integration\Porter\Connector;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
 use Psr\Cache\CacheItemPoolInterface;
-use ScriptFUSION\Porter\Cache\CacheItem;
-use ScriptFUSION\Porter\Cache\MemoryCache;
 use ScriptFUSION\Porter\Connector\CachingConnector;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 use ScriptFUSIONTest\Stubs\TestOptions;
