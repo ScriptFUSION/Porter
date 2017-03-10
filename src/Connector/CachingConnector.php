@@ -59,6 +59,16 @@ abstract class CachingConnector implements Connector, CacheToggle
         $this->cacheEnabled = false;
     }
 
+    public function getCache()
+    {
+        return $this->cache;
+    }
+
+    public function setCache(CacheItemPoolInterface $cache)
+    {
+        $this->cache = $cache;
+    }
+
     public function isCacheEnabled()
     {
         return $this->cacheEnabled;
