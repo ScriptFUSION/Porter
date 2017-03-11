@@ -3,6 +3,7 @@ namespace ScriptFUSIONTest\Integration\Porter\Connector;
 
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
+use Psr\Cache\CacheItemPoolInterface;
 use ScriptFUSION\Porter\Cache\MemoryCache;
 use ScriptFUSION\Porter\Connector\CachingConnector;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
@@ -42,11 +43,12 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
         self::assertSame('bar', $this->connector->fetch('baz', $this->options));
     }
 
-    public function testCache()
+    public function testGetSetCache()
     {
-        $cache = new MemoryCache;
-        $this->connector->setCache($cache);
+        self::assertInstanceOf(CacheItemPoolInterface::class, $this->connector->getCache());
+        self::assertNotSame($cache = new MemoryCache, $this->connector->getCache());
 
+        $this->connector->setCache($cache);
         self::assertSame($cache, $this->connector->getCache());
     }
 
