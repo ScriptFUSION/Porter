@@ -19,8 +19,8 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
         $structure = [$source, []];
         self::assertSame('bar', $connector->fetch($source, null));
 
-        $hash = str_replace(str_split('{}()/\@:'), '', json_encode($structure));
-        $hashTest = '["foo",[]]';
+        $hash = str_replace(str_split('{}()/\@:'), '.', json_encode($structure));
+        $hashTest = '[".foo.",[]]';
         self::assertSame('bar', $memoryCache->getItem($hash)->get());
 
         self::assertSame($hash, $hashTest);

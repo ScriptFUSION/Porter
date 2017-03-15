@@ -76,6 +76,6 @@ abstract class CachingConnector implements Connector, CacheToggle
 
     private function hash(array $structure)
     {
-        return str_replace(str_split('{}()/\@:'), '', json_encode($structure));
+        return str_replace(str_split('{}()/\@:'), '.', json_encode($structure));
     }
 }
