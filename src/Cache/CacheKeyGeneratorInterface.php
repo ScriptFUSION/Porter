@@ -1,5 +1,4 @@
 <?php
-
 namespace ScriptFUSION\Porter\Cache;
 
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
