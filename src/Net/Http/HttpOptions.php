@@ -220,7 +220,7 @@ final class HttpOptions extends EncapsulatedOptions
      */
     public function setMaxRedirects($maxRedirects)
     {
-        return $this->set('max_redirects', $maxRedirects|0);
+        return $this->set('max_redirects', $maxRedirects | 0);
     }
 
     /**
