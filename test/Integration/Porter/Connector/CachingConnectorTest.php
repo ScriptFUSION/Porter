@@ -4,6 +4,7 @@ namespace ScriptFUSIONTest\Integration\Porter\Connector;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
 use Psr\Cache\CacheItemPoolInterface;
+use ScriptFUSION\Porter\Cache\CacheKeyGeneratorInterface;
 use ScriptFUSION\Porter\Cache\MemoryCache;
 use ScriptFUSION\Porter\Connector\CachingConnector;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
@@ -65,6 +66,19 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
     {
         self::assertSame('foo', $this->connector->fetch('baz', $this->options));
         self::assertSame('foo', $this->connector->fetch('baz', clone $this->options));
+    }
+
+    public function testCacheUsedForCacheKeyGenerator()
+    {
+        $cacheKeyGenerator = \Mockery::mock(CacheKeyGeneratorInterface::class)
+            ->shouldReceive('generateCacheKey')
+            ->with('quux', $this->options)
+            ->andReturn('quuz', 'quuz', 'corge')
+            ->getMock();
+
+        self::assertSame('foo', $this->connector->fetch('quux', $this->options, $cacheKeyGenerator));
+        self::assertSame('foo', $this->connector->fetch('quux', $this->options, $cacheKeyGenerator));
+        self::assertSame('bar', $this->connector->fetch('quux', $this->options, $cacheKeyGenerator));
     }
 
     public function testNullAndEmptyAreEquivalent()
