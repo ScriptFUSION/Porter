@@ -84,7 +84,7 @@ final class SoapOptions extends EncapsulatedOptions
      */
     public function setVersion($version)
     {
-        return $this->set('soap_version', $version|0);
+        return $this->set('soap_version', $version | 0);
     }
 
     /**
@@ -102,7 +102,7 @@ final class SoapOptions extends EncapsulatedOptions
      */
     public function setCompression($compression)
     {
-        return $this->set('compression', $compression|0);
+        return $this->set('compression', $compression | 0);
     }
 
     /**
@@ -156,7 +156,7 @@ final class SoapOptions extends EncapsulatedOptions
      */
     public function setProxyPort($port)
     {
-        return $this->set('proxy_port', $port|0);
+        return $this->set('proxy_port', $port | 0);
     }
 
     /**
@@ -284,7 +284,7 @@ final class SoapOptions extends EncapsulatedOptions
      */
     public function setConnectionTimeout($timeout)
     {
-        return $this->set('connection_timeout', $timeout|0);
+        return $this->set('connection_timeout', $timeout | 0);
     }
 
     /**
@@ -322,7 +322,7 @@ final class SoapOptions extends EncapsulatedOptions
      */
     public function setCacheWsdl($cacheMode)
     {
-        return $this->set('cache_wsdl', $cacheMode|0);
+        return $this->set('cache_wsdl', $cacheMode | 0);
     }
 
     /**
@@ -359,7 +359,7 @@ final class SoapOptions extends EncapsulatedOptions
      */
     public function setFeatures($features)
     {
-        return $this->set('features', $features|0);
+        return $this->set('features', $features | 0);
     }
 
     /**
@@ -378,7 +378,7 @@ final class SoapOptions extends EncapsulatedOptions
      */
     public function setSslMethod($method)
     {
-        return $this->set('ssl_method', $method|0);
+        return $this->set('ssl_method', $method | 0);
     }
 
     /**
