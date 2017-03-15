@@ -3,6 +3,7 @@ namespace ScriptFUSIONTest\Integration\Porter\Connector;
 
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
+use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use ScriptFUSION\Porter\Cache\MemoryCache;
 use ScriptFUSION\Porter\Connector\CachingConnector;
@@ -87,5 +88,25 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
 
         $this->connector->enableCache();
         self::assertTrue($this->connector->isCacheEnabled());
+    }
+
+    public function testCacheKeyExcludesReservedCharacters()
+    {
+        $reservedCharacters = '{}()/\@:';
+
+        $this->connector->setCache($cache = \Mockery::spy(CacheItemPoolInterface::class));
+
+        $cache->shouldReceive('hasItem')
+            ->andReturnUsing(
+                function ($key) use ($reservedCharacters) {
+                    foreach (str_split($reservedCharacters) as $reservedCharacter) {
+                        self::assertNotContains($reservedCharacter, $key);
+                    }
+                }
+            )->once()
+            ->shouldReceive('getItem')->andReturnSelf()
+            ->shouldReceive('set')->andReturn(\Mockery::mock(CacheItemInterface::class));
+
+        $this->connector->fetch($reservedCharacters, (new TestOptions)->setFoo($reservedCharacters));
     }
 }
