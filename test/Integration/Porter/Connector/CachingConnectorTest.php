@@ -4,8 +4,9 @@ namespace ScriptFUSIONTest\Integration\Porter\Connector;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
 use Psr\Cache\CacheItemPoolInterface;
-use ScriptFUSION\Porter\Cache\CacheKeyGeneratorInterface;
+use ScriptFUSION\Porter\Cache\CacheKeyGenerator;
 use ScriptFUSION\Porter\Cache\MemoryCache;
+use ScriptFUSION\Porter\Cache\SourceAndOptionsHashCacheKeyGenerator;
 use ScriptFUSION\Porter\Connector\CachingConnector;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 use ScriptFUSIONTest\Stubs\TestOptions;
@@ -53,6 +54,15 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
         self::assertSame($cache, $this->connector->getCache());
     }
 
+    public function testGetSetCacheKeyGenerator()
+    {
+        self::assertInstanceOf(CacheKeyGenerator::class, $this->connector->getCacheKeyGenerator());
+        self::assertNotSame($cacheKeyGenerator = new SourceAndOptionsHashCacheKeyGenerator, $this->connector->getCacheKeyGenerator());
+
+        $this->connector->setCacheKeyGenerator($cacheKeyGenerator);
+        self::assertSame($cacheKeyGenerator, $this->connector->getCacheKeyGenerator());
+    }
+
     public function testCacheBypassedForDifferentOptions()
     {
         self::assertSame('foo', $this->connector->fetch('baz', $this->options));
@@ -70,15 +80,17 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
 
     public function testCacheUsedForCacheKeyGenerator()
     {
-        $cacheKeyGenerator = \Mockery::mock(CacheKeyGeneratorInterface::class)
-            ->shouldReceive('generateCacheKey')
-            ->with('quux', $this->options)
-            ->andReturn('quuz', 'quuz', 'corge')
-            ->getMock();
+        $this->connector->setCacheKeyGenerator(
+            \Mockery::mock(CacheKeyGenerator::class)
+                ->shouldReceive('generateCacheKey')
+                ->with('quux', $this->options)
+                ->andReturn('quuz', 'quuz', 'corge')
+                ->getMock()
+        );
 
-        self::assertSame('foo', $this->connector->fetch('quux', $this->options, $cacheKeyGenerator));
-        self::assertSame('foo', $this->connector->fetch('quux', $this->options, $cacheKeyGenerator));
-        self::assertSame('bar', $this->connector->fetch('quux', $this->options, $cacheKeyGenerator));
+        self::assertSame('foo', $this->connector->fetch('quux', $this->options));
+        self::assertSame('foo', $this->connector->fetch('quux', $this->options));
+        self::assertSame('bar', $this->connector->fetch('quux', $this->options));
     }
 
     public function testNullAndEmptyAreEquivalent()
