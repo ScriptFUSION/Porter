@@ -9,6 +9,7 @@ class SourceAndOptionsHashCacheKeyGenerator implements CacheKeyGenerator
     {
         $optionsCopy = $options ? $options->copy() : [];
         ksort($optionsCopy);
+
         return str_replace(str_split('{}()/\@:'), '.', json_encode([$source, $optionsCopy], JSON_UNESCAPED_SLASHES));
     }
 }

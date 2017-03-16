@@ -8,6 +8,7 @@ interface CacheKeyGenerator
     /**
      * @param string $source
      * @param EncapsulatedOptions|null $options
+     *
      * @return string A PSR-6 compatible cache key.
      */
     public function generateCacheKey($source, EncapsulatedOptions $options = null);
