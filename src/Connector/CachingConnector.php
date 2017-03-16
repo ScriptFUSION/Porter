@@ -47,6 +47,7 @@ abstract class CachingConnector implements Connector, CacheToggle
     {
         if ($this->isCacheEnabled()) {
             $key = $this->validateCacheKey($this->getCacheKeyGenerator()->generateCacheKey($source, $options));
+
             if ($this->cache->hasItem($key)) {
                 return $this->cache->getItem($key)->get();
             }
