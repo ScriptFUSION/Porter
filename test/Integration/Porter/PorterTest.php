@@ -300,6 +300,23 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         $this->porter->import($this->specification);
     }
 
+    /**
+     * Tests that when a generator throws a recoverable exception before the first yield, the fetch is retried.
+     *
+     * Note this does not support cases where exceptions may be thrown in subsequent iterations.
+     */
+    public function testGeneratorException()
+    {
+        $this->provider->shouldReceive('fetch')->once()->andReturnUsing(function () {
+            throw new RecoverableConnectorException;
+
+            yield;
+        });
+
+        $this->setExpectedException(FailingTooHardException::class, '1');
+        $this->porter->import($this->specification->setMaxFetchAttempts(1));
+    }
+
     #endregion
 
     public function testFilter()

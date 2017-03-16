@@ -96,7 +96,12 @@ class Porter
         if (($records = \ScriptFUSION\Retry\retry(
             $fetchAttempts,
             function () use ($provider, $resource) {
-                return $provider->fetch($resource);
+                if (($records = $provider->fetch($resource)) instanceof \Iterator) {
+                    // Force generator to run until first yield to provoke an exception.
+                    $records->valid();
+                }
+
+                return $records;
             },
             function (\Exception $exception) use ($fetchExceptionHandler) {
                 // Throw exception if unrecoverable.
