@@ -117,9 +117,11 @@ abstract class CachingConnector implements Connector, CacheToggle
         }
 
         if (strpbrk($key, self::RESERVED_CHARACTERS) !== false) {
-            throw new InvalidCacheKeyException(
-                sprintf('Cache key "%s" contains one or more reserved characters: "%s"', $key, self::RESERVED_CHARACTERS)
-            );
+            throw new InvalidCacheKeyException(sprintf(
+                'Cache key "%s" contains one or more reserved characters: "%s".',
+                $key,
+                self::RESERVED_CHARACTERS
+            ));
         }
 
         return $key;
