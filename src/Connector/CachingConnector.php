@@ -5,8 +5,8 @@ use Psr\Cache\CacheItemPoolInterface;
 use ScriptFUSION\Porter\Cache\CacheKeyGenerator;
 use ScriptFUSION\Porter\Cache\CacheToggle;
 use ScriptFUSION\Porter\Cache\InvalidCacheKeyException;
-use ScriptFUSION\Porter\Cache\MemoryCache;
 use ScriptFUSION\Porter\Cache\JsonCacheKeyGenerator;
+use ScriptFUSION\Porter\Cache\MemoryCache;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 
 /**
