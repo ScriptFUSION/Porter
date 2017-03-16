@@ -2,7 +2,10 @@
 namespace ScriptFUSION\Porter\Connector;
 
 use Psr\Cache\CacheItemPoolInterface;
+use ScriptFUSION\Porter\Cache\CacheKeyGenerator;
 use ScriptFUSION\Porter\Cache\CacheToggle;
+use ScriptFUSION\Porter\Cache\InvalidCacheKeyException;
+use ScriptFUSION\Porter\Cache\JsonCacheKeyGenerator;
 use ScriptFUSION\Porter\Cache\MemoryCache;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 
@@ -11,6 +14,8 @@ use ScriptFUSION\Porter\Options\EncapsulatedOptions;
  */
 abstract class CachingConnector implements Connector, CacheToggle
 {
+    const RESERVED_CHARACTERS = '{}()/\@:';
+
     /**
      * @var CacheItemPoolInterface
      */
@@ -21,28 +26,42 @@ abstract class CachingConnector implements Connector, CacheToggle
      */
     private $cacheEnabled = true;
 
-    public function __construct(CacheItemPoolInterface $cache = null)
+    /**
+     * @var CacheKeyGenerator
+     */
+    private $cacheKeyGenerator;
+
+    public function __construct(CacheItemPoolInterface $cache = null, CacheKeyGenerator $cacheKeyGenerator = null)
     {
         $this->cache = $cache ?: new MemoryCache;
+        $this->cacheKeyGenerator = $cacheKeyGenerator ?: new JsonCacheKeyGenerator;
     }
 
+    /**
+     * @param string $source
+     * @param EncapsulatedOptions|null $options
+     *
+     * @return mixed
+     *
+     * @throws InvalidCacheKeyException
+     */
     public function fetch($source, EncapsulatedOptions $options = null)
     {
-        $optionsCopy = $options ? $options->copy() : [];
-
         if ($this->isCacheEnabled()) {
+            $optionsCopy = $options ? $options->copy() : [];
+
             ksort($optionsCopy);
 
-            $hash = $this->hash([$source, $optionsCopy]);
+            $key = $this->validateCacheKey($this->getCacheKeyGenerator()->generateCacheKey($source, $optionsCopy));
 
-            if ($this->cache->hasItem($hash)) {
-                return $this->cache->getItem($hash)->get();
+            if ($this->cache->hasItem($key)) {
+                return $this->cache->getItem($key)->get();
             }
         }
 
         $data = $this->fetchFreshData($source, $options);
 
-        isset($hash) && $this->cache->save($this->cache->getItem($hash)->set($data));
+        isset($key) && $this->cache->save($this->cache->getItem($key)->set($data));
 
         return $data;
     }
@@ -74,8 +93,34 @@ abstract class CachingConnector implements Connector, CacheToggle
         return $this->cacheEnabled;
     }
 
-    private function hash(array $structure)
+    public function getCacheKeyGenerator()
     {
-        return str_replace(str_split('{}()/\@:'), '.', json_encode($structure, JSON_UNESCAPED_SLASHES));
+        return $this->cacheKeyGenerator;
+    }
+
+    public function setCacheKeyGenerator(CacheKeyGenerator $cacheKeyGenerator)
+    {
+        $this->cacheKeyGenerator = $cacheKeyGenerator;
+    }
+
+    /**
+     * @param mixed $key
+     *
+     * @return string
+     *
+     * @throws InvalidCacheKeyException
+     */
+    private function validateCacheKey($key)
+    {
+        if (!is_string($key)) {
+            throw new InvalidCacheKeyException('Cache key must be of type string.');
+        }
+        if (strpbrk($key, self::RESERVED_CHARACTERS) !== false) {
+            throw new InvalidCacheKeyException(
+                sprintf('Cache key "%s" contains one or more reserved characters: "%s"', $key, self::RESERVED_CHARACTERS)
+            );
+        }
+
+        return $key;
     }
 }
