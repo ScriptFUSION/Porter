@@ -43,7 +43,8 @@ abstract class CachingConnector implements Connector, CacheToggle
      *
      * @throws InvalidCacheKeyException
      */
-    public function fetch($source, EncapsulatedOptions $options = null) {
+    public function fetch($source, EncapsulatedOptions $options = null)
+    {
         if ($this->isCacheEnabled()) {
             $key = $this->validateCacheKey($this->getCacheKeyGenerator()->generateCacheKey($source, $options));
             if ($this->cache->hasItem($key)) {
