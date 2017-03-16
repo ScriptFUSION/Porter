@@ -97,8 +97,6 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
 
     public function testFetchThrowsInvalidCacheKeyExceptionOnNonStringCackeKey()
     {
-        $this->setExpectedException(InvalidCacheKeyException::class, 'Cache key must be of type string.');
-
         $this->connector->setCacheKeyGenerator(
             \Mockery::mock(CacheKeyGenerator::class)
                 ->shouldReceive('generateCacheKey')
@@ -107,20 +105,13 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
                 ->getMock()
         );
 
+        $this->setExpectedException(InvalidCacheKeyException::class, 'Cache key must be a string.');
         $this->connector->fetch('quux', $this->options);
     }
 
     public function testFetchThrowsInvalidCacheKeyExceptionOnNonPSR6CompliantCacheKey()
     {
         $cacheKey = CachingConnector::RESERVED_CHARACTERS;
-
-        $this->setExpectedException(
-            InvalidCacheKeyException::class,
-            sprintf('Cache key "%s" contains one or more reserved characters: "%s"',
-                $cacheKey,
-                CachingConnector::RESERVED_CHARACTERS
-            )
-        );
 
         $this->connector->setCacheKeyGenerator(
             \Mockery::mock(CacheKeyGenerator::class)
@@ -130,6 +121,7 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
                 ->getMock()
         );
 
+        $this->setExpectedException(InvalidCacheKeyException::class, 'contains one or more reserved characters');
         $this->connector->fetch('quux', $this->options);
     }
 

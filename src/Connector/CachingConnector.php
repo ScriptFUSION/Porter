@@ -108,13 +108,14 @@ abstract class CachingConnector implements Connector, CacheToggle
      *
      * @return string
      *
-     * @throws InvalidCacheKeyException
+     * @throws InvalidCacheKeyException Cache key contains invalid data.
      */
     private function validateCacheKey($key)
     {
         if (!is_string($key)) {
-            throw new InvalidCacheKeyException('Cache key must be of type string.');
+            throw new InvalidCacheKeyException('Cache key must be a string.');
         }
+
         if (strpbrk($key, self::RESERVED_CHARACTERS) !== false) {
             throw new InvalidCacheKeyException(
                 sprintf('Cache key "%s" contains one or more reserved characters: "%s"', $key, self::RESERVED_CHARACTERS)
