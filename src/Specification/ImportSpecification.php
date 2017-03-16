@@ -196,7 +196,7 @@ class ImportSpecification
      */
     final public function setMaxFetchAttempts($attempts)
     {
-        $this->maxFetchAttempts = max(1, $attempts|0);
+        $this->maxFetchAttempts = max(1, $attempts | 0);
 
         return $this;
     }

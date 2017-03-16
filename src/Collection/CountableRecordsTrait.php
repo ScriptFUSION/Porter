@@ -13,6 +13,6 @@ trait CountableRecordsTrait
 
     private function setCount($count)
     {
-        $this->count = $count|0;
+        $this->count = $count | 0;
     }
 }
