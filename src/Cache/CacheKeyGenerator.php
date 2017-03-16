@@ -1,15 +1,13 @@
 <?php
 namespace ScriptFUSION\Porter\Cache;
 
-use ScriptFUSION\Porter\Options\EncapsulatedOptions;
-
 interface CacheKeyGenerator
 {
     /**
      * @param string $source
-     * @param EncapsulatedOptions|null $options
+     * @param array $optionsSorted Key sorted options.
      *
      * @return string A PSR-6 compatible cache key.
      */
-    public function generateCacheKey($source, EncapsulatedOptions $options = null);
+    public function generateCacheKey($source, array $optionsSorted);
 }

@@ -6,7 +6,7 @@ use ScriptFUSION\Porter\Cache\CacheKeyGenerator;
 use ScriptFUSION\Porter\Cache\CacheToggle;
 use ScriptFUSION\Porter\Cache\InvalidCacheKeyException;
 use ScriptFUSION\Porter\Cache\MemoryCache;
-use ScriptFUSION\Porter\Cache\SourceAndOptionsHashCacheKeyGenerator;
+use ScriptFUSION\Porter\Cache\JsonCacheKeyGenerator;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 
 /**
@@ -14,6 +14,8 @@ use ScriptFUSION\Porter\Options\EncapsulatedOptions;
  */
 abstract class CachingConnector implements Connector, CacheToggle
 {
+    const RESERVED_CHARACTERS = '{}()/\@:';
+
     /**
      * @var CacheItemPoolInterface
      */
@@ -32,7 +34,7 @@ abstract class CachingConnector implements Connector, CacheToggle
     public function __construct(CacheItemPoolInterface $cache = null, CacheKeyGenerator $cacheKeyGenerator = null)
     {
         $this->cache = $cache ?: new MemoryCache;
-        $this->cacheKeyGenerator = $cacheKeyGenerator ?: new SourceAndOptionsHashCacheKeyGenerator;
+        $this->cacheKeyGenerator = $cacheKeyGenerator ?: new JsonCacheKeyGenerator;
     }
 
     /**
@@ -46,7 +48,11 @@ abstract class CachingConnector implements Connector, CacheToggle
     public function fetch($source, EncapsulatedOptions $options = null)
     {
         if ($this->isCacheEnabled()) {
-            $key = $this->validateCacheKey($this->getCacheKeyGenerator()->generateCacheKey($source, $options));
+            $optionsCopy = $options ? $options->copy() : [];
+
+            ksort($optionsCopy);
+
+            $key = $this->validateCacheKey($this->getCacheKeyGenerator()->generateCacheKey($source, $optionsCopy));
 
             if ($this->cache->hasItem($key)) {
                 return $this->cache->getItem($key)->get();
@@ -109,8 +115,10 @@ abstract class CachingConnector implements Connector, CacheToggle
         if (!is_string($key)) {
             throw new InvalidCacheKeyException('Cache key must be of type string.');
         }
-        if (strpbrk($key, '{}()/\@:') !== false) {
-            throw new InvalidCacheKeyException(sprintf('Cache key "%s" contains reserved characters {}()/\@:', $key));
+        if (strpbrk($key, self::RESERVED_CHARACTERS) !== false) {
+            throw new InvalidCacheKeyException(
+                sprintf('Cache key "%s" contains one or more reserved characters: "%s"', $key, self::RESERVED_CHARACTERS)
+            );
         }
 
         return $key;

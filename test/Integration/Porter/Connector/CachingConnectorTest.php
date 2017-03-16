@@ -6,8 +6,9 @@ use Mockery\MockInterface;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use ScriptFUSION\Porter\Cache\CacheKeyGenerator;
+use ScriptFUSION\Porter\Cache\InvalidCacheKeyException;
 use ScriptFUSION\Porter\Cache\MemoryCache;
-use ScriptFUSION\Porter\Cache\SourceAndOptionsHashCacheKeyGenerator;
+use ScriptFUSION\Porter\Cache\JsonCacheKeyGenerator;
 use ScriptFUSION\Porter\Connector\CachingConnector;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 use ScriptFUSIONTest\Stubs\TestOptions;
@@ -58,7 +59,7 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
     public function testGetSetCacheKeyGenerator()
     {
         self::assertInstanceOf(CacheKeyGenerator::class, $this->connector->getCacheKeyGenerator());
-        self::assertNotSame($cacheKeyGenerator = new SourceAndOptionsHashCacheKeyGenerator, $this->connector->getCacheKeyGenerator());
+        self::assertNotSame($cacheKeyGenerator = new JsonCacheKeyGenerator, $this->connector->getCacheKeyGenerator());
 
         $this->connector->setCacheKeyGenerator($cacheKeyGenerator);
         self::assertSame($cacheKeyGenerator, $this->connector->getCacheKeyGenerator());
@@ -84,7 +85,7 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
         $this->connector->setCacheKeyGenerator(
             \Mockery::mock(CacheKeyGenerator::class)
                 ->shouldReceive('generateCacheKey')
-                ->with('quux', $this->options)
+                ->with('quux', $this->options->copy())
                 ->andReturn('quuz', 'quuz', 'corge')
                 ->getMock()
         );
@@ -92,6 +93,44 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
         self::assertSame('foo', $this->connector->fetch('quux', $this->options));
         self::assertSame('foo', $this->connector->fetch('quux', $this->options));
         self::assertSame('bar', $this->connector->fetch('quux', $this->options));
+    }
+
+    public function testFetchThrowsInvalidCacheKeyExceptionOnNonStringCackeKey()
+    {
+        $this->setExpectedException(InvalidCacheKeyException::class, 'Cache key must be of type string.');
+
+        $this->connector->setCacheKeyGenerator(
+            \Mockery::mock(CacheKeyGenerator::class)
+                ->shouldReceive('generateCacheKey')
+                ->with('quux', $this->options->copy())
+                ->andReturn([])
+                ->getMock()
+        );
+
+        $this->connector->fetch('quux', $this->options);
+    }
+
+    public function testFetchThrowsInvalidCacheKeyExceptionOnNonPSR6CompliantCacheKey()
+    {
+        $cacheKey =  CachingConnector::RESERVED_CHARACTERS;
+
+        $this->setExpectedException(
+            InvalidCacheKeyException::class,
+            sprintf('Cache key "%s" contains one or more reserved characters: "%s"',
+                $cacheKey,
+                CachingConnector::RESERVED_CHARACTERS
+            )
+        );
+
+        $this->connector->setCacheKeyGenerator(
+            \Mockery::mock(CacheKeyGenerator::class)
+                ->shouldReceive('generateCacheKey')
+                ->with('quux', $this->options->copy())
+                ->andReturn($cacheKey)
+                ->getMock()
+        );
+
+        $this->connector->fetch('quux', $this->options);
     }
 
     public function testNullAndEmptyAreEquivalent()
