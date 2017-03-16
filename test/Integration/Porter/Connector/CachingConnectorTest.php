@@ -112,7 +112,7 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
 
     public function testFetchThrowsInvalidCacheKeyExceptionOnNonPSR6CompliantCacheKey()
     {
-        $cacheKey =  CachingConnector::RESERVED_CHARACTERS;
+        $cacheKey = CachingConnector::RESERVED_CHARACTERS;
 
         $this->setExpectedException(
             InvalidCacheKeyException::class,
@@ -157,7 +157,7 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
 
     public function testCacheKeyExcludesReservedCharacters()
     {
-        $reservedCharacters = '{}()/\@:';
+        $reservedCharacters = CachingConnector::RESERVED_CHARACTERS;
 
         $this->connector->setCache($cache = \Mockery::spy(CacheItemPoolInterface::class));
 
