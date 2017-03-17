@@ -17,13 +17,6 @@ interface ProviderResource
     public function getProviderClassName();
 
     /**
-     * Gets the provider identifier tag.
-     *
-     * @return string|null Provider tag.
-     */
-    public function getProviderTag();
-
-    /**
      * Fetches data from the provider using the the specified connector and
      * presents its data as an enumerable series.
      *
