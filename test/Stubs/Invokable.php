@@ -5,6 +5,6 @@ final class Invokable
 {
     public function __invoke()
     {
-        // Inteiontionally empty.
+        // Intentionally empty.
     }
 }

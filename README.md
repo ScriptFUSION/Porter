@@ -9,9 +9,9 @@ Porter <img src="https://github.com/ScriptFUSION/Porter/wiki/images/porter%20222
 
 Porter is a data import abstraction library to import any data from anywhere. To achieve this she must be able to generalize about the structure of data. Porter believes all data sets are either a single record, repeating collection of records with consistent structure, or both, where *record* is either a list or tree of name and value pairs.
 
-Porter's interfaces use arrays, also known as *records*, and array iterators, also known as *record collections*. Arrays allow us to store any data type and iterators allow us to iterate over an unlimited number of records, thus allowing Porter to stream any data format of any size.
+Porter's interfaces use arrays, called *records*, and array iterators, called *record collections*. Arrays allow us to store any data type and iterators allow us to iterate over an unlimited number of records, thus allowing Porter to stream any data format of any size.
 
-The [Provider organization][Provider] hosts ready-to-use Porter providers to help quickly gain access to popular third-party APIs and data services. Check it out before writing a new provider to see if it has already been written. Anyone writing new providers is encouraged to contribute them to the organization to share with other Porter users.
+The [Provider organization][Provider] hosts ready-to-use Porter providers to help quickly gain access to popular third-party APIs and data services. For example, the [Stripe provider][Stripe provider] allows an application to make online payments whilst the [European Central Bank provider][ECB provider] imports the latest currency exchange rates into an application. Anyone writing new providers is encouraged to contribute them to the organization to share with other Porter users.
 
 Contents
 --------
@@ -40,17 +40,17 @@ Contents
 Audience
 --------
 
-Porter is useful for anyone wanting a [simple API](#porters-api) to import data into PHP applications. Data typically comes from third-party APIs, but it could come from any source, including web scraping or even first-party APIs (using Porter to consume our own data services). Porter is a uniform way to abstract importing data, with benefits.
+Porter is useful for anyone wanting a [simple API](#porters-api) to import data into PHP applications. Data typically comes from third-party APIs, but it could come from any source, including web scraping or even first-party APIs, using Porter to consume our own data services. Porter is a uniform way to abstract importing data, with benefits.
 
 Benefits
 --------
 
- * Provides a [framework](#architecture) for structuring data imports.
+ * Provides a [framework](#architecture) of inter-operable components for structuring data imports.
  * Defines structured import concepts, such as [providers](#providers) that provide data via one or more [resources](#resources).
- * Offers post-import [transformations](#transformers), such as [filtering](#filtering), to translate third-party data into useful data.
+ * Offers post-import [transformations](#transformers), such as [filtering](#filtering) and [mapping][MappingTransformer], to transform third-party data into useful data.
  * Protects against intermittent network failure with [durability](#durability) features.
  * Supports raw data [caching](#caching), at the connector level, for each import.
- * Joins many disparate data sets together using [sub-imports][MappingTransformer].
+ * Joins many disparate data sets together using [sub-imports][Sub-imports].
 
 Quick start
 -----------
@@ -125,9 +125,9 @@ Record collections are a type of `Iterator`, whose values are arrays of imported
 
 ### Details
 
-Record collections are composed by Porter using the decorator pattern. If provider data is not modified, `PorterRecords` will decorate the `ProviderRecords` returned from a `ProviderResource`. That is, `PorterRecords` has a pointer back to the previous collection, which could be written as: `PorterRecords` → `ProviderRecords`. If a [filter](#filtering) was applied, the collection stack would be `PorterRecords` → `FilteredRecords` → `ProviderRecords`. In general this is an unimportant detail for most users but it can be useful for debugging. The stack of record collection types informs us of the transformations a collection has undergone and each type holds a pointer to relevant objects that participated in the transformation, for example, `PorterRecords` holds a reference to the `ImportSpecification` that was used to create it and can be accessed using `PorterRecords::getSpecification`.
-
 Record collections may be `Countable`, depending on whether the imported data was countable and whether any destructive operations were performed after import. Filtering is a destructive operation since it may remove records and therefore the count reported by a `ProviderResource` would no longer be accurate. It is the responsibility of the resource to supply the number of records in its collection by returning an iterator that implements `Countable`, such as `ArrayIterator` or `CountableProviderRecords`. When a countable iterator is detected, Porter returns `CountablePorterRecords` as long as no destructive operations were performed, which is possible because all non-destructive operation's collection types have a countable analogue.
+
+Record collections are composed by Porter using the decorator pattern. If provider data is not modified, `PorterRecords` will decorate the `ProviderRecords` returned from a `ProviderResource`. That is, `PorterRecords` has a pointer back to the previous collection, which could be written as: `PorterRecords` → `ProviderRecords`. If a [filter](#filtering) was applied, the collection stack would be `PorterRecords` → `FilteredRecords` → `ProviderRecords`. In general this is an unimportant detail for most users but it can be useful for debugging. The stack of record collection types informs us of the transformations a collection has undergone and each type holds a pointer to relevant objects that participated in the transformation, for example, `PorterRecords` holds a reference to the `ImportSpecification` that was used to create it and can be accessed using `PorterRecords::getSpecification`.
 
 Transformers
 ------------
@@ -240,12 +240,27 @@ class MyCacheKeyGenerator implements CacheKeyGenerator
 }
 ```
 
+---
+
+<div align="center">
+
+INTERMISSION
+------------
+
+Congratulations.
+
+We have covered everything needed to use Porter. The rest of this readme is for those wishing to dig deeper. Take a break, grab a cup of your favourite beverage and resume with us in a few moments when you're ready to take a look at how to write [providers](#providers), [resources](#resources) and [connectors](#connectors).
+
+</div>
+
+---
+
 Architecture
 ------------
 
 Porter talks to *providers* to fetch data. Providers represent one or more *resources* from which data can be fetched. Providers pass a *connector* needed by their resources to fetch data. Resources define the provider they are compatible with and receive the provider's connector when fetching data. Resources must transform their data into one or more *records*, collectively known as *record collections*, which present data sets as an enumeration of array values.
 
-The following UML class diagram shows a partial architectural overview illustrating Porter's main components.
+The following UML class diagram shows a partial architectural overview illustrating Porter's main components ([enlarge][Class diagram]).
 
 [![Class diagram][Class diagram]][Class diagram]
 
@@ -411,7 +426,7 @@ Limitations
 -----------
 
  - Imports must complete synchronously. That is, calls to `import()` are blocking.
- - Sub-imports must complete synchronously. That is, the previous sub-import must finish before the next starts.
+ - [Sub-imports][Sub-imports] must complete synchronously. That is, the previous sub-import must finish before the next starts.
 
 Testing
 -------
@@ -445,8 +460,11 @@ Porter is published under the open source GNU Lesser General Public License v3.0
   [Issues]: https://github.com/ScriptFUSION/Porter/issues
   [PRs]: https://github.com/ScriptFUSION/Porter/pulls
   [Provider]: https://github.com/provider
+  [Stripe provider]: https://github.com/Provider/Stripe
+  [ECB provider]: https://github.com/Provider/European-Central-Bank
   [Porter transformers]: https://github.com/Porter-transformers
   [MappingTransformer]: https://github.com/Porter-transformers/MappingTransformer
+  [Sub-imports]: https://github.com/Porter-transformers/MappingTransformer#sub-imports
   [Mapper]: https://github.com/ScriptFUSION/Mapper
   [PSR-6]: http://www.php-fig.org/psr/psr-6
   [Porter icon]: https://github.com/ScriptFUSION/Porter/wiki/images/porter%20head%2032x.png
