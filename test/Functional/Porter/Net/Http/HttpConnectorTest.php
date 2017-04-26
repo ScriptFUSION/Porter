@@ -70,15 +70,7 @@ final class HttpConnectorTest extends \PHPUnit_Framework_TestCase
      */
     private function startServer($script)
     {
-        $server = (
-            new Process(sprintf(
-                '%sphp -S %s %s.php',
-                // Prevent forking on some Unix systems.
-                file_exists('/bin/sh') ? 'exec ' : '',
-                self::HOST,
-                $script
-            ))
-        )->setWorkingDirectory(self::$dir);
+        $server = new Process(['php', '-S', self::HOST, "$script.php"], self::$dir);
         $server->start();
 
         // Wait for server to spawn.
