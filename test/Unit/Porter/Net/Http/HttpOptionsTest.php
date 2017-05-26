@@ -28,7 +28,7 @@ final class HttpOptionsTest extends \PHPUnit_Framework_TestCase
 
     public function testFindHeader()
     {
-        $options = (new HttpOptions)->addHeader('Foo: bar')->addHeader($baz = 'Baz: bat');
+        $options = (new HttpOptions)->addHeader('Foo: bar')->addHeader($baz = 'Baz: qux');
 
         self::assertNull($options->findHeader('baz'));
         self::assertSame($baz, $options->findHeader('Baz'));
@@ -62,7 +62,7 @@ final class HttpOptionsTest extends \PHPUnit_Framework_TestCase
 
     public function testProxy()
     {
-        self::assertSame($host = 'https://foo.com:80', (new HttpOptions)->setProxy($host)->getProxy());
+        self::assertSame($host = 'https://example.com:80', (new HttpOptions)->setProxy($host)->getProxy());
     }
 
     public function testUserAgent()
@@ -72,17 +72,17 @@ final class HttpOptionsTest extends \PHPUnit_Framework_TestCase
 
     public function testFollowLocation()
     {
-        $options = (new HttpOptions)->setFollowLocation(true);
+        $options = new HttpOptions;
 
-        self::assertTrue($options->getFollowLocation());
+        self::assertTrue($options->setFollowLocation(true)->getFollowLocation());
         self::assertFalse($options->setFollowLocation(false)->getFollowLocation());
     }
 
     public function testRequestFullUri()
     {
-        $options = (new HttpOptions)->setRequestFullUri(true);
+        $options = new HttpOptions;
 
-        self::assertTrue($options->getRequestFullUri());
+        self::assertTrue($options->setRequestFullUri(true)->getRequestFullUri());
         self::assertFalse($options->setRequestFullUri(false)->getRequestFullUri());
     }
 

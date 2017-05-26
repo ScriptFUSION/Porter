@@ -1,6 +1,7 @@
 <?php
 namespace ScriptFUSION\Porter\Net\Http;
 
+use ScriptFUSION\Porter\Net\Ssl\SslOptions;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 use ScriptFUSION\Porter\Type\StringType;
 
@@ -9,12 +10,25 @@ use ScriptFUSION\Porter\Type\StringType;
  */
 final class HttpOptions extends EncapsulatedOptions
 {
+    /**
+     * @var SslOptions
+     */
+    private $sslOptions;
+
     public function __construct()
     {
         $this->setDefaults([
             'queryParameters' => [],
             'header' => [],
         ]);
+    }
+
+    /**
+     * @return SslOptions
+     */
+    public function getSslOptions()
+    {
+        return $this->sslOptions ?: $this->sslOptions = new SslOptions;
     }
 
     /**

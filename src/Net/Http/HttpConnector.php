@@ -55,10 +55,16 @@ class HttpConnector extends CachingConnector
             ),
             false,
             stream_context_create([
-                'http' => ['ignore_errors' => true] + array_merge(
-                    $this->options->extractHttpContextOptions(),
-                    $options ? $options->extractHttpContextOptions() : []
-                ),
+                'http' =>
+                    // Instruct PHP to ignore HTTP error codes so Porter can handle them.
+                    ['ignore_errors' => true]
+                    + ($options ? $options->extractHttpContextOptions() : [])
+                    + $this->options->extractHttpContextOptions()
+                ,
+                'ssl' =>
+                    ($options ? $options->getSslOptions()->extractSslContextOptions() : [])
+                    + $this->options->getSslOptions()->extractSslContextOptions()
+                ,
             ])
         )) {
             $error = error_get_last();
