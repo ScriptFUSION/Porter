@@ -34,8 +34,12 @@ final class HttpConnectorTest extends \PHPUnit_Framework_TestCase
     public function testConnectionToLocalWebserver()
     {
         $server = $this->startServer('feedback');
-        $response = $this->fetch(new HttpConnector((new HttpOptions)->addHeader($header = 'Foo: Bar')));
-        $this->stopServer($server);
+
+        try {
+            $response = $this->fetch(new HttpConnector((new HttpOptions)->addHeader($header = 'Foo: Bar')));
+        } finally {
+            $this->stopServer($server);
+        }
 
         self::assertRegExp('[\AGET \Q' . self::HOST . self::URI . '\E HTTP/\d+\.\d+$]m', $response);
         self::assertRegExp("[^$header$]m", $response);
@@ -47,12 +51,14 @@ final class HttpConnectorTest extends \PHPUnit_Framework_TestCase
     public function testSslConnectionToLocalWebserver()
     {
         $server = $this->startServer('feedback');
-        $this->startSsl();
 
-        $response = $this->fetchViaSsl(self::createUnverifiedSslConnector());
-
-        self::stopSsl();
-        $this->stopServer($server);
+        try {
+            $certificate = $this->startSsl();
+            $response = $this->fetchViaSsl(self::createSslConnector($certificate));
+        } finally {
+            self::stopSsl();
+            $this->stopServer($server);
+        }
 
         self::assertRegExp('[\AGET \Q' . self::SSL_HOST . '\E/ HTTP/\d+\.\d+$]m', $response);
     }
@@ -107,12 +113,12 @@ final class HttpConnectorTest extends \PHPUnit_Framework_TestCase
     {
         $accept = str_replace($filter = ['[', ']'], null, self::SSL_HOST);
         $connect = str_replace($filter, null, self::HOST);
-        $certificate = tempnam(sys_get_temp_dir(), 'Porter');
+        $certificate = tempnam(sys_get_temp_dir(), null);
 
         // Create SSL tunnel process.
         (new Process(
             // Generate self-signed SSL certificate in PEM format.
-            "openssl req -new -x509 -nodes -batch -keyout '$certificate' -out '$certificate'
+            "openssl req -new -x509 -nodes -subj /CN=::1 -keyout '$certificate' -out '$certificate'
 
             { stunnel4 -fd 0 || stunnel -fd 0; } <<.
                 # Disable PID to run as non-root user.
@@ -127,9 +133,11 @@ final class HttpConnectorTest extends \PHPUnit_Framework_TestCase
 ."
         ))->start();
 
-        self::waitForHttpServer(function () {
-            $this->fetchViaSsl(self::createUnverifiedSslConnector());
+        self::waitForHttpServer(function () use ($certificate) {
+            $this->fetchViaSsl(self::createSslConnector($certificate));
         });
+
+        return $certificate;
     }
 
     private static function stopSsl()
@@ -173,14 +181,17 @@ final class HttpConnectorTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @param string $certificate
+     *
      * @return HttpConnector
      */
-    private static function createUnverifiedSslConnector()
+    private static function createSslConnector($certificate)
     {
         $connector = new HttpConnector($options = new HttpOptions);
         $options->getSslOptions()
-            ->setVerifyPeer(false)
-            ->setVerifyPeerName(false)
+            ->setCertificateAuthorityFilePath($certificate)
+            // IPv6 names don't work normally due to a bug/feature in PHP/OpenSSL.
+            ->setPeerName('::1')
         ;
 
         return $connector;
