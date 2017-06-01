@@ -3,6 +3,11 @@ notifications:
 
 sudo: false
 
+addons:
+  apt:
+    packages:
+      - stunnel4
+
 language: php
 
 php:
