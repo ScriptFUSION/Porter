@@ -10,17 +10,17 @@
   "license": "LGPL-3.0",
   "require": {
     "php": "^5.5|^7",
+    "connectors/http": "^1",
+    "connectors/soap": "^1",
     "scriptfusion/static-class": "^1",
     "scriptfusion/retry": "^1.1",
     "scriptfusion/retry-exception-handlers": "^1",
     "eloquent/enumeration": "^5",
-    "psr/cache": "^1",
-    "zendframework/zend-uri": "^2"
+    "psr/cache": "^1"
   },
   "require-dev": {
     "phpunit/phpunit": "^4.8",
-    "mockery/mockery": "^0.9.4",
-    "symfony/process": "^3.3"
+    "mockery/mockery": "^0.9.4"
   },
   "suggest" : {
     "transformers/mapping": "Transforms array collections using Mappings."
@@ -37,5 +37,10 @@
   },
   "scripts": {
     "test": "phpunit -c test"
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "3-dev"
+    }
   }
 }

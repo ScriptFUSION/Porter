@@ -437,7 +437,7 @@ Limitations
 Testing
 -------
 
-Porter is almost fully unit tested. Run the tests with the `composer test` command.
+Porter is fully unit tested. Run the tests with the `composer test` command.
 
 Contributing
 ------------
