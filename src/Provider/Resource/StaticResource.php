@@ -19,11 +19,6 @@ class StaticResource implements ProviderResource
         return StaticDataProvider::class;
     }
 
-    public function getProviderTag()
-    {
-        return;
-    }
-
     public function fetch(Connector $connector, EncapsulatedOptions $options = null)
     {
         return $this->data;

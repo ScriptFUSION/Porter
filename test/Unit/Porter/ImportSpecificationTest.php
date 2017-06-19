@@ -56,7 +56,7 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
 
     public function testProviderTag()
     {
-        self::assertSame($tag = 'foo', $this->specification->setProviderTag($tag)->getProviderTag());
+        self::assertSame($tag = 'foo', $this->specification->setProviderName($tag)->getProviderName());
     }
 
     public function testAddTransformer()

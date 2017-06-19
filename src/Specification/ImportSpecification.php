@@ -21,7 +21,7 @@ class ImportSpecification
     /**
      * @var string
      */
-    private $providerTag;
+    private $providerName;
 
     /**
      * @var Transformer[]
@@ -86,30 +86,32 @@ class ImportSpecification
     }
 
     /**
-     * Gets the provider identifier tag.
+     * Gets the provider name.
      *
-     * @return string Provider tag.
+     * @return string Provider name.
      */
-    final public function getProviderTag()
+    final public function getProviderName()
     {
-        return $this->providerTag;
+        return $this->providerName;
     }
 
     /**
-     * Sets the provider identifier tag.
+     * Sets the provider name.
      *
-     * @param string $tag Provider tag.
+     * @param string $tag Provider name.
      *
      * @return $this
      */
-    final public function setProviderTag($tag)
+    final public function setProviderName($tag)
     {
-        $this->providerTag = "$tag";
+        $this->providerName = "$tag";
 
         return $this;
     }
 
     /**
+     * Gets the ordered list of transformers.
+     *
      * @return Transformer[]
      */
     final public function getTransformers()

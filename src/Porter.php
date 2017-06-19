@@ -1,6 +1,7 @@
 <?php
 namespace ScriptFUSION\Porter;
 
+use Psr\Container\ContainerInterface;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
 use ScriptFUSION\Porter\Cache\CacheToggle;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
@@ -23,7 +24,7 @@ use ScriptFUSION\Porter\Transform\Transformer;
 class Porter
 {
     /**
-     * @var Provider[]
+     * @var ContainerInterface
      */
     private $providers;
 
@@ -31,6 +32,16 @@ class Porter
      * @var ProviderFactory
      */
     private $providerFactory;
+
+    /**
+     * Initializes this instance with the specified container of providers.
+     *
+     * @param ContainerInterface $providers Container of providers.
+     */
+    public function __construct(ContainerInterface $providers)
+    {
+        $this->providers = $providers;
+    }
 
     /**
      * Imports data according to the design of the specified import specification.
@@ -47,7 +58,7 @@ class Porter
 
         $records = $this->fetch(
             $specification->getResource(),
-            $specification->getProviderTag(),
+            $specification->getProviderName(),
             $specification->getCacheAdvice(),
             $specification->getMaxFetchAttempts(),
             $specification->getFetchExceptionHandler()
@@ -90,12 +101,12 @@ class Porter
 
     private function fetch(
         ProviderResource $resource,
-        $providerTag,
+        $providerName,
         CacheAdvice $cacheAdvice,
         $fetchAttempts,
         $fetchExceptionHandler
     ) {
-        $provider = $this->getProvider($resource->getProviderClassName(), $providerTag);
+        $provider = $this->getProvider($providerName ?: $resource->getProviderClassName());
 
         $this->applyCacheAdvice($provider, $cacheAdvice);
 
@@ -189,81 +200,25 @@ class Porter
     }
 
     /**
-     * Registers the specified provider optionally identified by the specified tag.
+     * Gets the provider matching the specified name.
      *
-     * @param Provider $provider Provider.
-     * @param string|null $tag Optional. Provider tag.
-     *
-     * @return $this
-     *
-     * @throws ProviderAlreadyRegisteredException The specified provider is already registered.
-     */
-    public function registerProvider(Provider $provider, $tag = null)
-    {
-        if ($this->hasProvider($name = get_class($provider), $tag)) {
-            throw new ProviderAlreadyRegisteredException("Provider already registered: \"$name\" with tag \"$tag\".");
-        }
-
-        $this->providers[$this->hashProviderName($name, $tag)] = $provider;
-
-        return $this;
-    }
-
-    /**
-     * Gets the provider matching the specified class name and optionally a tag.
-     *
-     * @param string $name Provider class name.
-     * @param string|null $tag Optional. Provider tag.
+     * @param string $name Provider name.
      *
      * @return Provider
      *
      * @throws ProviderNotFoundException The specified provider was not found.
      */
-    public function getProvider($name, $tag = null)
+    private function getProvider($name)
     {
-        if ($this->hasProvider($name, $tag)) {
-            return $this->providers[$this->hashProviderName($name, $tag)];
+        if ($this->providers->has($name)) {
+            return $this->providers->get($name);
         }
 
         try {
-            // Tags are not supported for lazy-loaded providers because every instance would be the same.
-            if ($tag === null) {
-                $this->registerProvider($provider = $this->getOrCreateProviderFactory()->createProvider("$name"));
-
-                return $provider;
-            }
+            return $this->getOrCreateProviderFactory()->createProvider("$name");
         } catch (ObjectNotCreatedException $exception) {
-            // We will throw our own exception.
+            throw new ProviderNotFoundException("No such provider registered: \"$name\".", $exception);
         }
-
-        throw new ProviderNotFoundException(
-            "No such provider registered: \"$name\" with tag \"$tag\".",
-            isset($exception) ? $exception : null
-        );
-    }
-
-    /**
-     * Gets a value indicating whether the specified provider is registered.
-     *
-     * @param string $name Provider class name.
-     * @param string|null $tag Optional. Provider tag.
-     *
-     * @return bool True if the specified provider is registered, otherwise false.
-     */
-    public function hasProvider($name, $tag = null)
-    {
-        return isset($this->providers[$this->hashProviderName($name, $tag)]);
-    }
-
-    /**
-     * @param string $name Provider class name.
-     * @param string|null $tag Provider tag.
-     *
-     * @return string Provider identifier hash.
-     */
-    private function hashProviderName($name, $tag)
-    {
-        return "$name#$tag";
     }
 
     private function getOrCreateProviderFactory()

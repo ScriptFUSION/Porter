@@ -3,6 +3,7 @@ namespace ScriptFUSIONTest\Integration\Porter;
 
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
+use Psr\Container\ContainerInterface;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
 use ScriptFUSION\Porter\Cache\CacheToggle;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
@@ -16,8 +17,6 @@ use ScriptFUSION\Porter\Porter;
 use ScriptFUSION\Porter\PorterAware;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
-use ScriptFUSION\Porter\Provider\StaticDataProvider;
-use ScriptFUSION\Porter\ProviderAlreadyRegisteredException;
 use ScriptFUSION\Porter\ProviderNotFoundException;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\Porter\Specification\StaticDataImportSpecification;
@@ -31,21 +30,36 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 {
     use MockeryPHPUnitIntegration;
 
-    /** @var Porter */
+    /**
+     * @var Porter
+     */
     private $porter;
 
-    /** @var Provider|MockInterface */
+    /**
+     * @var Provider|MockInterface
+     */
     private $provider;
 
-    /** @var ProviderResource */
+    /**
+     * @var ProviderResource
+     */
     private $resource;
 
-    /** @var ImportSpecification */
+    /**
+     * @var ImportSpecification
+     */
     private $specification;
+
+    /**
+     * @var ContainerInterface|MockInterface
+     */
+    private $container;
 
     protected function setUp()
     {
-        $this->porter = (new Porter)->registerProvider(
+        $this->porter = new Porter($this->container = $container = \Mockery::spy(ContainerInterface::class));
+
+        $this->registerProvider(
             $this->provider =
                 \Mockery::mock(Provider::class)
                     ->shouldReceive('fetch')
@@ -59,69 +73,6 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         $this->resource = MockFactory::mockResource($this->provider);
         $this->specification = new ImportSpecification($this->resource);
     }
-
-    #region Providers
-
-    public function testGetProvider()
-    {
-        self::assertSame($this->provider, $this->porter->getProvider(get_class($this->provider)));
-    }
-
-    public function testRegisterSameProvider()
-    {
-        $this->setExpectedException(ProviderAlreadyRegisteredException::class);
-
-        $this->porter->registerProvider($this->provider);
-    }
-
-    public function testRegisterSameProviderType()
-    {
-        $this->setExpectedException(ProviderAlreadyRegisteredException::class);
-
-        $this->porter->registerProvider(clone $this->provider);
-    }
-
-    public function testRegisterProviderTag()
-    {
-        $this->porter->registerProvider($provider = clone $this->provider, 'foo');
-
-        self::assertSame($provider, $this->porter->getProvider(get_class($this->provider), 'foo'));
-    }
-
-    public function testGetStaticProvider()
-    {
-        self::assertInstanceOf(StaticDataProvider::class, $this->porter->getProvider(StaticDataProvider::class));
-    }
-
-    public function testGetInvalidProvider()
-    {
-        $this->setExpectedException(ProviderNotFoundException::class);
-
-        $this->porter->getProvider('foo');
-    }
-
-    public function testGetInvalidTag()
-    {
-        $this->setExpectedException(ProviderNotFoundException::class);
-
-        $this->porter->getProvider(get_class($this->provider), 'foo');
-    }
-
-    public function testGetStaticProviderTag()
-    {
-        $this->setExpectedException(ProviderNotFoundException::class);
-
-        $this->porter->getProvider(StaticDataProvider::class, 'foo');
-    }
-
-    public function testHasProvider()
-    {
-        self::assertTrue($this->porter->hasProvider(get_class($this->provider)));
-        self::assertFalse($this->porter->hasProvider(get_class($this->provider), 'foo'));
-        self::assertFalse($this->porter->hasProvider('foo'));
-    }
-
-    #endregion
 
     #region Import
 
@@ -192,18 +143,22 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    public function testImportTaggedResource()
+    /**
+     * Tests that when provider name is specified in an import specification its value is used instead of the default
+     * provider class name of the resource.
+     */
+    public function testImportCustomProviderName()
     {
-        $this->porter->registerProvider(
+        $this->registerProvider(
             $provider = \Mockery::mock(Provider::class)
                 ->shouldReceive('fetch')
                 ->andReturn(new \ArrayIterator([$output = 'bar']))
                 ->getMock(),
-            $tag = 'foo'
+            $providerName = 'foo'
         );
 
         $records = $this->porter->import(
-            (new ImportSpecification(MockFactory::mockResource($provider)))->setProviderTag($tag)
+            (new ImportSpecification(MockFactory::mockResource($provider)))->setProviderName($providerName)
         );
 
         self::assertSame($output, $records->current());
@@ -215,6 +170,13 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
         $this->setExpectedException(ImportException::class, get_class($this->provider));
         $this->porter->import($this->specification);
+    }
+
+    public function testImportUnregisteredProvider()
+    {
+        $this->setExpectedException(ProviderNotFoundException::class);
+
+        $this->porter->import((new ImportSpecification($this->resource))->setProviderName('foo'));
     }
 
     #endregion
@@ -337,7 +299,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     public function testApplyCacheAdvice()
     {
-        $this->porter->registerProvider(
+        $this->registerProvider(
             $provider = \Mockery::mock(implode(',', [Provider::class, CacheToggle::class]))
                 ->shouldReceive('fetch')->andReturn(new \EmptyIterator)
                 ->shouldReceive('disableCache')->once()
@@ -354,5 +316,15 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         $this->setExpectedException(CacheUnavailableException::class);
 
         $this->porter->import($this->specification->setCacheAdvice(CacheAdvice::MUST_CACHE()));
+    }
+
+    private function registerProvider(Provider $provider, $name = null)
+    {
+        $name = $name ?: get_class($provider);
+
+        $this->container
+            ->shouldReceive('has')->with($name)->andReturn(true)
+            ->shouldReceive('get')->with($name)->andReturn($provider)
+        ;
     }
 }
