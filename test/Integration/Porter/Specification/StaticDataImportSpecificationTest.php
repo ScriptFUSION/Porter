@@ -1,6 +1,7 @@
 <?php
 namespace ScriptFUSIONTest\Integration\Porter\Specification;
 
+use Psr\Container\ContainerInterface;
 use ScriptFUSION\Porter\Porter;
 use ScriptFUSION\Porter\Specification\StaticDataImportSpecification;
 
@@ -11,7 +12,8 @@ final class StaticDataImportSpecificationTest extends \PHPUnit_Framework_TestCas
 {
     public function test()
     {
-        $records = (new Porter)->import(new StaticDataImportSpecification(new \ArrayIterator(['foo'])));
+        $records = (new Porter(\Mockery::spy(ContainerInterface::class)))
+            ->import(new StaticDataImportSpecification(new \ArrayIterator(['foo'])));
 
         self::assertSame('foo', $records->current());
     }
