@@ -21,12 +21,12 @@ abstract class EncapsulatedOptions
     }
 
     /**
-     * Gets the value for the specified option name. Returns the specified
-     * default value if option name is not set.
+     * Gets the value for the specified option name. When option name is not set the default value is retrieved, if
+     * defined, otherwise null.
      *
      * @param string $option Option name.
      *
-     * @return mixed Option value or default value.
+     * @return mixed Option value, default value or null.
      */
     final protected function get($option)
     {

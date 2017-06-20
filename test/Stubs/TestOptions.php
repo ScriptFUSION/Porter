@@ -24,4 +24,9 @@ final class TestOptions extends EncapsulatedOptions
     {
         unset($this->getReference('foo')[$child]);
     }
+
+    public function getBar()
+    {
+        return $this->get('bar');
+    }
 }

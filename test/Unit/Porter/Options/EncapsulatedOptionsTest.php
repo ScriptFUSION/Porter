@@ -3,9 +3,14 @@ namespace ScriptFUSIONTest\Unit\Porter\Options;
 
 use ScriptFUSIONTest\Stubs\TestOptions;
 
+/**
+ * @see TestOptions
+ */
 final class EncapsulatedOptionsTest extends \PHPUnit_Framework_TestCase
 {
-    /** @var TestOptions */
+    /**
+     * @var TestOptions
+     */
     private $options;
 
     protected function setUp()
@@ -48,5 +53,13 @@ final class EncapsulatedOptionsTest extends \PHPUnit_Framework_TestCase
         $this->options->removeFooKey('bar');
 
         self::assertSame(['baz' => 'baz'], $this->options->getFoo());
+    }
+
+    /**
+     * Tests that getting a value that is neither set nor has a default defined returns null.
+     */
+    public function testGetUnset()
+    {
+        self::assertNull($this->options->getBar());
     }
 }
