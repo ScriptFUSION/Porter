@@ -19,6 +19,11 @@ class ImportSpecification
     private $resource;
 
     /**
+     * @var string
+     */
+    private $providerTag;
+
+    /**
      * @var Transformer[]
      */
     private $transformers;
@@ -78,6 +83,30 @@ class ImportSpecification
     final public function getResource()
     {
         return $this->resource;
+    }
+
+    /**
+     * Gets the provider identifier tag.
+     *
+     * @return string Provider tag.
+     */
+    final public function getProviderTag()
+    {
+        return $this->providerTag;
+    }
+
+    /**
+     * Sets the provider identifier tag.
+     *
+     * @param string $tag Provider tag.
+     *
+     * @return $this
+     */
+    final public function setProviderTag($tag)
+    {
+        $this->providerTag = "$tag";
+
+        return $this;
     }
 
     /**

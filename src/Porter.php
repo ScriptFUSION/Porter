@@ -47,6 +47,7 @@ class Porter
 
         $records = $this->fetch(
             $specification->getResource(),
+            $specification->getProviderTag(),
             $specification->getCacheAdvice(),
             $specification->getMaxFetchAttempts(),
             $specification->getFetchExceptionHandler()
@@ -87,9 +88,14 @@ class Porter
         return $one;
     }
 
-    private function fetch(ProviderResource $resource, CacheAdvice $cacheAdvice, $fetchAttempts, $fetchExceptionHandler)
-    {
-        $provider = $this->getProvider($resource->getProviderClassName(), $resource->getProviderTag());
+    private function fetch(
+        ProviderResource $resource,
+        $providerTag,
+        CacheAdvice $cacheAdvice,
+        $fetchAttempts,
+        $fetchExceptionHandler
+    ) {
+        $provider = $this->getProvider($resource->getProviderClassName(), $providerTag);
 
         $this->applyCacheAdvice($provider, $cacheAdvice);
 

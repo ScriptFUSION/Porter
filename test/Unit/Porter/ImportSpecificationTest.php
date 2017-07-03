@@ -54,6 +54,11 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
         self::assertSame($this->resource, $this->specification->getResource());
     }
 
+    public function testProviderTag()
+    {
+        self::assertSame($tag = 'foo', $this->specification->setProviderTag($tag)->getProviderTag());
+    }
+
     public function testAddTransformer()
     {
         self::assertEmpty($this->specification->getTransformers());
@@ -92,7 +97,7 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
 
     public function testContext()
     {
-        self::assertSame('foo', $this->specification->setContext('foo')->getContext());
+        self::assertSame($context = 'foo', $this->specification->setContext($context)->getContext());
     }
 
     public function testCacheAdvice()

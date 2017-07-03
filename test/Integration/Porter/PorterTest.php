@@ -202,12 +202,9 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
             $tag = 'foo'
         );
 
-        $records = $this->porter->import(MockFactory::mockImportSpecification(
-            MockFactory::mockResource($provider)
-                ->shouldReceive('getProviderTag')
-                ->andReturn($tag)
-                ->getMock()
-        ));
+        $records = $this->porter->import(
+            (new ImportSpecification(MockFactory::mockResource($provider)))->setProviderTag($tag)
+        );
 
         self::assertSame($output, $records->current());
     }
