@@ -12,15 +12,27 @@ final class MockFactory
 
     /**
      * @param Provider $provider
+     * @param \Iterator $return
      *
-     * @return MockInterface|ProviderResource
+     * @return ProviderResource|MockInterface
      */
-    public static function mockResource(Provider $provider)
+    public static function mockResource(Provider $provider, \Iterator $return = null)
     {
-        return \Mockery::mock(ProviderResource::class)
+        $resource = \Mockery::mock(ProviderResource::class)
             ->shouldReceive('getProviderClassName')
-            ->andReturn(get_class($provider))
-            ->byDefault()
+                ->andReturn(get_class($provider))
+                ->byDefault()
+            ->shouldReceive('fetch')
+                ->andReturnUsing(function () {
+                    yield 'foo';
+                })
+                ->byDefault()
             ->getMock();
+
+        if ($return !== null) {
+            $resource->shouldReceive('fetch')->andReturn($return);
+        }
+
+        return $resource;
     }
 }

@@ -11,6 +11,7 @@ use ScriptFUSION\Porter\Collection\FilteredRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
+use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Connector\RecoverableConnectorException;
 use ScriptFUSION\Porter\ImportException;
 use ScriptFUSION\Porter\Porter;
@@ -62,10 +63,8 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         $this->registerProvider(
             $this->provider =
                 \Mockery::mock(Provider::class)
-                    ->shouldReceive('fetch')
-                    ->andReturnUsing(function () {
-                        yield 'foo';
-                    })
+                    ->shouldReceive('getConnector')
+                    ->andReturn(\Mockery::mock(Connector::class))
                     ->byDefault()
                     ->getMock()
         );
@@ -150,15 +149,13 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     public function testImportCustomProviderName()
     {
         $this->registerProvider(
-            $provider = \Mockery::mock(Provider::class)
-                ->shouldReceive('fetch')
-                ->andReturn(new \ArrayIterator([$output = 'bar']))
-                ->getMock(),
+            $provider = clone $this->provider,
             $providerName = 'foo'
         );
 
         $records = $this->porter->import(
-            (new ImportSpecification(MockFactory::mockResource($provider)))->setProviderName($providerName)
+            (new ImportSpecification(MockFactory::mockResource($provider, new \ArrayIterator([$output = 'bar']))))
+                ->setProviderName($providerName)
         );
 
         self::assertSame($output, $records->current());
@@ -166,7 +163,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     public function testImportFailure()
     {
-        $this->provider->shouldReceive('fetch')->andReturn(null);
+        $this->resource->shouldReceive('fetch')->andReturn(null);
 
         $this->setExpectedException(ImportException::class, get_class($this->provider));
         $this->porter->import($this->specification);
@@ -192,7 +189,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     public function testImportOneOfNone()
     {
-        $this->provider->shouldReceive('fetch')->andReturn(new \EmptyIterator);
+        $this->resource->shouldReceive('fetch')->andReturn(new \EmptyIterator);
 
         $result = $this->porter->importOne($this->specification);
 
@@ -201,7 +198,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     public function testImportOneOfMany()
     {
-        $this->provider->shouldReceive('fetch')->andReturn(new \ArrayIterator(['foo', 'bar']));
+        $this->resource->shouldReceive('fetch')->andReturn(new \ArrayIterator(['foo', 'bar']));
 
         $this->setExpectedException(ImportException::class);
         $this->porter->importOne($this->specification);
@@ -213,7 +210,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     public function testOneTry()
     {
-        $this->provider->shouldReceive('fetch')->once()->andThrow(RecoverableConnectorException::class);
+        $this->resource->shouldReceive('fetch')->once()->andThrow(RecoverableConnectorException::class);
 
         $this->setExpectedException(FailingTooHardException::class, '1');
         $this->porter->import($this->specification->setMaxFetchAttempts(1));
@@ -221,7 +218,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     public function testDerivedRecoverableException()
     {
-        $this->provider->shouldReceive('fetch')->once()->andThrow(\Mockery::mock(RecoverableConnectorException::class));
+        $this->resource->shouldReceive('fetch')->once()->andThrow(\Mockery::mock(RecoverableConnectorException::class));
 
         $this->setExpectedException(FailingTooHardException::class);
         $this->porter->import($this->specification->setMaxFetchAttempts(1));
@@ -229,7 +226,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     public function testDefaultTries()
     {
-        $this->provider->shouldReceive('fetch')->times(ImportSpecification::DEFAULT_FETCH_ATTEMPTS)
+        $this->resource->shouldReceive('fetch')->times(ImportSpecification::DEFAULT_FETCH_ATTEMPTS)
             ->andThrow(RecoverableConnectorException::class);
 
         $this->setExpectedException(FailingTooHardException::class, (string)ImportSpecification::DEFAULT_FETCH_ATTEMPTS);
@@ -238,7 +235,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     public function testUnrecoverableException()
     {
-        $this->provider->shouldReceive('fetch')->once()->andThrow(\Exception::class);
+        $this->resource->shouldReceive('fetch')->once()->andThrow(\Exception::class);
 
         $this->setExpectedException(\Exception::class);
         $this->porter->import($this->specification);
@@ -252,7 +249,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
                 ->times(ImportSpecification::DEFAULT_FETCH_ATTEMPTS - 1)
                 ->getMock()
         );
-        $this->provider->shouldReceive('fetch')->times(ImportSpecification::DEFAULT_FETCH_ATTEMPTS)
+        $this->resource->shouldReceive('fetch')->times(ImportSpecification::DEFAULT_FETCH_ATTEMPTS)
             ->andThrow(RecoverableConnectorException::class);
 
         $this->setExpectedException(FailingTooHardException::class);
@@ -266,7 +263,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
      */
     public function testGeneratorException()
     {
-        $this->provider->shouldReceive('fetch')->once()->andReturnUsing(function () {
+        $this->resource->shouldReceive('fetch')->once()->andReturnUsing(function () {
             throw new RecoverableConnectorException;
 
             yield;
@@ -280,7 +277,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     public function testFilter()
     {
-        $this->provider->shouldReceive('fetch')->andReturn(new \ArrayIterator(range(1, 10)));
+        $this->resource->shouldReceive('fetch')->andReturn(new \ArrayIterator(range(1, 10)));
 
         $records = $this->porter->import(
             $this->specification
@@ -299,15 +296,16 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     public function testApplyCacheAdvice()
     {
-        $this->registerProvider(
-            $provider = \Mockery::mock(implode(',', [Provider::class, CacheToggle::class]))
-                ->shouldReceive('fetch')->andReturn(new \EmptyIterator)
-                ->shouldReceive('disableCache')->once()
-                ->shouldReceive('enableCache')->once()
-                ->getMock()
-        );
+        $this->provider->shouldReceive('getConnector')
+            ->andReturn(
+                \Mockery::mock(implode(',', [Connector::class, CacheToggle::class]))
+                    ->shouldReceive('disableCache')->once()
+                    ->shouldReceive('enableCache')->once()
+                    ->getMock()
+            )
+        ;
 
-        $this->porter->import($specification = new ImportSpecification(MockFactory::mockResource($provider)));
+        $this->porter->import($specification = new ImportSpecification($this->resource));
         $this->porter->import($specification->setCacheAdvice(CacheAdvice::SHOULD_CACHE()));
     }
 

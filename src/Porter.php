@@ -10,10 +10,13 @@ use ScriptFUSION\Porter\Collection\CountableProviderRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
+use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Connector\RecoverableConnectorException;
+use ScriptFUSION\Porter\Provider\ForeignResourceException;
 use ScriptFUSION\Porter\Provider\ObjectNotCreatedException;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\ProviderFactory;
+use ScriptFUSION\Porter\Provider\ProviderOptions;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\Porter\Transform\Transformer;
@@ -108,12 +111,26 @@ class Porter
     ) {
         $provider = $this->getProvider($providerName ?: $resource->getProviderClassName());
 
-        $this->applyCacheAdvice($provider, $cacheAdvice);
+        if ($resource->getProviderClassName() !== get_class($provider)) {
+            throw new ForeignResourceException(sprintf(
+                'Cannot fetch data from foreign source: "%s".',
+                get_class($resource)
+            ));
+        }
+
+        $this->applyCacheAdvice($provider->getConnector(), $cacheAdvice);
 
         if (($records = \ScriptFUSION\Retry\retry(
             $fetchAttempts,
             function () use ($provider, $resource) {
-                if (($records = $provider->fetch($resource)) instanceof \Iterator) {
+                $records = $resource->fetch(
+                    $provider->getConnector(),
+                    $provider instanceof ProviderOptions
+                        ? $provider->getOptions()
+                        : null
+                );
+
+                if ($records instanceof \Iterator) {
                     // Force generator to run until first yield to provoke an exception.
                     $records->valid();
                 }
@@ -173,22 +190,22 @@ class Porter
         return new PorterRecords($records, $specification);
     }
 
-    private function applyCacheAdvice(Provider $provider, CacheAdvice $cacheAdvice)
+    private function applyCacheAdvice(Connector $connector, CacheAdvice $cacheAdvice)
     {
         try {
-            if (!$provider instanceof CacheToggle) {
+            if (!$connector instanceof CacheToggle) {
                 throw CacheUnavailableException::modify();
             }
 
             switch ("$cacheAdvice") {
                 case CacheAdvice::MUST_CACHE:
                 case CacheAdvice::SHOULD_CACHE:
-                    $provider->enableCache();
+                    $connector->enableCache();
                     break;
 
                 case CacheAdvice::MUST_NOT_CACHE:
                 case CacheAdvice::SHOULD_NOT_CACHE:
-                    $provider->disableCache();
+                    $connector->disableCache();
             }
         } catch (CacheUnavailableException $exception) {
             if ($cacheAdvice === CacheAdvice::MUST_NOT_CACHE() ||
