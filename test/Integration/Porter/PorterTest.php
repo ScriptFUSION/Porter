@@ -16,6 +16,7 @@ use ScriptFUSION\Porter\Connector\RecoverableConnectorException;
 use ScriptFUSION\Porter\ImportException;
 use ScriptFUSION\Porter\Porter;
 use ScriptFUSION\Porter\PorterAware;
+use ScriptFUSION\Porter\Provider\ForeignResourceException;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\ProviderNotFoundException;
@@ -42,7 +43,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     private $provider;
 
     /**
-     * @var ProviderResource
+     * @var ProviderResource|MockInterface
      */
     private $resource;
 
@@ -60,15 +61,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     {
         $this->porter = new Porter($this->container = $container = \Mockery::spy(ContainerInterface::class));
 
-        $this->registerProvider(
-            $this->provider =
-                \Mockery::mock(Provider::class)
-                    ->shouldReceive('getConnector')
-                    ->andReturn(\Mockery::mock(Connector::class))
-                    ->byDefault()
-                    ->getMock()
-        );
-
+        $this->registerProvider($this->provider = MockFactory::mockProvider());
         $this->resource = MockFactory::mockResource($this->provider);
         $this->specification = new ImportSpecification($this->resource);
     }
@@ -173,7 +166,19 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     {
         $this->setExpectedException(ProviderNotFoundException::class);
 
-        $this->porter->import((new ImportSpecification($this->resource))->setProviderName('foo'));
+        $this->porter->import($this->specification->setProviderName('foo'));
+    }
+
+    /**
+     * Tests that when a resource's provider class name does not match the provider an exception is thrown.
+     */
+    public function testImportForeignResource()
+    {
+        // Replace existing provider with a different one.
+        $this->registerProvider(MockFactory::mockProvider(), get_class($this->provider));
+
+        $this->setExpectedException(ForeignResourceException::class);
+        $this->porter->import($this->specification);
     }
 
     #endregion
@@ -316,13 +321,17 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         $this->porter->import($this->specification->setCacheAdvice(CacheAdvice::MUST_CACHE()));
     }
 
+    /**
+     * @param Provider $provider
+     * @param string|null $name
+     */
     private function registerProvider(Provider $provider, $name = null)
     {
         $name = $name ?: get_class($provider);
 
         $this->container
             ->shouldReceive('has')->with($name)->andReturn(true)
-            ->shouldReceive('get')->with($name)->andReturn($provider)
+            ->shouldReceive('get')->with($name)->andReturn($provider)->byDefault()
         ;
     }
 }

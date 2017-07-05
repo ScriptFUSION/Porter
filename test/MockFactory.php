@@ -2,6 +2,7 @@
 namespace ScriptFUSIONTest;
 
 use Mockery\MockInterface;
+use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\StaticClass;
@@ -9,6 +10,19 @@ use ScriptFUSION\StaticClass;
 final class MockFactory
 {
     use StaticClass;
+
+    /**
+     * @return Provider|MockInterface
+     */
+    public static function mockProvider()
+    {
+        return \Mockery::namedMock(uniqid(Provider::class, false), Provider::class)
+            ->shouldReceive('getConnector')
+                ->andReturn(\Mockery::mock(Connector::class))
+                ->byDefault()
+            ->getMock()
+        ;
+    }
 
     /**
      * @param Provider $provider
@@ -21,13 +35,13 @@ final class MockFactory
         $resource = \Mockery::mock(ProviderResource::class)
             ->shouldReceive('getProviderClassName')
                 ->andReturn(get_class($provider))
-                ->byDefault()
             ->shouldReceive('fetch')
                 ->andReturnUsing(function () {
                     yield 'foo';
                 })
                 ->byDefault()
-            ->getMock();
+            ->getMock()
+        ;
 
         if ($return !== null) {
             $resource->shouldReceive('fetch')->andReturn($return);

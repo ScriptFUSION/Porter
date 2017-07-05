@@ -113,7 +113,7 @@ class Porter
 
         if ($resource->getProviderClassName() !== get_class($provider)) {
             throw new ForeignResourceException(sprintf(
-                'Cannot fetch data from foreign source: "%s".',
+                'Cannot fetch data from foreign resource: "%s".',
                 get_class($resource)
             ));
         }
