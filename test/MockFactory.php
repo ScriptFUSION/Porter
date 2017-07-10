@@ -4,6 +4,7 @@ namespace ScriptFUSIONTest;
 use Mockery\MockInterface;
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Provider\Provider;
+use ScriptFUSION\Porter\Provider\ProviderOptions;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\StaticClass;
 
@@ -20,6 +21,18 @@ final class MockFactory
             ->shouldReceive('getConnector')
                 ->andReturn(\Mockery::mock(Connector::class))
                 ->byDefault()
+            ->getMock()
+        ;
+    }
+
+    /**
+     * @return Provider|MockInterface
+     */
+    public static function mockProviderOptions()
+    {
+        return \Mockery::mock(Provider::class, ProviderOptions::class)
+            ->shouldReceive('getConnector')
+                ->andReturn(\Mockery::mock(Connector::class))
             ->getMock()
         ;
     }

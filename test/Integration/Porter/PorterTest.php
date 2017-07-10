@@ -14,6 +14,7 @@ use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Connector\RecoverableConnectorException;
 use ScriptFUSION\Porter\ImportException;
+use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 use ScriptFUSION\Porter\Porter;
 use ScriptFUSION\Porter\PorterAware;
 use ScriptFUSION\Porter\Provider\ForeignResourceException;
@@ -115,6 +116,36 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
         // Outermost collection.
         self::assertNotInstanceOf(\Countable::class, $records);
+    }
+
+    /**
+     * Tests that a provider implementing ProviderOptions has a clone of its options passed to ProviderResource::fetch
+     * at import time.
+     */
+    public function testImportOptions()
+    {
+        $this->registerProvider(
+            $provider = MockFactory::mockProviderOptions()
+                ->shouldReceive('getOptions')
+                ->andReturn($options = \Mockery::mock(EncapsulatedOptions::class))
+                ->getMock()
+        );
+
+        $this->porter->import(new ImportSpecification(
+            MockFactory::mockResource($provider)
+                ->shouldReceive('fetch')
+                ->with(
+                    \Mockery::type(Connector::class),
+                    \Mockery::on(function (EncapsulatedOptions $argument) use ($options) {
+                        self::assertNotSame($argument, $options, 'Options not cloned.');
+
+                        return get_class($argument) === get_class($options);
+                    })
+                )
+                ->andReturn(new \EmptyIterator)
+                ->once()
+                ->getMock()
+        ));
     }
 
     /**

@@ -126,7 +126,7 @@ class Porter
                 $records = $resource->fetch(
                     $provider->getConnector(),
                     $provider instanceof ProviderOptions
-                        ? $provider->getOptions()
+                        ? clone $provider->getOptions()
                         : null
                 );
 
