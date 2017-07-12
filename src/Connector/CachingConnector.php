@@ -3,7 +3,7 @@ namespace ScriptFUSION\Porter\Connector;
 
 use Psr\Cache\CacheItemPoolInterface;
 use ScriptFUSION\Porter\Cache\CacheKeyGenerator;
-use ScriptFUSION\Porter\Cache\CacheToggle;
+use ScriptFUSION\Porter\Cache\Cache;
 use ScriptFUSION\Porter\Cache\InvalidCacheKeyException;
 use ScriptFUSION\Porter\Cache\JsonCacheKeyGenerator;
 use ScriptFUSION\Porter\Cache\MemoryCache;
@@ -12,7 +12,7 @@ use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 /**
  * Caches remote data using PSR-6-compliant objects.
  */
-abstract class CachingConnector implements Connector, CacheToggle
+abstract class CachingConnector implements Connector, Cache
 {
     const RESERVED_CHARACTERS = '{}()/\@:';
 
@@ -20,11 +20,6 @@ abstract class CachingConnector implements Connector, CacheToggle
      * @var CacheItemPoolInterface
      */
     private $cache;
-
-    /**
-     * @var bool
-     */
-    private $cacheEnabled = true;
 
     /**
      * @var CacheKeyGenerator
@@ -38,6 +33,7 @@ abstract class CachingConnector implements Connector, CacheToggle
     }
 
     /**
+     * @param ConnectionContext $context
      * @param string $source
      * @param EncapsulatedOptions|null $options
      *
@@ -45,9 +41,9 @@ abstract class CachingConnector implements Connector, CacheToggle
      *
      * @throws InvalidCacheKeyException
      */
-    public function fetch($source, EncapsulatedOptions $options = null)
+    public function fetch(ConnectionContext $context, $source, EncapsulatedOptions $options = null)
     {
-        if ($this->isCacheEnabled()) {
+        if ($context->shouldCache()) {
             $optionsCopy = $options ? $options->copy() : [];
 
             ksort($optionsCopy);
@@ -78,19 +74,9 @@ abstract class CachingConnector implements Connector, CacheToggle
         $this->cache = $cache;
     }
 
-    public function enableCache()
+    public function isCacheAvailable()
     {
-        $this->cacheEnabled = true;
-    }
-
-    public function disableCache()
-    {
-        $this->cacheEnabled = false;
-    }
-
-    public function isCacheEnabled()
-    {
-        return $this->cacheEnabled;
+        return true;
     }
 
     public function getCacheKeyGenerator()

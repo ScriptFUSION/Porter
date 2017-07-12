@@ -5,7 +5,7 @@ use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
 use Psr\Container\ContainerInterface;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
-use ScriptFUSION\Porter\Cache\CacheToggle;
+use ScriptFUSION\Porter\Cache\Cache;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Collection\FilteredRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
@@ -334,7 +334,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     {
         $this->provider->shouldReceive('getConnector')
             ->andReturn(
-                \Mockery::mock(implode(',', [Connector::class, CacheToggle::class]))
+                \Mockery::mock(implode(',', [Connector::class, Cache::class]))
                     ->shouldReceive('disableCache')->once()
                     ->shouldReceive('enableCache')->once()
                     ->getMock()
