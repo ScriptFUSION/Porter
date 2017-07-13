@@ -14,6 +14,7 @@ use ScriptFUSION\Porter\Provider\ForeignResourceException;
 use ScriptFUSION\Porter\Provider\ObjectNotCreatedException;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\ProviderFactory;
+use ScriptFUSION\Porter\Provider\ProviderOptions;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\Porter\Transform\Transformer;
@@ -108,10 +109,13 @@ class Porter
             ));
         }
 
-        $records = $resource->fetch(new SuperConnector($provider->getConnector(), $context));
+        $records = $resource->fetch(
+            new SuperConnector($provider->getConnector(), $context),
+            $provider instanceof ProviderOptions ? clone $provider->getOptions() : null
+        );
 
         if (!$records instanceof \Iterator) {
-            throw new ImportException(get_class($provider) . '::fetch() did not return an Iterator.');
+            throw new ImportException(get_class($resource) . '::fetch() did not return an Iterator.');
         }
 
         return $records;

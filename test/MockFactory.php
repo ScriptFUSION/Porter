@@ -3,6 +3,7 @@ namespace ScriptFUSIONTest;
 
 use Mockery\MockInterface;
 use ScriptFUSION\Porter\Connector\Connector;
+use ScriptFUSION\Porter\Connector\SuperConnector;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\ProviderOptions;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
@@ -19,8 +20,13 @@ final class MockFactory
     {
         return \Mockery::namedMock(uniqid(Provider::class, false), Provider::class)
             ->shouldReceive('getConnector')
-                ->andReturn(\Mockery::mock(Connector::class))
-                ->byDefault()
+                ->andReturn(
+                    \Mockery::mock(Connector::class)
+                        ->shouldReceive('fetch')
+                        ->andReturn('foo')
+                        ->getMock()
+                        ->byDefault()
+                )
             ->getMock()
         ;
     }
@@ -49,8 +55,8 @@ final class MockFactory
             ->shouldReceive('getProviderClassName')
                 ->andReturn(get_class($provider))
             ->shouldReceive('fetch')
-                ->andReturnUsing(function () {
-                    yield 'foo';
+                ->andReturnUsing(function (SuperConnector $connector) {
+                    return new \ArrayIterator([$connector->fetch('foo')]);
                 })
                 ->byDefault()
             ->getMock()
