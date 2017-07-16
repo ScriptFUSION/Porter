@@ -32,5 +32,4 @@ script:
   - composer test -- --coverage-clover=build/logs/clover.xml
 
 after_success:
-  - composer require satooshi/php-coveralls
-  - vendor/bin/coveralls -v
+  - bash <(curl -s https://codecov.io/bash)

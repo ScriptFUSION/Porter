@@ -460,8 +460,8 @@ Porter is published under the open source GNU Lesser General Public License v3.0
   [Downloads image]: https://poser.pugx.org/scriptfusion/porter/downloads "Total downloads"
   [Build]: http://travis-ci.org/ScriptFUSION/Porter
   [Build image]: https://travis-ci.org/ScriptFUSION/Porter.svg?branch=master "Build status"
-  [Coverage]: https://coveralls.io/github/ScriptFUSION/Porter
-  [Coverage image]: https://coveralls.io/repos/ScriptFUSION/Porter/badge.svg "Test coverage"
+  [Coverage]: https://codecov.io/gh/ScriptFUSION/Porter
+  [Coverage image]: https://codecov.io/gh/ScriptFUSION/Porter/branch/master/graphs/badge.svg "Test coverage"
   [Style]: https://styleci.io/repos/49824895
   [Style image]: https://styleci.io/repos/49824895/shield?style=flat "Code style"
   

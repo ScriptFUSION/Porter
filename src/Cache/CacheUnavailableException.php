@@ -8,8 +8,13 @@ use Psr\Cache\CacheException;
  */
 class CacheUnavailableException extends \RuntimeException implements CacheException
 {
-    public static function modify()
+    public static function unsupported()
     {
-        return new self('Cannot modify cache: cache unavailable.');
+        return new self('Cannot cache: connector does not support caching.');
+    }
+
+    public static function unavailable()
+    {
+        return new self('Cannot cache: connector reported cache currently unavailable.');
     }
 }

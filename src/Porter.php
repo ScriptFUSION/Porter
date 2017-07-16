@@ -2,16 +2,14 @@
 namespace ScriptFUSION\Porter;
 
 use Psr\Container\ContainerInterface;
-use ScriptFUSION\Porter\Cache\CacheAdvice;
-use ScriptFUSION\Porter\Cache\CacheToggle;
-use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Collection\CountablePorterRecords;
 use ScriptFUSION\Porter\Collection\CountableProviderRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
-use ScriptFUSION\Porter\Connector\Connector;
-use ScriptFUSION\Porter\Connector\RecoverableConnectorException;
+use ScriptFUSION\Porter\Connector\ConnectionContext;
+use ScriptFUSION\Porter\Connector\ConnectionContextFactory;
+use ScriptFUSION\Porter\Connector\SuperConnector;
 use ScriptFUSION\Porter\Provider\ForeignResourceException;
 use ScriptFUSION\Porter\Provider\ObjectNotCreatedException;
 use ScriptFUSION\Porter\Provider\Provider;
@@ -62,9 +60,7 @@ class Porter
         $records = $this->fetch(
             $specification->getResource(),
             $specification->getProviderName(),
-            $specification->getCacheAdvice(),
-            $specification->getMaxFetchAttempts(),
-            $specification->getFetchExceptionHandler()
+            ConnectionContextFactory::create($specification)
         );
 
         if (!$records instanceof ProviderRecords) {
@@ -102,13 +98,8 @@ class Porter
         return $one;
     }
 
-    private function fetch(
-        ProviderResource $resource,
-        $providerName,
-        CacheAdvice $cacheAdvice,
-        $fetchAttempts,
-        $fetchExceptionHandler
-    ) {
+    private function fetch(ProviderResource $resource, $providerName, ConnectionContext $context)
+    {
         $provider = $this->getProvider($providerName ?: $resource->getProviderClassName());
 
         if ($resource->getProviderClassName() !== get_class($provider)) {
@@ -118,38 +109,16 @@ class Porter
             ));
         }
 
-        $this->applyCacheAdvice($provider->getConnector(), $cacheAdvice);
+        $records = $resource->fetch(
+            new SuperConnector($provider->getConnector(), $context),
+            $provider instanceof ProviderOptions ? clone $provider->getOptions() : null
+        );
 
-        if (($records = \ScriptFUSION\Retry\retry(
-            $fetchAttempts,
-            function () use ($provider, $resource) {
-                $records = $resource->fetch(
-                    $provider->getConnector(),
-                    $provider instanceof ProviderOptions
-                        ? clone $provider->getOptions()
-                        : null
-                );
-
-                if ($records instanceof \Iterator) {
-                    // Force generator to run until first yield to provoke an exception.
-                    $records->valid();
-                }
-
-                return $records;
-            },
-            function (\Exception $exception) use ($fetchExceptionHandler) {
-                // Throw exception if unrecoverable.
-                if (!$exception instanceof RecoverableConnectorException) {
-                    throw $exception;
-                }
-
-                $fetchExceptionHandler($exception);
-            }
-        )) instanceof \Iterator) {
-            return $records;
+        if (!$records instanceof \Iterator) {
+            throw new ImportException(get_class($resource) . '::fetch() did not return an Iterator.');
         }
 
-        throw new ImportException(get_class($provider) . '::fetch() did not return an Iterator.');
+        return $records;
     }
 
     /**
@@ -188,32 +157,6 @@ class Porter
         }
 
         return new PorterRecords($records, $specification);
-    }
-
-    private function applyCacheAdvice(Connector $connector, CacheAdvice $cacheAdvice)
-    {
-        try {
-            if (!$connector instanceof CacheToggle) {
-                throw CacheUnavailableException::modify();
-            }
-
-            switch ("$cacheAdvice") {
-                case CacheAdvice::MUST_CACHE:
-                case CacheAdvice::SHOULD_CACHE:
-                    $connector->enableCache();
-                    break;
-
-                case CacheAdvice::MUST_NOT_CACHE:
-                case CacheAdvice::SHOULD_NOT_CACHE:
-                    $connector->disableCache();
-            }
-        } catch (CacheUnavailableException $exception) {
-            if ($cacheAdvice === CacheAdvice::MUST_NOT_CACHE() ||
-                $cacheAdvice === CacheAdvice::MUST_CACHE()
-            ) {
-                throw $exception;
-            }
-        }
     }
 
     /**
