@@ -61,6 +61,11 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
         self::assertSame('bar', $this->connector->fetch($context, 'baz', $this->options));
     }
 
+    public function testCacheAvailable()
+    {
+        self::assertTrue($this->connector->isCacheAvailable());
+    }
+
     public function testGetSetCache()
     {
         self::assertInstanceOf(CacheItemPoolInterface::class, $this->connector->getCache());

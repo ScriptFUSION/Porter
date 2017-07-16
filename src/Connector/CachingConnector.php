@@ -2,8 +2,8 @@
 namespace ScriptFUSION\Porter\Connector;
 
 use Psr\Cache\CacheItemPoolInterface;
-use ScriptFUSION\Porter\Cache\CacheKeyGenerator;
 use ScriptFUSION\Porter\Cache\Cache;
+use ScriptFUSION\Porter\Cache\CacheKeyGenerator;
 use ScriptFUSION\Porter\Cache\InvalidCacheKeyException;
 use ScriptFUSION\Porter\Cache\JsonCacheKeyGenerator;
 use ScriptFUSION\Porter\Cache\MemoryCache;
@@ -64,6 +64,11 @@ abstract class CachingConnector implements Connector, Cache
 
     abstract public function fetchFreshData($source, EncapsulatedOptions $options = null);
 
+    public function isCacheAvailable()
+    {
+        return true;
+    }
+
     public function getCache()
     {
         return $this->cache;
@@ -72,11 +77,6 @@ abstract class CachingConnector implements Connector, Cache
     public function setCache(CacheItemPoolInterface $cache)
     {
         $this->cache = $cache;
-    }
-
-    public function isCacheAvailable()
-    {
-        return true;
     }
 
     public function getCacheKeyGenerator()
