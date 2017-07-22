@@ -1,7 +1,7 @@
 <?php
 namespace ScriptFUSION\Porter\Provider\Resource;
 
-use ScriptFUSION\Porter\Connector\SuperConnector;
+use ScriptFUSION\Porter\Connector\ImportConnector;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 
 /**
@@ -19,10 +19,10 @@ interface ProviderResource
     /**
      * Fetches data from the provider using the the specified connector and presents its data as an enumerable series.
      *
-     * @param SuperConnector $connector Connector.
+     * @param ImportConnector $connector Connector.
      * @param EncapsulatedOptions $options Optional. Options.
      *
      * @return \Iterator Enumerable data series.
      */
-    public function fetch(SuperConnector $connector, EncapsulatedOptions $options = null);
+    public function fetch(ImportConnector $connector, EncapsulatedOptions $options = null);
 }

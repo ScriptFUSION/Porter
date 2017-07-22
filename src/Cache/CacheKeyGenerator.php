@@ -3,6 +3,8 @@ namespace ScriptFUSION\Porter\Cache;
 
 interface CacheKeyGenerator
 {
+    const RESERVED_CHARACTERS = '{}()/\@:';
+
     /**
      * @param string $source
      * @param array $sortedOptions Options sorted by key.

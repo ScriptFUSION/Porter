@@ -11,7 +11,7 @@ final class ConnectionContextFactory
     public static function create(ImportSpecification $specification)
     {
         return new ConnectionContext(
-            $specification->getCacheAdvice(),
+            $specification->mustCache(),
             $specification->getFetchExceptionHandler(),
             $specification->getMaxFetchAttempts()
         );
