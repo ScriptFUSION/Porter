@@ -11,9 +11,10 @@ Porter <img src="https://github.com/ScriptFUSION/Porter/wiki/images/porter%20222
 [![][Porter transformers icon]][Porter transformers]
 [![][Porter connectors icon]][Porter connectors]
 
-Porter [reliably](#durability) and efficiently imports data into applications. Since data may not arrive in the format we want, Porter can also apply a series of [transformations](#transformers) during import. She is commonly used to integrate third party APIs, but she can import any data from anywhere.
 
-Porter's interfaces use arrays, called *records*, and iterators, called [*record collections*](#record-collections). Records may store any data type and record collections may iterate over any number of records, allowing Porter to stream any data format of any size in a memory efficient manner.
+Porter's principle goal is to [reliably](#durability) and efficiently import data into applications. Porter's interfaces pass **arrays**, called *records* via **iterators**, called [*record collections*](#record-collections). Since records may embed any data type and record collections may iterate over any number of records, Porter can theoretically stream any data format of any size in a memory efficient manner.
+
+Data does not always arrive in the format we want, so Porter can apply a series of [transformations](#transformers) during import. Transformations can perform powerful data manipulations such as [joining linked data sets][Sub-imports] together. She is commonly used to integrate third party APIs, but strives to import all kinds of data from anywhere.
 
 The [Provider organization][Provider] hosts ready-to-use Porter providers to help quickly gain access to popular third-party APIs and data services. As examples, the [Stripe provider][Stripe provider] allows an application to make online payments, whereas the [European Central Bank provider][ECB provider] imports the latest currency exchange rates. Anyone writing new providers is encouraged to contribute them to the organization to share with other Porter users.
 
