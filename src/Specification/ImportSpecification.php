@@ -1,7 +1,6 @@
 <?php
 namespace ScriptFUSION\Porter\Specification;
 
-use ScriptFUSION\Porter\Cache\CacheAdvice;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Transform\Transformer;
 use ScriptFUSION\Retry\ExceptionHandler\ExponentialBackoffExceptionHandler;
@@ -34,14 +33,9 @@ class ImportSpecification
     private $context;
 
     /**
-     * @var CacheAdvice|null
+     * @var bool
      */
-    private $cacheAdvice;
-
-    /**
-     * @var CacheAdvice
-     */
-    private $defaultCacheAdvice;
+    private $mustCache = false;
 
     /**
      * @var int
@@ -58,7 +52,6 @@ class ImportSpecification
         $this->resource = $resource;
 
         $this->clearTransformers();
-        $this->defaultCacheAdvice = CacheAdvice::SHOULD_NOT_CACHE();
     }
 
     public function __clone()
@@ -98,13 +91,13 @@ class ImportSpecification
     /**
      * Sets the provider name.
      *
-     * @param string $tag Provider name.
+     * @param string $providerName Provider name.
      *
      * @return $this
      */
-    final public function setProviderName($tag)
+    final public function setProviderName($providerName)
     {
-        $this->providerName = "$tag";
+        $this->providerName = "$providerName";
 
         return $this;
     }
@@ -189,21 +182,29 @@ class ImportSpecification
     }
 
     /**
-     * @return CacheAdvice
+     * @return bool
      */
-    final public function getCacheAdvice()
+    final public function mustCache()
     {
-        return $this->cacheAdvice ?: $this->defaultCacheAdvice;
+        return $this->mustCache;
     }
 
     /**
-     * @param CacheAdvice $cacheAdvice
-     *
      * @return $this
      */
-    final public function setCacheAdvice(CacheAdvice $cacheAdvice)
+    final public function enableCache()
     {
-        $this->cacheAdvice = $cacheAdvice;
+        $this->mustCache = true;
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    final public function disableCache()
+    {
+        $this->mustCache = false;
 
         return $this;
     }
@@ -227,6 +228,7 @@ class ImportSpecification
      */
     final public function setMaxFetchAttempts($attempts)
     {
+        // TODO: Consider throwing exception instead of silently constraining bounds.
         $this->maxFetchAttempts = max(1, $attempts | 0);
 
         return $this;

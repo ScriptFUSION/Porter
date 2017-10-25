@@ -4,7 +4,6 @@ namespace ScriptFUSIONTest\Integration\Porter;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
 use Psr\Container\ContainerInterface;
-use ScriptFUSION\Porter\Cache\CacheAdvice;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Collection\FilteredRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
@@ -12,8 +11,8 @@ use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Connector\ConnectionContext;
 use ScriptFUSION\Porter\Connector\Connector;
+use ScriptFUSION\Porter\Connector\ImportConnector;
 use ScriptFUSION\Porter\Connector\RecoverableConnectorException;
-use ScriptFUSION\Porter\Connector\SuperConnector;
 use ScriptFUSION\Porter\ImportException;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 use ScriptFUSION\Porter\Porter;
@@ -142,7 +141,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
             MockFactory::mockResource($provider)
                 ->shouldReceive('fetch')
                 ->with(
-                    \Mockery::type(SuperConnector::class),
+                    \Mockery::type(ImportConnector::class),
                     \Mockery::on(function (EncapsulatedOptions $argument) use ($options) {
                         self::assertNotSame($argument, $options, 'Options not cloned.');
 
@@ -344,11 +343,14 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         self::assertNotSame($previous->getFilter(), $filter, 'Filter was not cloned.');
     }
 
+    /**
+     * Tests that when caching is required but a caching facility is unavailable, an exception is thrown.
+     */
     public function testCacheUnavailable()
     {
         $this->setExpectedException(CacheUnavailableException::class);
 
-        $this->porter->import($this->specification->setCacheAdvice(CacheAdvice::MUST_CACHE()));
+        $this->porter->import($this->specification->enableCache());
     }
 
     /**

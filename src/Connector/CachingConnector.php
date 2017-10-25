@@ -2,7 +2,6 @@
 namespace ScriptFUSION\Porter\Connector;
 
 use Psr\Cache\CacheItemPoolInterface;
-use ScriptFUSION\Porter\Cache\Cache;
 use ScriptFUSION\Porter\Cache\CacheKeyGenerator;
 use ScriptFUSION\Porter\Cache\InvalidCacheKeyException;
 use ScriptFUSION\Porter\Cache\JsonCacheKeyGenerator;
@@ -10,11 +9,14 @@ use ScriptFUSION\Porter\Cache\MemoryCache;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 
 /**
- * Caches remote data using PSR-6-compliant objects.
+ * Wraps a connector to cache fetched data using PSR-6-compliant objects.
  */
-abstract class CachingConnector implements Connector, Cache
+class CachingConnector implements Connector
 {
-    const RESERVED_CHARACTERS = '{}()/\@:';
+    /**
+     * @var Connector
+     */
+    private $connector;
 
     /**
      * @var CacheItemPoolInterface
@@ -26,14 +28,17 @@ abstract class CachingConnector implements Connector, Cache
      */
     private $cacheKeyGenerator;
 
-    public function __construct(CacheItemPoolInterface $cache = null, CacheKeyGenerator $cacheKeyGenerator = null)
-    {
+    public function __construct(
+        Connector $connector,
+        CacheItemPoolInterface $cache = null,
+        CacheKeyGenerator $cacheKeyGenerator = null
+    ) {
+        $this->connector = $connector;
         $this->cache = $cache ?: new MemoryCache;
         $this->cacheKeyGenerator = $cacheKeyGenerator ?: new JsonCacheKeyGenerator;
     }
 
     /**
-     * @param ConnectionContext $context
      * @param string $source
      * @param EncapsulatedOptions|null $options
      *
@@ -43,73 +48,45 @@ abstract class CachingConnector implements Connector, Cache
      */
     public function fetch(ConnectionContext $context, $source, EncapsulatedOptions $options = null)
     {
-        if ($context->shouldCache()) {
+        if ($context->mustCache()) {
             $optionsCopy = $options ? $options->copy() : [];
 
             ksort($optionsCopy);
 
-            $key = $this->validateCacheKey($this->getCacheKeyGenerator()->generateCacheKey($source, $optionsCopy));
+            $this->validateCacheKey($key = $this->cacheKeyGenerator->generateCacheKey($source, $optionsCopy));
 
             if ($this->cache->hasItem($key)) {
                 return $this->cache->getItem($key)->get();
             }
         }
 
-        $data = $this->fetchFreshData($source, $options);
+        $data = $this->connector->fetch($context, $source, $options);
 
         isset($key) && $this->cache->save($this->cache->getItem($key)->set($data));
 
         return $data;
     }
 
-    abstract public function fetchFreshData($source, EncapsulatedOptions $options = null);
-
-    public function isCacheAvailable()
-    {
-        return true;
-    }
-
-    public function getCache()
-    {
-        return $this->cache;
-    }
-
-    public function setCache(CacheItemPoolInterface $cache)
-    {
-        $this->cache = $cache;
-    }
-
-    public function getCacheKeyGenerator()
-    {
-        return $this->cacheKeyGenerator;
-    }
-
-    public function setCacheKeyGenerator(CacheKeyGenerator $cacheKeyGenerator)
-    {
-        $this->cacheKeyGenerator = $cacheKeyGenerator;
-    }
-
     /**
      * @param mixed $key
      *
-     * @return string
+     * @return void
      *
      * @throws InvalidCacheKeyException Cache key contains invalid data.
      */
     private function validateCacheKey($key)
     {
+        // TODO: Remove when PHP 5 support dropped and replace with string hint.
         if (!is_string($key)) {
             throw new InvalidCacheKeyException('Cache key must be a string.');
         }
 
-        if (strpbrk($key, self::RESERVED_CHARACTERS) !== false) {
+        if (strpbrk($key, CacheKeyGenerator::RESERVED_CHARACTERS) !== false) {
             throw new InvalidCacheKeyException(sprintf(
                 'Cache key "%s" contains one or more reserved characters: "%s".',
                 $key,
-                self::RESERVED_CHARACTERS
+                CacheKeyGenerator::RESERVED_CHARACTERS
             ));
         }
-
-        return $key;
     }
 }

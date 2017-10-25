@@ -9,7 +9,7 @@ use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Connector\ConnectionContext;
 use ScriptFUSION\Porter\Connector\ConnectionContextFactory;
-use ScriptFUSION\Porter\Connector\SuperConnector;
+use ScriptFUSION\Porter\Connector\ImportConnector;
 use ScriptFUSION\Porter\Provider\ForeignResourceException;
 use ScriptFUSION\Porter\Provider\ObjectNotCreatedException;
 use ScriptFUSION\Porter\Provider\Provider;
@@ -20,17 +20,17 @@ use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\Porter\Transform\Transformer;
 
 /**
- * Imports data according to an ImportSpecification.
+ * Imports data according to an ImportSpecification from a provider in the container of providers or internal factory.
  */
 class Porter
 {
     /**
-     * @var ContainerInterface
+     * @var ContainerInterface Container of user-defined providers.
      */
     private $providers;
 
     /**
-     * @var ProviderFactory
+     * @var ProviderFactory Internal factory of first-party providers.
      */
     private $providerFactory;
 
@@ -110,7 +110,7 @@ class Porter
         }
 
         $records = $resource->fetch(
-            new SuperConnector($provider->getConnector(), $context),
+            new ImportConnector($provider->getConnector(), $context),
             $provider instanceof ProviderOptions ? clone $provider->getOptions() : null
         );
 
