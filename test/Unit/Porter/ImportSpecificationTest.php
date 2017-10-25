@@ -1,7 +1,6 @@
 <?php
 namespace ScriptFUSIONTest\Unit\Porter;
 
-use ScriptFUSION\Porter\Cache\CacheAdvice;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Specification\DuplicateTransformerException;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
@@ -100,12 +99,12 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
         self::assertSame($context = 'foo', $this->specification->setContext($context)->getContext());
     }
 
-    public function testCacheAdvice()
+    public function testCache()
     {
-        self::assertSame(
-            $advice = CacheAdvice::MUST_CACHE(),
-            $this->specification->setCacheAdvice($advice)->getCacheAdvice()
-        );
+        self::assertFalse($this->specification->mustCache());
+
+        $this->specification->enableCache();
+        self::assertTrue($this->specification->mustCache());
     }
 
     /**

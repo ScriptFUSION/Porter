@@ -35,7 +35,7 @@ class CachingConnector implements Connector
     ) {
         $this->connector = $connector;
         $this->cache = $cache ?: new MemoryCache;
-        $this->cacheKeyGenerator ?: new JsonCacheKeyGenerator;
+        $this->cacheKeyGenerator = $cacheKeyGenerator ?: new JsonCacheKeyGenerator;
     }
 
     /**
@@ -53,7 +53,7 @@ class CachingConnector implements Connector
 
             ksort($optionsCopy);
 
-            $key = $this->validateCacheKey($this->cacheKeyGenerator->generateCacheKey($source, $optionsCopy));
+            $this->validateCacheKey($key = $this->cacheKeyGenerator->generateCacheKey($source, $optionsCopy));
 
             if ($this->cache->hasItem($key)) {
                 return $this->cache->getItem($key)->get();
@@ -70,12 +70,13 @@ class CachingConnector implements Connector
     /**
      * @param mixed $key
      *
-     * @return string
+     * @return void
      *
      * @throws InvalidCacheKeyException Cache key contains invalid data.
      */
     private function validateCacheKey($key)
     {
+        // TODO: Remove when PHP 5 support dropped and replace with string hint.
         if (!is_string($key)) {
             throw new InvalidCacheKeyException('Cache key must be a string.');
         }
@@ -87,7 +88,5 @@ class CachingConnector implements Connector
                 CacheKeyGenerator::RESERVED_CHARACTERS
             ));
         }
-
-        return $key;
     }
 }

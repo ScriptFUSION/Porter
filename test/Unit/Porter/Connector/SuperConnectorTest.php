@@ -4,7 +4,6 @@ namespace ScriptFUSIONTest\Unit\Porter\Connector;
 use Mockery\MockInterface;
 use ScriptFUSION\Porter\Cache\Cache;
 use ScriptFUSION\Porter\Cache\CacheAdvice;
-use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Connector\ImportConnector;
 use ScriptFUSIONTest\FixtureFactory;
