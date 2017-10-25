@@ -91,13 +91,13 @@ class ImportSpecification
     /**
      * Sets the provider name.
      *
-     * @param string $tag Provider name.
+     * @param string $providerName Provider name.
      *
      * @return $this
      */
-    final public function setProviderName($tag)
+    final public function setProviderName($providerName)
     {
-        $this->providerName = "$tag";
+        $this->providerName = "$providerName";
 
         return $this;
     }
@@ -228,6 +228,7 @@ class ImportSpecification
      */
     final public function setMaxFetchAttempts($attempts)
     {
+        // TODO: Consider throwing exception instead of silently constraining bounds.
         $this->maxFetchAttempts = max(1, $attempts | 0);
 
         return $this;
