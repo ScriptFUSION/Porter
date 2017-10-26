@@ -49,7 +49,7 @@ class Porter
      *
      * @param ImportSpecification $specification Import specification.
      *
-     * @return PorterRecords
+     * @return PorterRecords|CountablePorterRecords
      *
      * @throws ImportException Provider failed to return an iterator.
      */

@@ -1,6 +1,9 @@
 <?php
 namespace ScriptFUSION\Porter\Connector;
 
+/**
+ * Specifies runtime connection settings and provides utility methods.
+ */
 final class ConnectionContext
 {
     private $mustCache;
@@ -16,16 +19,28 @@ final class ConnectionContext
         $this->maxFetchAttempts = (int)$maxFetchAttempts;
     }
 
+    /**
+     * Gets a value indicating whether the response for this request must be cached.
+     *
+     * @return bool True if the response must be cached, otherwise false.
+     */
     public function mustCache()
     {
         return $this->mustCache;
     }
 
-    public function retry(callable $callable)
+    /**
+     * Retries the specified callback a predefined number of times with a predefined exception handler.
+     *
+     * @param callable $callback Callback.
+     *
+     * @return mixed The result of the callback invocation.
+     */
+    public function retry(callable $callback)
     {
         return \ScriptFUSION\Retry\retry(
             $this->maxFetchAttempts,
-            $callable,
+            $callback,
             function (\Exception $exception) {
                 // Throw exception if unrecoverable.
                 if (!$exception instanceof RecoverableConnectorException) {

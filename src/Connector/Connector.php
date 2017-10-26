@@ -9,12 +9,11 @@ use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 interface Connector
 {
     /**
-     * Fetches data from the specified source optionally augmented by the
-     * specified options.
+     * Fetches data from the specified source optionally augmented by the specified options.
      *
-     * @param ConnectionContext $context TODO.
+     * @param ConnectionContext $context Runtime connection settings and methods.
      * @param string $source Source.
-     * @param EncapsulatedOptions $options Optional. Options.
+     * @param EncapsulatedOptions|null $options Optional. Options.
      *
      * @return mixed Data.
      */
