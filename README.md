@@ -11,18 +11,16 @@ Porter <img src="https://github.com/ScriptFUSION/Porter/wiki/images/porter%20222
 [![][Porter transformers icon]][Porter transformers]
 [![][Porter connectors icon]][Porter connectors]
 
+Porter [reliably](#durability) and efficiently imports data into applications. Her interfaces pass around **iterators**, herein called [*record collections*](#record-collections), allowing us to process large data sets sequentially without loading every record into memory at once. She is commonly used to integrate third party Web APIs, but strives to import any data from anywhere.
 
-Porter's principle goal is to [reliably](#durability) and efficiently import data into applications. Porter's interfaces pass **arrays**, called *records* via **iterators**, called [*record collections*](#record-collections). Since records may embed any data type and record collections may iterate over any number of records, Porter can theoretically stream any data format of any size in a memory efficient manner.
+Data does not always arrive in the format we want, so Porter can apply a series of [transformations](#transformers) during import. Transformations can perform simple [filtering](#filtering) to powerful data manipulations such as [joining linked data sets][Sub-imports] together.
 
-Data does not always arrive in the format we want, so Porter can apply a series of [transformations](#transformers) during import. Transformations can perform powerful data manipulations such as [joining linked data sets][Sub-imports] together. She is commonly used to integrate third party APIs, but strives to import all kinds of data from anywhere.
-
-The [Provider organization][Provider] hosts ready-to-use Porter providers to help quickly gain access to popular third-party APIs and data services. As examples, the [Stripe provider][Stripe provider] allows an application to make online payments, whereas the [European Central Bank provider][ECB provider] imports the latest currency exchange rates. Anyone writing new providers is encouraged to contribute them to the organization to share with other Porter users.
+The [Provider organization][Provider] hosts ready-to-use Porter providers to help quickly gain access to popular third-party APIs and data services. For example, the [Stripe provider][Stripe provider] allows an application to make online payments, whereas the [European Central Bank provider][ECB provider] imports the latest currency exchange rates. You're encouraged to contribute new providers to the organization to share with other Porter users.
 
 Contents
 --------
 
   1. [Audience](#audience)
-  1. [Benefits](#benefits)
   1. [Quick start](#quick-start)
   1. [Usage](#usage)
   1. [Porter's API](#porters-api)
@@ -45,10 +43,9 @@ Contents
 Audience
 --------
 
-Porter is useful for anyone wanting a [simple API](#porters-api) to import data into PHP applications. Data typically comes from third-party APIs, but it could come from any source, including web scraping or even first-party APIs, using Porter to consume our own data services. Porter is a uniform way to abstract importing data, with benefits.
+Porter is a useful abstraction for anyone wanting a [simple](#porters-api) and [robust](#durability) API to import data into PHP applications. Data typically comes from third-party APIs, but could come from any source, including web scraping, first-party APIs (using Porter to consume our own data services) or even the local file system. Porter is a uniform way to abstract importing data with the following benefits.
 
-Benefits
---------
+### Benefits
 
  * Provides a [framework](#architecture) of structured data import concepts: [providers](#providers) provide data via [resources](#resources) fetched from [connectors](#connectors).
  * Defines efficient in-memory data processing interfaces to handle large data sets.
@@ -126,7 +123,7 @@ Options may be configured by some of the methods listed below.
 Record collections
 ------------------
 
-Record collections are a type of `Iterator`, guaranteeing imported data is enumerable using `foreach`. The result of a successful `Porter::import` call is either an instance of `PorterRecords` or `CountablePorterRecords`, depending on whether the number of records is known. That's all you need to know! The following details are just for debugging and nerds.
+Record collections are a type of `Iterator`, guaranteeing imported data is enumerable using `foreach`. Each *record* of the collection is the familiar and flexible `array` type, allowing us to represent any flat or structured data hierarchy (like CSV or JSON) as an array.
 
 ### Details
 
@@ -135,6 +132,12 @@ Record collections may be `Countable`, depending on whether the imported data wa
 Record collections are composed by Porter using the decorator pattern. If provider data is not modified, `PorterRecords` will decorate the `ProviderRecords` returned from a `ProviderResource`. That is, `PorterRecords` has a pointer back to the previous collection, which could be written as: `PorterRecords` → `ProviderRecords`. If a [filter](#filtering) was applied, the collection stack would be `PorterRecords` → `FilteredRecords` → `ProviderRecords`. Generally this is an unimportant detail for most users but can be useful for debugging.
 
 The stack of record collection types informs us of the transformations a collection has undergone and each type holds a pointer to relevant objects that participated in the transformation. For example, `PorterRecords` holds a reference to the `ImportSpecification` that was used to create it and can be accessed using `PorterRecords::getSpecification`.
+
+### Metadata
+
+Since record collections are just objects, it is possible to define derived types that implement custom fields to expose additional *metadata* in addition to the iterated data. Collections are very good at representing a repeating data series but some APIs send additional non-repeating data which we can expose as metadata. However, if the data is not repeating at all, it should be treated as a single record rather than metadata.
+
+The result of a successful `Porter::import` call is always an instance of `PorterRecords` or `CountablePorterRecords`, depending on whether the number of records is known. If we need to access methods of the original collection, returned by the provider, we can call `findFirstCollection()` on the collection. For an example, see [CurrencyRecords][CurrencyRecords] of the [European Central Bank Provider][ECB] and its associated [test case][ECB test].
 
 Transformers
 ------------
@@ -481,3 +484,6 @@ Porter is published under the open source GNU Lesser General Public License v3.0
   [Porter transformers icon]: https://avatars2.githubusercontent.com/u/24607042?v=3&s=35 "Porter transformers"
   [Porter connectors icon]: https://avatars3.githubusercontent.com/u/25672142?v=3&s=35 "Porter connectors"
   [Class diagram]: https://github.com/ScriptFUSION/Porter/wiki/images/diagrams/Porter%20UML%20class%20diagram%203.0.png
+  [ECB]: https://github.com/Provider/European-Central-Bank
+  [CurrencyRecords]: https://github.com/Provider/European-Central-Bank/blob/master/src/Records/CurrencyRecords.php
+  [ECB test]: https://github.com/Provider/European-Central-Bank/blob/master/test/ForeignExchangeReferenceRatesTest.php
