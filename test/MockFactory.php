@@ -20,12 +20,13 @@ final class MockFactory
     {
         return \Mockery::namedMock(uniqid(Provider::class, false), Provider::class)
             ->shouldReceive('getConnector')
+                ->with(\Mockery::type('string'))
                 ->andReturn(
                     \Mockery::mock(Connector::class)
                         ->shouldReceive('fetch')
                         ->andReturn('foo')
-                        ->getMock()
                         ->byDefault()
+                        ->getMock()
                 )
             ->getMock()
         ;
