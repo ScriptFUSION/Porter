@@ -22,7 +22,7 @@
   },
   "suggest" : {
     "connectors/http": "Provides an HTTP connector for Porter providers.",
-    "transformers/mapping": "Transforms records using Mappings."
+    "transformers/mapping-transformer": "Transforms records using Mappings."
   },
   "autoload": {
     "psr-4": {
