@@ -39,6 +39,7 @@ class CachingConnector implements Connector
     }
 
     /**
+     * @param ConnectionContext $context
      * @param string $source
      * @param EncapsulatedOptions|null $options
      *

@@ -110,7 +110,7 @@ class Porter
         }
 
         $records = $resource->fetch(
-            new ImportConnector($provider->getConnector(), $context),
+            new ImportConnector($provider->getConnector(get_class($resource)), $context),
             $provider instanceof ProviderOptions ? clone $provider->getOptions() : null
         );
 

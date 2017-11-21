@@ -12,7 +12,7 @@ class StaticDataProvider implements Provider
         $this->connector = new NullConnector;
     }
 
-    public function getConnector()
+    public function getConnector($resourceType)
     {
         return $this->connector;
     }

@@ -68,7 +68,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         $this->porter = new Porter($this->container = \Mockery::spy(ContainerInterface::class));
 
         $this->registerProvider($this->provider = MockFactory::mockProvider());
-        $this->connector = $this->provider->getConnector();
+        $this->connector = $this->provider->getConnector('');
         $this->resource = MockFactory::mockResource($this->provider);
         $this->specification = new ImportSpecification($this->resource);
     }
