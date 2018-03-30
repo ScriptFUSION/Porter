@@ -6,7 +6,6 @@ use ScriptFUSION\Porter\Cache\CacheKeyGenerator;
 use ScriptFUSION\Porter\Cache\InvalidCacheKeyException;
 use ScriptFUSION\Porter\Cache\JsonCacheKeyGenerator;
 use ScriptFUSION\Porter\Cache\MemoryCache;
-use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 
 /**
  * Wraps a connector to cache fetched data using PSR-6-compliant objects.
@@ -39,28 +38,27 @@ class CachingConnector implements Connector
     }
 
     /**
+     * @param ConnectionContext $context
      * @param string $source
-     * @param EncapsulatedOptions|null $options
      *
      * @return mixed
      *
      * @throws InvalidCacheKeyException
      */
-    public function fetch(ConnectionContext $context, $source, EncapsulatedOptions $options = null)
+    public function fetch(ConnectionContext $context, $source)
     {
         if ($context->mustCache()) {
-            $optionsCopy = $options ? $options->copy() : [];
+            $options = $this->connector instanceof ConnectorOptions ? $this->connector->getOptions()->copy() : [];
+            ksort($options);
 
-            ksort($optionsCopy);
-
-            $this->validateCacheKey($key = $this->cacheKeyGenerator->generateCacheKey($source, $optionsCopy));
+            $this->validateCacheKey($key = $this->cacheKeyGenerator->generateCacheKey($source, $options));
 
             if ($this->cache->hasItem($key)) {
                 return $this->cache->getItem($key)->get();
             }
         }
 
-        $data = $this->connector->fetch($context, $source, $options);
+        $data = $this->connector->fetch($context, $source);
 
         isset($key) && $this->cache->save($this->cache->getItem($key)->set($data));
 

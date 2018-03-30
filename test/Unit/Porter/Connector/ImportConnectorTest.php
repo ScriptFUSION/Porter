@@ -5,7 +5,6 @@ use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Connector\CachingConnector;
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Connector\ImportConnector;
-use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 use ScriptFUSIONTest\FixtureFactory;
 
 /**
@@ -14,8 +13,7 @@ use ScriptFUSIONTest\FixtureFactory;
 final class ImportConnectorTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * Tests that when fetching, the specified context, source and options are passed verbatim to the underlying
-     * connector.
+     * Tests that when fetching, the specified context and source are passed verbatim to the underlying connector.
      */
     public function testCallGraph()
     {
@@ -24,15 +22,14 @@ final class ImportConnectorTest extends \PHPUnit_Framework_TestCase
                 ->shouldReceive('fetch')
                 ->with(
                     $context = FixtureFactory::buildConnectionContext(),
-                    $source = 'bar',
-                    $options = \Mockery::mock(EncapsulatedOptions::class)
+                    $source = 'bar'
                 )->once()
                 ->andReturn($output = 'foo')
                 ->getMock(),
             $context
         );
 
-        self::assertSame($output, $connector->fetch($source, $options));
+        self::assertSame($output, $connector->fetch($source));
     }
 
     /**

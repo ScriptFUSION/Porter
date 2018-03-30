@@ -2,7 +2,6 @@
 namespace ScriptFUSION\Porter\Connector;
 
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
-use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 
 /**
  * Connector whose lifecycle is synchronised with an import operation. Ensures correct ConnectionContext is delivered
@@ -26,8 +25,8 @@ final class ImportConnector
         $this->context = $context;
     }
 
-    public function fetch($source, EncapsulatedOptions $options = null)
+    public function fetch($source)
     {
-        return $this->connector->fetch($this->context, $source, $options);
+        return $this->connector->fetch($this->context, $source);
     }
 }

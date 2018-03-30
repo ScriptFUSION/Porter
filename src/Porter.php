@@ -9,12 +9,12 @@ use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Connector\ConnectionContext;
 use ScriptFUSION\Porter\Connector\ConnectionContextFactory;
+use ScriptFUSION\Porter\Connector\ConnectorOptions;
 use ScriptFUSION\Porter\Connector\ImportConnector;
 use ScriptFUSION\Porter\Provider\ForeignResourceException;
 use ScriptFUSION\Porter\Provider\ObjectNotCreatedException;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\ProviderFactory;
-use ScriptFUSION\Porter\Provider\ProviderOptions;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\Porter\Transform\Transformer;
@@ -109,10 +109,17 @@ class Porter
             ));
         }
 
-        $records = $resource->fetch(
-            new ImportConnector($provider->getConnector(), $context),
-            $provider instanceof ProviderOptions ? clone $provider->getOptions() : null
-        );
+        $connector = $provider->getConnector();
+
+        /* __clone method cannot be specified in interface due to Mockery limitation.
+           See https://github.com/mockery/mockery/issues/669 */
+        if ($connector instanceof ConnectorOptions && !method_exists($connector, '__clone')) {
+            throw new \LogicException(
+                'Connector with options must implement __clone() method to deep clone options.'
+            );
+        }
+
+        $records = $resource->fetch(new ImportConnector(clone $connector, $context));
 
         if (!$records instanceof \Iterator) {
             throw new ImportException(get_class($resource) . '::fetch() did not return an Iterator.');

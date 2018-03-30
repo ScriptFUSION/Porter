@@ -10,7 +10,7 @@ abstract class RecordCollection implements \Iterator
 
     private $previousCollection;
 
-    public function __construct(\Iterator $records, RecordCollection $previousCollection = null)
+    public function __construct(\Iterator $records, self $previousCollection = null)
     {
         $this->records = $records;
         $this->previousCollection = $previousCollection;

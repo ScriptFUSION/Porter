@@ -11,10 +11,9 @@ use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Connector\ConnectionContext;
 use ScriptFUSION\Porter\Connector\Connector;
-use ScriptFUSION\Porter\Connector\ImportConnector;
+use ScriptFUSION\Porter\Connector\ConnectorOptions;
 use ScriptFUSION\Porter\Connector\RecoverableConnectorException;
 use ScriptFUSION\Porter\ImportException;
-use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 use ScriptFUSION\Porter\Porter;
 use ScriptFUSION\Porter\PorterAware;
 use ScriptFUSION\Porter\Provider\ForeignResourceException;
@@ -125,33 +124,15 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Tests that a provider implementing ProviderOptions has a clone of its options passed to ProviderResource::fetch
-     * at import time.
+     * Tests that when importing using a connector that exports options, but no clone method, an exception is thrown.
      */
-    public function testImportOptions()
+    public function testImportConnectorWithOptions()
     {
-        $this->registerProvider(
-            $provider = MockFactory::mockProviderOptions()
-                ->shouldReceive('getOptions')
-                ->andReturn($options = \Mockery::mock(EncapsulatedOptions::class))
-                ->getMock()
-        );
+        $this->provider->shouldReceive('getConnector')
+            ->andReturn(\Mockery::mock(Connector::class, ConnectorOptions::class));
 
-        $this->porter->import(new ImportSpecification(
-            MockFactory::mockResource($provider)
-                ->shouldReceive('fetch')
-                ->with(
-                    \Mockery::type(ImportConnector::class),
-                    \Mockery::on(function (EncapsulatedOptions $argument) use ($options) {
-                        self::assertNotSame($argument, $options, 'Options not cloned.');
-
-                        return get_class($argument) === get_class($options);
-                    })
-                )
-                ->andReturn(new \EmptyIterator)
-                ->once()
-                ->getMock()
-        ));
+        $this->setExpectedException(\LogicException::class);
+        $this->porter->import($this->specification);
     }
 
     /**
@@ -380,7 +361,6 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
                     throw $exception;
                 });
             }),
-            \Mockery::any(),
             \Mockery::any()
         );
     }

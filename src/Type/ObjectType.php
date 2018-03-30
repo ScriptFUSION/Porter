@@ -25,7 +25,7 @@ final class ObjectType
         }
 
         if (is_array($mixed)) {
-            return array_map('self::' . __FUNCTION__, $mixed);
+            return array_map(__METHOD__, $mixed);
         }
 
         return $mixed;
