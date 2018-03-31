@@ -76,4 +76,17 @@ final class ImportConnectorTest extends \PHPUnit_Framework_TestCase
             FixtureFactory::buildConnectionContext(true)
         );
     }
+
+    /**
+     * Tests that getting the wrapped connector returns exactly the same connector as constructed with.
+     */
+    public function testGetWrappedConnector()
+    {
+        $connector = new ImportConnector(
+            $wrappedConnector = \Mockery::mock(Connector::class),
+            FixtureFactory::buildConnectionContext()
+        );
+
+        self::assertSame($wrappedConnector, $connector->getWrappedConnector());
+    }
 }

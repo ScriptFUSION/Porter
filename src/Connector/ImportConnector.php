@@ -29,4 +29,14 @@ final class ImportConnector
     {
         return $this->connector->fetch($this->context, $source);
     }
+
+    /**
+     * Gets the wrapped connector. Useful for resources to reconfigure connector options during this import.
+     *
+     * @return Connector
+     */
+    public function getWrappedConnector()
+    {
+        return $this->connector;
+    }
 }
