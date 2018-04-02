@@ -39,4 +39,14 @@ final class ImportConnector
     {
         return $this->connector;
     }
+
+    /**
+     * Sets the exception handler to be called when a recoverable exception is thrown by Connector::fetch().
+     *
+     * @param callable $exceptionHandler Exception handler.
+     */
+    public function setExceptionHandler(callable $exceptionHandler)
+    {
+        $this->context->setProviderFetchExceptionHandler($exceptionHandler);
+    }
 }

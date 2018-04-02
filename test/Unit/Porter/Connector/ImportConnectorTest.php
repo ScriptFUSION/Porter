@@ -89,4 +89,20 @@ final class ImportConnectorTest extends \PHPUnit_Framework_TestCase
 
         self::assertSame($wrappedConnector, $connector->getWrappedConnector());
     }
+
+    /**
+     * Tests that setting the provider exception handler twice produces an exception the second time.
+     */
+    public function testSetExceptionHandlerTwice()
+    {
+        $connector = new ImportConnector(
+            $wrappedConnector = \Mockery::mock(Connector::class),
+            FixtureFactory::buildConnectionContext()
+        );
+
+        $connector->setExceptionHandler([$this, __FUNCTION__]);
+
+        $this->setExpectedException(\LogicException::class);
+        $connector->setExceptionHandler([$this, __FUNCTION__]);
+    }
 }

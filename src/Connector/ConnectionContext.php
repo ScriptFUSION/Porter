@@ -8,7 +8,19 @@ final class ConnectionContext
 {
     private $mustCache;
 
+    /**
+     * User-defined exception handler called when a recoverable exception is thrown by Connector::fetch().
+     *
+     * @var callable
+     */
     private $fetchExceptionHandler;
+
+    /**
+     * Provider-defined exception handler called when a recoverable exception is thrown by Connector::fetch().
+     *
+     * @var callable
+     */
+    private $providerFetchExceptionHandler;
 
     private $maxFetchAttempts;
 
@@ -47,9 +59,30 @@ final class ConnectionContext
                     throw $exception;
                 }
 
+                // Call provider's exception handler, if defined.
+                if ($this->providerFetchExceptionHandler) {
+                    call_user_func($this->providerFetchExceptionHandler, $exception);
+                }
+
                 // TODO Clone exception handler to avoid persisting state between calls.
                 call_user_func($this->fetchExceptionHandler, $exception);
             }
         );
+    }
+
+    /**
+     * Sets an exception handler to be called when a recoverable exception is thrown by Connector::fetch().
+     *
+     * This handler is intended to be set by provider resources only and is called before the user-defined handler.
+     *
+     * @param callable $providerFetchExceptionHandler Exception handler.
+     */
+    public function setProviderFetchExceptionHandler(callable $providerFetchExceptionHandler)
+    {
+        if ($this->providerFetchExceptionHandler !== null) {
+            throw new \LogicException('Cannot set provider fetch exception handler: already set!');
+        }
+
+        $this->providerFetchExceptionHandler = $providerFetchExceptionHandler;
     }
 }

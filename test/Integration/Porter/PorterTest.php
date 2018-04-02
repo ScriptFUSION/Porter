@@ -12,6 +12,7 @@ use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Connector\ConnectionContext;
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Connector\ConnectorOptions;
+use ScriptFUSION\Porter\Connector\ImportConnector;
 use ScriptFUSION\Porter\Connector\RecoverableConnectorException;
 use ScriptFUSION\Porter\ImportException;
 use ScriptFUSION\Porter\Porter;
@@ -301,6 +302,36 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
         $this->setExpectedException(FailingTooHardException::class);
         $this->porter->import($this->specification);
+    }
+
+    /**
+     * Tests that when a provider fetch exception handler is specified and the connector throws a recoverable
+     * exception, the handler is called before the user handler.
+     */
+    public function testCustomProviderFetchExceptionHandler()
+    {
+        $this->specification->setFetchExceptionHandler(function () {
+            throw new \LogicException('This exception must not be thrown!');
+        });
+
+        $this->arrangeConnectorException($connectorException =
+            new RecoverableConnectorException('This exception is caught by the provider handler.'));
+
+        $this->resource
+            ->shouldReceive('fetch')
+            ->andReturnUsing(function (ImportConnector $connector) use ($connectorException) {
+                $connector->setExceptionHandler(function (\Exception $exception) use ($connectorException) {
+                    self::assertSame($connectorException, $exception);
+
+                    throw new \RuntimeException('This exception is thrown by the provider handler.');
+                });
+
+                yield $connector->fetch('foo');
+            })
+        ;
+
+        $this->setExpectedException(\RuntimeException::class);
+        $this->porter->importOne($this->specification);
     }
 
     #endregion
