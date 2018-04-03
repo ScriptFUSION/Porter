@@ -2,6 +2,7 @@
 namespace ScriptFUSIONTest;
 
 use ScriptFUSION\Porter\Connector\ConnectionContext;
+use ScriptFUSION\Porter\Connector\FetchExceptionHandler\StatelessFetchExceptionHandler;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\StaticClass;
 
@@ -25,9 +26,9 @@ final class FixtureFactory
     ) {
         return new ConnectionContext(
             $cacheAdvice,
-            $fetchExceptionHandler ?: function () {
+            $fetchExceptionHandler ?: new StatelessFetchExceptionHandler(static function () {
                 // Intentionally empty.
-            },
+            }),
             $maxFetchAttempts
         );
     }

@@ -1,11 +1,11 @@
 <?php
 namespace ScriptFUSIONTest\Unit\Porter;
 
+use ScriptFUSION\Porter\Connector\FetchExceptionHandler\FetchExceptionHandler;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Specification\DuplicateTransformerException;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\Porter\Transform\Transformer;
-use ScriptFUSIONTest\Stubs\Invokable;
 
 /**
  * @see ImportSpecification
@@ -30,7 +30,7 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
         $this->specification
             ->addTransformer(\Mockery::mock(Transformer::class))
             ->setContext($context = (object)[])
-            ->setFetchExceptionHandler($handler = new Invokable)
+            ->setFetchExceptionHandler($handler = \Mockery::mock(FetchExceptionHandler::class))
         ;
 
         $specification = clone $this->specification;
@@ -141,7 +141,7 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
     public function testExceptionHandler()
     {
         self::assertSame(
-            $handler = new Invokable,
+            $handler = \Mockery::mock(FetchExceptionHandler::class),
             $this->specification->setFetchExceptionHandler($handler)->getFetchExceptionHandler()
         );
     }

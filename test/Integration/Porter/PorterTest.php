@@ -12,6 +12,8 @@ use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Connector\ConnectionContext;
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Connector\ConnectorOptions;
+use ScriptFUSION\Porter\Connector\FetchExceptionHandler\FetchExceptionHandler;
+use ScriptFUSION\Porter\Connector\FetchExceptionHandler\StatelessFetchExceptionHandler;
 use ScriptFUSION\Porter\Connector\ImportConnector;
 use ScriptFUSION\Porter\Connector\RecoverableConnectorException;
 use ScriptFUSION\Porter\ImportException;
@@ -25,7 +27,6 @@ use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\Porter\Specification\StaticDataImportSpecification;
 use ScriptFUSION\Porter\Transform\FilterTransformer;
 use ScriptFUSION\Porter\Transform\Transformer;
-use ScriptFUSION\Retry\ExceptionHandler\ExponentialBackoffExceptionHandler;
 use ScriptFUSION\Retry\FailingTooHardException;
 use ScriptFUSIONTest\MockFactory;
 
@@ -286,15 +287,17 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Tests that a when custom fetch exception handler is specified and the connector throws a recoverable exception
+     * Tests that when a custom fetch exception handler is specified and the connector throws a recoverable exception
      * type, the handler is called on each retry.
      */
     public function testCustomFetchExceptionHandler()
     {
         $this->specification->setFetchExceptionHandler(
-            \Mockery::mock(ExponentialBackoffExceptionHandler::class)
+            \Mockery::mock(FetchExceptionHandler::class)
+                ->shouldReceive('reset')
+                    ->once()
                 ->shouldReceive('__invoke')
-                ->times(ImportSpecification::DEFAULT_FETCH_ATTEMPTS - 1)
+                    ->times(ImportSpecification::DEFAULT_FETCH_ATTEMPTS - 1)
                 ->getMock()
         );
 
@@ -310,9 +313,9 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
      */
     public function testCustomProviderFetchExceptionHandler()
     {
-        $this->specification->setFetchExceptionHandler(function () {
+        $this->specification->setFetchExceptionHandler(new StatelessFetchExceptionHandler(function () {
             throw new \LogicException('This exception must not be thrown!');
-        });
+        }));
 
         $this->arrangeConnectorException($connectorException =
             new RecoverableConnectorException('This exception is caught by the provider handler.'));

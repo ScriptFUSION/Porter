@@ -1,9 +1,10 @@
 <?php
 namespace ScriptFUSION\Porter\Specification;
 
+use ScriptFUSION\Porter\Connector\FetchExceptionHandler\ExponentialSleepFetchExceptionHandler;
+use ScriptFUSION\Porter\Connector\FetchExceptionHandler\FetchExceptionHandler;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Transform\Transformer;
-use ScriptFUSION\Retry\ExceptionHandler\ExponentialBackoffExceptionHandler;
 
 /**
  * Specifies which resource to import and how the data should be transformed.
@@ -237,21 +238,22 @@ class ImportSpecification
     /**
      * Gets the exception handler invoked each time a fetch attempt fails.
      *
-     * @return callable Exception handler.
+     * @return FetchExceptionHandler Fetch exception handler.
      */
     final public function getFetchExceptionHandler()
     {
-        return $this->fetchExceptionHandler ?: $this->fetchExceptionHandler = new ExponentialBackoffExceptionHandler;
+        return $this->fetchExceptionHandler ?: $this->fetchExceptionHandler
+            = new ExponentialSleepFetchExceptionHandler;
     }
 
     /**
      * Sets the exception handler invoked each time a fetch attempt fails.
      *
-     * @param callable $fetchExceptionHandler Exception handler.
+     * @param FetchExceptionHandler $fetchExceptionHandler Fetch exception handler.
      *
      * @return $this
      */
-    final public function setFetchExceptionHandler(callable $fetchExceptionHandler)
+    final public function setFetchExceptionHandler(FetchExceptionHandler $fetchExceptionHandler)
     {
         $this->fetchExceptionHandler = $fetchExceptionHandler;
 

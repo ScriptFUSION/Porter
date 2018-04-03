@@ -1,6 +1,8 @@
 <?php
 namespace ScriptFUSION\Porter\Connector;
 
+use ScriptFUSION\Porter\Connector\FetchExceptionHandler\FetchExceptionHandler;
+
 /**
  * Specifies runtime connection settings and provides utility methods.
  */
@@ -24,7 +26,7 @@ final class ConnectionContext
 
     private $maxFetchAttempts;
 
-    public function __construct($mustCache, callable $fetchExceptionHandler, $maxFetchAttempts)
+    public function __construct($mustCache, FetchExceptionHandler $fetchExceptionHandler, $maxFetchAttempts)
     {
         $this->mustCache = (bool)$mustCache;
         $this->fetchExceptionHandler = $fetchExceptionHandler;
@@ -50,11 +52,13 @@ final class ConnectionContext
      */
     public function retry(callable $callback)
     {
+        $userHandlerReset = false;
+
         return \ScriptFUSION\Retry\retry(
             $this->maxFetchAttempts,
             $callback,
-            function (\Exception $exception) {
-                // Throw exception if unrecoverable.
+            function (\Exception $exception) use (&$userHandlerReset) {
+                // Throw exception instead of retrying, if unrecoverable.
                 if (!$exception instanceof RecoverableConnectorException) {
                     throw $exception;
                 }
@@ -64,7 +68,12 @@ final class ConnectionContext
                     call_user_func($this->providerFetchExceptionHandler, $exception);
                 }
 
-                // TODO Clone exception handler to avoid persisting state between calls.
+                if (!$userHandlerReset) {
+                    $this->fetchExceptionHandler->reset();
+                    $userHandlerReset = true;
+                }
+
+                // TODO: Remove call_user_func calls when PHP 5 support dropped.
                 call_user_func($this->fetchExceptionHandler, $exception);
             }
         );
