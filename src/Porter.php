@@ -20,7 +20,7 @@ use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\Porter\Transform\Transformer;
 
 /**
- * Imports data according to an ImportSpecification from a provider in the container of providers or internal factory.
+ * Imports data from a provider defined in the providers container or internal factory.
  */
 class Porter
 {
