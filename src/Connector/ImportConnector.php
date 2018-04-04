@@ -47,6 +47,6 @@ final class ImportConnector
      */
     public function setExceptionHandler(callable $exceptionHandler)
     {
-        $this->context->setProviderFetchExceptionHandler($exceptionHandler);
+        $this->context->setResourceFetchExceptionHandler($exceptionHandler);
     }
 }

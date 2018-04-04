@@ -13,7 +13,7 @@ final class StatelessFetchExceptionHandler implements FetchExceptionHandler
         $this->handler = $handler;
     }
 
-    public function reset()
+    public function initialize()
     {
         // Intentionally empty.
     }

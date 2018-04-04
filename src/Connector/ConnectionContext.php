@@ -13,16 +13,16 @@ final class ConnectionContext
     /**
      * User-defined exception handler called when a recoverable exception is thrown by Connector::fetch().
      *
-     * @var callable
+     * @var FetchExceptionHandler
      */
     private $fetchExceptionHandler;
 
     /**
-     * Provider-defined exception handler called when a recoverable exception is thrown by Connector::fetch().
+     * Resource-defined exception handler called when a recoverable exception is thrown by Connector::fetch().
      *
-     * @var callable
+     * @var FetchExceptionHandler
      */
-    private $providerFetchExceptionHandler;
+    private $resourceFetchExceptionHandler;
 
     private $maxFetchAttempts;
 
@@ -52,46 +52,59 @@ final class ConnectionContext
      */
     public function retry(callable $callback)
     {
-        $userHandlerReset = false;
+        $userHandlerCloned = $providerHandlerCloned = false;
 
         return \ScriptFUSION\Retry\retry(
             $this->maxFetchAttempts,
             $callback,
-            function (\Exception $exception) use (&$userHandlerReset) {
+            function (\Exception $exception) use (&$userHandlerCloned, &$providerHandlerCloned) {
                 // Throw exception instead of retrying, if unrecoverable.
                 if (!$exception instanceof RecoverableConnectorException) {
                     throw $exception;
                 }
 
                 // Call provider's exception handler, if defined.
-                if ($this->providerFetchExceptionHandler) {
-                    call_user_func($this->providerFetchExceptionHandler, $exception);
+                if ($this->resourceFetchExceptionHandler) {
+                    self::invokeHandler($this->resourceFetchExceptionHandler, $exception, $providerHandlerCloned);
                 }
 
-                if (!$userHandlerReset) {
-                    $this->fetchExceptionHandler->reset();
-                    $userHandlerReset = true;
-                }
-
-                // TODO: Remove call_user_func calls when PHP 5 support dropped.
-                call_user_func($this->fetchExceptionHandler, $exception);
+                // Call user's exception handler.
+                self::invokeHandler($this->fetchExceptionHandler, $exception, $userHandlerCloned);
             }
         );
     }
 
     /**
-     * Sets an exception handler to be called when a recoverable exception is thrown by Connector::fetch().
+     * Invokes the specified fetch exception handler, cloning it if required.
      *
-     * This handler is intended to be set by provider resources only and is called before the user-defined handler.
-     *
-     * @param callable $providerFetchExceptionHandler Exception handler.
+     * @param FetchExceptionHandler $handler Fetch exception handler.
+     * @param \Exception $exception Exception to pass to the handler.
+     * @param bool $cloned False if handler requires cloning, true if handler has already been cloned.
      */
-    public function setProviderFetchExceptionHandler(callable $providerFetchExceptionHandler)
+    private static function invokeHandler(FetchExceptionHandler &$handler, \Exception $exception, &$cloned)
     {
-        if ($this->providerFetchExceptionHandler !== null) {
-            throw new \LogicException('Cannot set provider fetch exception handler: already set!');
+        if (!$cloned) {
+            $handler = clone $handler;
+            $handler->initialize();
+            $cloned = true;
         }
 
-        $this->providerFetchExceptionHandler = $providerFetchExceptionHandler;
+        $handler($exception);
+    }
+
+    /**
+     * Sets an exception handler to be called when a recoverable exception is thrown by Connector::fetch().
+     *
+     * The handler is intended to be set by provider resources only once and is called before the user-defined handler.
+     *
+     * @param FetchExceptionHandler $resourceFetchExceptionHandler Exception handler.
+     */
+    public function setResourceFetchExceptionHandler(FetchExceptionHandler $resourceFetchExceptionHandler)
+    {
+        if ($this->resourceFetchExceptionHandler !== null) {
+            throw new \LogicException('Cannot set resource fetch exception handler: already set!');
+        }
+
+        $this->resourceFetchExceptionHandler = $resourceFetchExceptionHandler;
     }
 }

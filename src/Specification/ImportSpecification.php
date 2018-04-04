@@ -242,8 +242,7 @@ class ImportSpecification
      */
     final public function getFetchExceptionHandler()
     {
-        return $this->fetchExceptionHandler ?: $this->fetchExceptionHandler
-            = new ExponentialSleepFetchExceptionHandler;
+        return $this->fetchExceptionHandler ?: $this->fetchExceptionHandler = new ExponentialSleepFetchExceptionHandler;
     }
 
     /**

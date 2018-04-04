@@ -4,6 +4,7 @@ namespace ScriptFUSIONTest\Unit\Porter\Connector;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Connector\CachingConnector;
 use ScriptFUSION\Porter\Connector\Connector;
+use ScriptFUSION\Porter\Connector\FetchExceptionHandler\FetchExceptionHandler;
 use ScriptFUSION\Porter\Connector\ImportConnector;
 use ScriptFUSIONTest\FixtureFactory;
 
@@ -100,9 +101,9 @@ final class ImportConnectorTest extends \PHPUnit_Framework_TestCase
             FixtureFactory::buildConnectionContext()
         );
 
-        $connector->setExceptionHandler([$this, __FUNCTION__]);
+        $connector->setExceptionHandler($handler = \Mockery::mock(FetchExceptionHandler::class));
 
         $this->setExpectedException(\LogicException::class);
-        $connector->setExceptionHandler([$this, __FUNCTION__]);
+        $connector->setExceptionHandler($handler);
     }
 }

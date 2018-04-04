@@ -294,7 +294,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     {
         $this->specification->setFetchExceptionHandler(
             \Mockery::mock(FetchExceptionHandler::class)
-                ->shouldReceive('reset')
+                ->shouldReceive('initialize')
                     ->once()
                 ->shouldReceive('__invoke')
                     ->times(ImportSpecification::DEFAULT_FETCH_ATTEMPTS - 1)
@@ -323,11 +323,13 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         $this->resource
             ->shouldReceive('fetch')
             ->andReturnUsing(function (ImportConnector $connector) use ($connectorException) {
-                $connector->setExceptionHandler(function (\Exception $exception) use ($connectorException) {
-                    self::assertSame($connectorException, $exception);
+                $connector->setExceptionHandler(new StatelessFetchExceptionHandler(
+                    function (\Exception $exception) use ($connectorException) {
+                        self::assertSame($connectorException, $exception);
 
-                    throw new \RuntimeException('This exception is thrown by the provider handler.');
-                });
+                        throw new \RuntimeException('This exception is thrown by the provider handler.');
+                    }
+                ));
 
                 yield $connector->fetch('foo');
             })

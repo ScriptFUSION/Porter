@@ -10,7 +10,7 @@ class ExponentialSleepFetchExceptionHandler implements FetchExceptionHandler
 {
     private $handler;
 
-    public function reset()
+    public function initialize()
     {
         $this->handler = new ExponentialBackoffExceptionHandler;
     }
