@@ -2,6 +2,7 @@
 namespace ScriptFUSION\Porter\Connector;
 
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
+use ScriptFUSION\Porter\Connector\FetchExceptionHandler\FetchExceptionHandler;
 
 /**
  * Connector whose lifecycle is synchronised with an import operation. Ensures correct ConnectionContext is delivered
@@ -43,9 +44,9 @@ final class ImportConnector
     /**
      * Sets the exception handler to be called when a recoverable exception is thrown by Connector::fetch().
      *
-     * @param callable $exceptionHandler Exception handler.
+     * @param FetchExceptionHandler $exceptionHandler Fetch exception handler.
      */
-    public function setExceptionHandler(callable $exceptionHandler)
+    public function setExceptionHandler(FetchExceptionHandler $exceptionHandler)
     {
         $this->context->setResourceFetchExceptionHandler($exceptionHandler);
     }

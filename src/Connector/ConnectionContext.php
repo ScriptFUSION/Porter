@@ -2,6 +2,7 @@
 namespace ScriptFUSION\Porter\Connector;
 
 use ScriptFUSION\Porter\Connector\FetchExceptionHandler\FetchExceptionHandler;
+use ScriptFUSION\Porter\Connector\FetchExceptionHandler\StatelessFetchExceptionHandler;
 
 /**
  * Specifies runtime connection settings and provides utility methods.
@@ -83,7 +84,7 @@ final class ConnectionContext
      */
     private static function invokeHandler(FetchExceptionHandler &$handler, \Exception $exception, &$cloned)
     {
-        if (!$cloned) {
+        if (!$cloned && !$handler instanceof StatelessFetchExceptionHandler) {
             $handler = clone $handler;
             $handler->initialize();
             $cloned = true;

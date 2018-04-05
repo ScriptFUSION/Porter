@@ -2,10 +2,14 @@
 namespace ScriptFUSIONTest\Integration\Porter\Connector;
 
 use ScriptFUSION\Porter\Connector\ConnectionContext;
+use ScriptFUSION\Porter\Connector\FetchExceptionHandler\StatelessFetchExceptionHandler;
 use ScriptFUSION\Porter\Connector\RecoverableConnectorException;
 use ScriptFUSIONTest\FixtureFactory;
 use ScriptFUSIONTest\Stubs\TestFetchExceptionHandler;
 
+/**
+ * @see ConnectionContext
+ */
 final class ConnectionContextTest extends \PHPUnit_Framework_TestCase
 {
     /**
@@ -20,13 +24,7 @@ final class ConnectionContextTest extends \PHPUnit_Framework_TestCase
         $handler->initialize();
         $initial = $handler->getCurrent();
 
-        $context->retry(static function () {
-            static $invocationCount;
-
-            if (!$invocationCount++) {
-                throw new RecoverableConnectorException;
-            }
-        });
+        $context->retry(self::createExceptionThrowingClosure());
 
         self::assertSame($initial, $handler->getCurrent());
     }
@@ -42,5 +40,50 @@ final class ConnectionContextTest extends \PHPUnit_Framework_TestCase
         // It should be OK to reuse the handler here because the whole point of the test is that it's not modified.
         $context->setResourceFetchExceptionHandler($handler);
         yield 'Resource exception handler' => [$handler, $context];
+    }
+
+    /**
+     * Tests that when retry() is called, a stateless fetch exception handler is neither cloned nor reinitialized.
+     * For stateless handlers, initialization is a NOOP, so avoiding cloning is a small optimization.
+     */
+    public function testStatelessExceptionHandlerNotCloned()
+    {
+        $context = FixtureFactory::buildConnectionContext(
+            false,
+            $handler = new StatelessFetchExceptionHandler(static function () {
+                // Intentionally empty.
+            })
+        );
+
+        $context->retry(self::createExceptionThrowingClosure());
+
+        self::assertSame(
+            $handler,
+            call_user_func(
+                \Closure::bind(
+                    function () {
+                        return $this->fetchExceptionHandler;
+                    },
+                    $context,
+                    $context
+                )
+            )
+        );
+    }
+
+    /**
+     * Creates a closure that only throws an exception on the first invocation.
+     *
+     * @return \Closure
+     */
+    private static function createExceptionThrowingClosure()
+    {
+        return static function () {
+            static $invocationCount;
+
+            if (!$invocationCount++) {
+                throw new RecoverableConnectorException;
+            }
+        };
     }
 }

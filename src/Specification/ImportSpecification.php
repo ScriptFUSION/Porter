@@ -44,7 +44,7 @@ class ImportSpecification
     private $maxFetchAttempts = self::DEFAULT_FETCH_ATTEMPTS;
 
     /**
-     * @var callable
+     * @var FetchExceptionHandler
      */
     private $fetchExceptionHandler;
 
@@ -68,7 +68,7 @@ class ImportSpecification
         ));
 
         is_object($this->context) && $this->context = clone $this->context;
-        is_object($this->fetchExceptionHandler) && $this->fetchExceptionHandler = clone $this->fetchExceptionHandler;
+        $this->fetchExceptionHandler && $this->fetchExceptionHandler = clone $this->fetchExceptionHandler;
     }
 
     /**

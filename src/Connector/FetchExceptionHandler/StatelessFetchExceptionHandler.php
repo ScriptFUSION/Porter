@@ -2,7 +2,7 @@
 namespace ScriptFUSION\Porter\Connector\FetchExceptionHandler;
 
 /**
- * Contains a stateless fetch exception handler that does not respond to reset() calls.
+ * Contains a fetch exception handler that does not have private state and therefore does not require initialization.
  */
 final class StatelessFetchExceptionHandler implements FetchExceptionHandler
 {
