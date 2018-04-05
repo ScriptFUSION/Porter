@@ -4,7 +4,7 @@ namespace ScriptFUSION\Porter\Connector\FetchExceptionHandler;
 /**
  * Contains a fetch exception handler that does not have private state and therefore does not require initialization.
  */
-final class StatelessFetchExceptionHandler implements FetchExceptionHandler
+class StatelessFetchExceptionHandler implements FetchExceptionHandler
 {
     private $handler;
 
@@ -13,12 +13,12 @@ final class StatelessFetchExceptionHandler implements FetchExceptionHandler
         $this->handler = $handler;
     }
 
-    public function initialize()
+    final public function initialize()
     {
         // Intentionally empty.
     }
 
-    public function __invoke(\Exception $exception)
+    final public function __invoke(\Exception $exception)
     {
         call_user_func($this->handler, $exception);
     }
