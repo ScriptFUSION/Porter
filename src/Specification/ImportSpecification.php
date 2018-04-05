@@ -229,8 +229,11 @@ class ImportSpecification
      */
     final public function setMaxFetchAttempts($attempts)
     {
-        // TODO: Consider throwing exception instead of silently constraining bounds.
-        $this->maxFetchAttempts = max(1, $attempts | 0);
+        if (!is_int($attempts) || $attempts < 1) {
+            throw new \InvalidArgumentException('Fetch attempts must be greater than or equal to 1.');
+        }
+
+        $this->maxFetchAttempts = $attempts;
 
         return $this;
     }

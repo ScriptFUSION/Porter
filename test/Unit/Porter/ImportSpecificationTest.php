@@ -114,27 +114,40 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param mixed $input
-     * @param int $output
+     * @param int $value
      *
-     * @dataProvider provideFetchAttempts
+     * @dataProvider provideValidFetchAttempts
      */
-    public function testMaxFetchAttempts($input, $output)
+    public function testValidMaxFetchAttempts($value)
     {
-        self::assertSame($output, $this->specification->setMaxFetchAttempts($input)->getMaxFetchAttempts());
+        self::assertSame($value, $this->specification->setMaxFetchAttempts($value)->getMaxFetchAttempts());
     }
 
-    public function provideFetchAttempts()
+    public function provideValidFetchAttempts()
     {
         return [
-            // Valid.
-            [1, 1],
-            [2, 2],
+            [1],
+            [PHP_INT_MAX],
+        ];
+    }
 
-            // Invalid.
-            'Too low, positive' => [0, 1],
-            'Too low, negative' => [-1, 1],
-            'Float in range' => [1.9, 1],
+    /**
+     * @param mixed $value
+     *
+     * @dataProvider provideInvalidFetchAttempts
+     */
+    public function testInvalidMaxFetchAttempts($value)
+    {
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->specification->setMaxFetchAttempts($value);
+    }
+
+    public function provideInvalidFetchAttempts()
+    {
+        return [
+            'Too low, positive' => [0],
+            'Too low, negative' => [-1],
+            'Float in range' => [1.9],
         ];
     }
 
