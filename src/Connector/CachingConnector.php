@@ -10,7 +10,7 @@ use ScriptFUSION\Porter\Cache\MemoryCache;
 /**
  * Wraps a connector to cache fetched data using PSR-6-compliant objects.
  */
-class CachingConnector implements Connector
+class CachingConnector implements Connector, ConnectorWrapper
 {
     /**
      * @var Connector
@@ -35,6 +35,14 @@ class CachingConnector implements Connector
         $this->connector = $connector;
         $this->cache = $cache ?: new MemoryCache;
         $this->cacheKeyGenerator = $cacheKeyGenerator ?: new JsonCacheKeyGenerator;
+    }
+
+    public function __clone()
+    {
+        $this->connector = clone $this->connector;
+
+        /* It doesn't make sense to clone the cache because we want cache state to be shared between imports.
+           We're also not cloning the CacheKeyGenerator because they're expected to be stateless algorithms. */
     }
 
     /**
@@ -86,5 +94,10 @@ class CachingConnector implements Connector
                 CacheKeyGenerator::RESERVED_CHARACTERS
             ));
         }
+    }
+
+    public function getWrappedConnector()
+    {
+        return $this->connector;
     }
 }

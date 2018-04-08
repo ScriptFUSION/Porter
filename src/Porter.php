@@ -119,7 +119,7 @@ class Porter
             );
         }
 
-        $records = $resource->fetch(new ImportConnector(clone $connector, $context));
+        $records = $resource->fetch(new ImportConnector($connector, $context));
 
         if (!$records instanceof \Iterator) {
             throw new ImportException(get_class($resource) . '::fetch() did not return an Iterator.');

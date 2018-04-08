@@ -10,7 +10,7 @@ use ScriptFUSION\Porter\Connector\FetchExceptionHandler\FetchExceptionHandler;
  *
  * Do not store references to this connector that would prevent it expiring when an import operation ends.
  */
-final class ImportConnector
+final class ImportConnector implements ConnectorWrapper
 {
     private $connector;
 
@@ -22,7 +22,7 @@ final class ImportConnector
             throw CacheUnavailableException::createUnsupported();
         }
 
-        $this->connector = $connector;
+        $this->connector = clone $connector;
         $this->context = $context;
     }
 
@@ -34,11 +34,27 @@ final class ImportConnector
     /**
      * Gets the wrapped connector. Useful for resources to reconfigure connector options during this import.
      *
-     * @return Connector
+     * @return Connector Wrapped connector.
      */
     public function getWrappedConnector()
     {
         return $this->connector;
+    }
+
+    /**
+     * Finds the base connector by traversing the stack of wrapped connectors.
+     *
+     * @return Connector Base connector.
+     */
+    public function findBaseConnector()
+    {
+        $connector = $this->connector;
+
+        while ($connector instanceof ConnectorWrapper) {
+            $connector = $connector->getWrappedConnector();
+        }
+
+        return $connector;
     }
 
     /**

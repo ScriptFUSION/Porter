@@ -55,7 +55,7 @@ final class ImportConnectorTest extends \PHPUnit_Framework_TestCase
     public function testFetchCacheEnabled()
     {
         $connector = new ImportConnector(
-            \Mockery::mock(CachingConnector::class)
+            \Mockery::mock(CachingConnector::class, [\Mockery::mock(Connector::class)])
                 ->shouldReceive('fetch')
                 ->andReturn($output = 'foo')
                 ->getMock(),
@@ -79,7 +79,7 @@ final class ImportConnectorTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Tests that getting the wrapped connector returns exactly the same connector as constructed with.
+     * Tests that getting the wrapped connector returns a clone of the original connector passed to the constructor.
      */
     public function testGetWrappedConnector()
     {
@@ -88,7 +88,8 @@ final class ImportConnectorTest extends \PHPUnit_Framework_TestCase
             FixtureFactory::buildConnectionContext()
         );
 
-        self::assertSame($wrappedConnector, $connector->getWrappedConnector());
+        self::assertNotSame($wrappedConnector, $connector->getWrappedConnector());
+        self::assertSame(get_class($wrappedConnector), get_class($connector->getWrappedConnector()));
     }
 
     /**

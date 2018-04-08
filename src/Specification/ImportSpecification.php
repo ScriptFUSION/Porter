@@ -80,7 +80,7 @@ class ImportSpecification
     }
 
     /**
-     * Gets the provider name.
+     * Gets the provider service name.
      *
      * @return string Provider name.
      */
@@ -90,7 +90,7 @@ class ImportSpecification
     }
 
     /**
-     * Sets the provider name.
+     * Sets the provider service name.
      *
      * @param string $providerName Provider name.
      *
@@ -211,7 +211,7 @@ class ImportSpecification
     }
 
     /**
-     * Gets the maximum number of fetch attempts per import.
+     * Gets the maximum number of fetch attempts per connection.
      *
      * @return int Maximum fetch attempts.
      */
@@ -221,7 +221,7 @@ class ImportSpecification
     }
 
     /**
-     * Sets the maximum number of fetch attempts per import.
+     * Sets the maximum number of fetch attempts per connection before failure is considered permanent.
      *
      * @param int $attempts Maximum fetch attempts.
      *
