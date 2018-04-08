@@ -13,8 +13,8 @@ final class StaticDataImportSpecificationTest extends \PHPUnit_Framework_TestCas
     public function test()
     {
         $records = (new Porter(\Mockery::spy(ContainerInterface::class)))
-            ->import(new StaticDataImportSpecification(new \ArrayIterator(['foo'])));
+            ->import(new StaticDataImportSpecification(new \ArrayIterator([$output = ['foo']])));
 
-        self::assertSame('foo', $records->current());
+        self::assertSame($output, $records->current());
     }
 }

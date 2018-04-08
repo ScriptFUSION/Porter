@@ -44,7 +44,7 @@ final class MockFactory
                 ->andReturn(get_class($provider))
             ->shouldReceive('fetch')
                 ->andReturnUsing(function (ImportConnector $connector) {
-                    return new \ArrayIterator([$connector->fetch('foo')]);
+                    return new \ArrayIterator([[$connector->fetch('foo')]]);
                 })
                 ->byDefault()
             ->getMock()

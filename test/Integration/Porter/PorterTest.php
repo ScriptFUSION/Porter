@@ -82,7 +82,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
         self::assertInstanceOf(PorterRecords::class, $records);
         self::assertNotSame($this->specification, $records->getSpecification(), 'Specification was not cloned.');
-        self::assertSame('foo', $records->current());
+        self::assertSame(['foo'], $records->current());
 
         /** @var ProviderRecords $previous */
         self::assertInstanceOf(ProviderRecords::class, $previous = $records->getPreviousCollection());
@@ -167,7 +167,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         );
 
         $records = $this->porter->import(
-            (new ImportSpecification(MockFactory::mockResource($provider, new \ArrayIterator([$output = 'bar']))))
+            (new ImportSpecification(MockFactory::mockResource($provider, new \ArrayIterator([$output = ['bar']]))))
                 ->setProviderName($providerName)
         );
 
@@ -212,7 +212,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     {
         $result = $this->porter->importOne($this->specification);
 
-        self::assertSame('foo', $result);
+        self::assertSame(['foo'], $result);
     }
 
     public function testImportOneOfNone()
@@ -226,7 +226,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     public function testImportOneOfMany()
     {
-        $this->resource->shouldReceive('fetch')->andReturn(new \ArrayIterator(['foo', 'bar']));
+        $this->resource->shouldReceive('fetch')->andReturn(new \ArrayIterator([['foo'], ['bar']]));
 
         $this->setExpectedException(ImportException::class);
         $this->porter->importOne($this->specification);
@@ -343,17 +343,23 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     public function testFilter()
     {
-        $this->resource->shouldReceive('fetch')->andReturn(new \ArrayIterator(range(1, 10)));
+        $this->resource->shouldReceive('fetch')->andReturnUsing(
+            static function () {
+                foreach (range(1, 10) as $i) {
+                    yield [$i];
+                }
+            }
+        );
 
         $records = $this->porter->import(
             $this->specification
                 ->addTransformer(new FilterTransformer($filter = function ($record) {
-                    return $record % 2;
+                    return $record[0] % 2;
                 }))
         );
 
         self::assertInstanceOf(PorterRecords::class, $records);
-        self::assertSame([1, 3, 5, 7, 9], iterator_to_array($records));
+        self::assertSame([[1], [3], [5], [7], [9]], iterator_to_array($records));
 
         /** @var FilteredRecords $previous */
         self::assertInstanceOf(FilteredRecords::class, $previous = $records->getPreviousCollection());
