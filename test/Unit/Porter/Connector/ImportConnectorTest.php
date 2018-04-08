@@ -4,6 +4,7 @@ namespace ScriptFUSIONTest\Unit\Porter\Connector;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Connector\CachingConnector;
 use ScriptFUSION\Porter\Connector\Connector;
+use ScriptFUSION\Porter\Connector\ConnectorWrapper;
 use ScriptFUSION\Porter\Connector\FetchExceptionHandler\FetchExceptionHandler;
 use ScriptFUSION\Porter\Connector\ImportConnector;
 use ScriptFUSIONTest\FixtureFactory;
@@ -106,5 +107,21 @@ final class ImportConnectorTest extends \PHPUnit_Framework_TestCase
 
         $this->setExpectedException(\LogicException::class);
         $connector->setExceptionHandler($handler);
+    }
+
+    /**
+     * Tests that finding the base connector returns the connector at the bottom of a ConnectorWrapper stack.
+     */
+    public function testFindBaseConnector()
+    {
+        $connector = new ImportConnector(
+            \Mockery::mock(Connector::class, ConnectorWrapper::class)
+                ->shouldReceive('getWrappedConnector')
+                    ->andReturn($baseConnector = \Mockery::mock(Connector::class))
+                ->getMock(),
+            FixtureFactory::buildConnectionContext()
+        );
+
+        self::assertSame($baseConnector, $connector->findBaseConnector());
     }
 }

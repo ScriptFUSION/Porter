@@ -15,6 +15,9 @@ use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 use ScriptFUSIONTest\FixtureFactory;
 use ScriptFUSIONTest\Stubs\TestOptions;
 
+/**
+ * @see CachingConnector
+ */
 final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
 {
     use MockeryPHPUnitIntegration;
@@ -191,6 +194,24 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
 
         $this->setExpectedException(InvalidCacheKeyException::class, 'contains one or more reserved characters');
         $connector->fetch($this->context, 'baz');
+    }
+
+    /**
+     * Tests that getting the wrapped connector returns exactly the same connector as constructed with.
+     */
+    public function testGetWrappedConnector()
+    {
+        self::assertSame($this->wrappedConnector, $this->connector->getWrappedConnector());
+    }
+
+    /**
+     * Tests that cloning the caching connector also clones the wrapped connector.
+     */
+    public function testClone()
+    {
+        $clone = clone $this->connector;
+
+        self::assertNotSame($this->wrappedConnector, $clone->getWrappedConnector());
     }
 
     private function createConnector(MockInterface $cache = null, MockInterface $cacheKeyGenerator = null)
