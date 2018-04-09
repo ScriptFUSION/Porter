@@ -1,15 +1,17 @@
 <?php
 namespace ScriptFUSION\Porter;
 
-use ScriptFUSION\Porter\Cache\CacheAdvice;
-use ScriptFUSION\Porter\Cache\CacheToggle;
-use ScriptFUSION\Porter\Cache\CacheUnavailableException;
+use Psr\Container\ContainerInterface;
 use ScriptFUSION\Porter\Collection\CountablePorterRecords;
 use ScriptFUSION\Porter\Collection\CountableProviderRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
-use ScriptFUSION\Porter\Connector\RecoverableConnectorException;
+use ScriptFUSION\Porter\Connector\ConnectionContext;
+use ScriptFUSION\Porter\Connector\ConnectionContextFactory;
+use ScriptFUSION\Porter\Connector\ConnectorOptions;
+use ScriptFUSION\Porter\Connector\ImportConnector;
+use ScriptFUSION\Porter\Provider\ForeignResourceException;
 use ScriptFUSION\Porter\Provider\ObjectNotCreatedException;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\ProviderFactory;
@@ -18,26 +20,36 @@ use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\Porter\Transform\Transformer;
 
 /**
- * Imports data according to an ImportSpecification.
+ * Imports data from a provider defined in the providers container or internal factory.
  */
 class Porter
 {
     /**
-     * @var Provider[]
+     * @var ContainerInterface Container of user-defined providers.
      */
     private $providers;
 
     /**
-     * @var ProviderFactory
+     * @var ProviderFactory Internal factory of first-party providers.
      */
     private $providerFactory;
+
+    /**
+     * Initializes this instance with the specified container of providers.
+     *
+     * @param ContainerInterface $providers Container of providers.
+     */
+    public function __construct(ContainerInterface $providers)
+    {
+        $this->providers = $providers;
+    }
 
     /**
      * Imports data according to the design of the specified import specification.
      *
      * @param ImportSpecification $specification Import specification.
      *
-     * @return PorterRecords
+     * @return PorterRecords|CountablePorterRecords
      *
      * @throws ImportException Provider failed to return an iterator.
      */
@@ -47,9 +59,8 @@ class Porter
 
         $records = $this->fetch(
             $specification->getResource(),
-            $specification->getCacheAdvice(),
-            $specification->getMaxFetchAttempts(),
-            $specification->getFetchExceptionHandler()
+            $specification->getProviderName(),
+            ConnectionContextFactory::create($specification)
         );
 
         if (!$records instanceof ProviderRecords) {
@@ -87,35 +98,34 @@ class Porter
         return $one;
     }
 
-    private function fetch(ProviderResource $resource, CacheAdvice $cacheAdvice, $fetchAttempts, $fetchExceptionHandler)
+    private function fetch(ProviderResource $resource, $providerName, ConnectionContext $context)
     {
-        $provider = $this->getProvider($resource->getProviderClassName(), $resource->getProviderTag());
+        $provider = $this->getProvider($providerName ?: $resource->getProviderClassName());
 
-        $this->applyCacheAdvice($provider, $cacheAdvice);
-
-        if (($records = \ScriptFUSION\Retry\retry(
-            $fetchAttempts,
-            function () use ($provider, $resource) {
-                if (($records = $provider->fetch($resource)) instanceof \Iterator) {
-                    // Force generator to run until first yield to provoke an exception.
-                    $records->valid();
-                }
-
-                return $records;
-            },
-            function (\Exception $exception) use ($fetchExceptionHandler) {
-                // Throw exception if unrecoverable.
-                if (!$exception instanceof RecoverableConnectorException) {
-                    throw $exception;
-                }
-
-                $fetchExceptionHandler($exception);
-            }
-        )) instanceof \Iterator) {
-            return $records;
+        if ($resource->getProviderClassName() !== get_class($provider)) {
+            throw new ForeignResourceException(sprintf(
+                'Cannot fetch data from foreign resource: "%s".',
+                get_class($resource)
+            ));
         }
 
-        throw new ImportException(get_class($provider) . '::fetch() did not return an Iterator.');
+        $connector = $provider->getConnector();
+
+        /* __clone method cannot be specified in interface due to Mockery limitation.
+           See https://github.com/mockery/mockery/issues/669 */
+        if ($connector instanceof ConnectorOptions && !method_exists($connector, '__clone')) {
+            throw new \LogicException(
+                'Connector with options must implement __clone() method to deep clone options.'
+            );
+        }
+
+        $records = $resource->fetch(new ImportConnector($connector, $context));
+
+        if (!$records instanceof \Iterator) {
+            throw new ImportException(get_class($resource) . '::fetch() did not return an Iterator.');
+        }
+
+        return $records;
     }
 
     /**
@@ -156,108 +166,26 @@ class Porter
         return new PorterRecords($records, $specification);
     }
 
-    private function applyCacheAdvice(Provider $provider, CacheAdvice $cacheAdvice)
-    {
-        try {
-            if (!$provider instanceof CacheToggle) {
-                throw CacheUnavailableException::modify();
-            }
-
-            switch ("$cacheAdvice") {
-                case CacheAdvice::MUST_CACHE:
-                case CacheAdvice::SHOULD_CACHE:
-                    $provider->enableCache();
-                    break;
-
-                case CacheAdvice::MUST_NOT_CACHE:
-                case CacheAdvice::SHOULD_NOT_CACHE:
-                    $provider->disableCache();
-            }
-        } catch (CacheUnavailableException $exception) {
-            if ($cacheAdvice === CacheAdvice::MUST_NOT_CACHE() ||
-                $cacheAdvice === CacheAdvice::MUST_CACHE()
-            ) {
-                throw $exception;
-            }
-        }
-    }
-
     /**
-     * Registers the specified provider optionally identified by the specified tag.
+     * Gets the provider matching the specified name.
      *
-     * @param Provider $provider Provider.
-     * @param string|null $tag Optional. Provider tag.
-     *
-     * @return $this
-     *
-     * @throws ProviderAlreadyRegisteredException The specified provider is already registered.
-     */
-    public function registerProvider(Provider $provider, $tag = null)
-    {
-        if ($this->hasProvider($name = get_class($provider), $tag)) {
-            throw new ProviderAlreadyRegisteredException("Provider already registered: \"$name\" with tag \"$tag\".");
-        }
-
-        $this->providers[$this->hashProviderName($name, $tag)] = $provider;
-
-        return $this;
-    }
-
-    /**
-     * Gets the provider matching the specified class name and optionally a tag.
-     *
-     * @param string $name Provider class name.
-     * @param string|null $tag Optional. Provider tag.
+     * @param string $name Provider name.
      *
      * @return Provider
      *
      * @throws ProviderNotFoundException The specified provider was not found.
      */
-    public function getProvider($name, $tag = null)
+    private function getProvider($name)
     {
-        if ($this->hasProvider($name, $tag)) {
-            return $this->providers[$this->hashProviderName($name, $tag)];
+        if ($this->providers->has($name)) {
+            return $this->providers->get($name);
         }
 
         try {
-            // Tags are not supported for lazy-loaded providers because every instance would be the same.
-            if ($tag === null) {
-                $this->registerProvider($provider = $this->getOrCreateProviderFactory()->createProvider("$name"));
-
-                return $provider;
-            }
+            return $this->getOrCreateProviderFactory()->createProvider("$name");
         } catch (ObjectNotCreatedException $exception) {
-            // We will throw our own exception.
+            throw new ProviderNotFoundException("No such provider registered: \"$name\".", $exception);
         }
-
-        throw new ProviderNotFoundException(
-            "No such provider registered: \"$name\" with tag \"$tag\".",
-            isset($exception) ? $exception : null
-        );
-    }
-
-    /**
-     * Gets a value indicating whether the specified provider is registered.
-     *
-     * @param string $name Provider class name.
-     * @param string|null $tag Optional. Provider tag.
-     *
-     * @return bool True if the specified provider is registered, otherwise false.
-     */
-    public function hasProvider($name, $tag = null)
-    {
-        return isset($this->providers[$this->hashProviderName($name, $tag)]);
-    }
-
-    /**
-     * @param string $name Provider class name.
-     * @param string|null $tag Provider tag.
-     *
-     * @return string Provider identifier hash.
-     */
-    private function hashProviderName($name, $tag)
-    {
-        return "$name#$tag";
     }
 
     private function getOrCreateProviderFactory()

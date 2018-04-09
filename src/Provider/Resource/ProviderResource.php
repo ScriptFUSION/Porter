@@ -1,8 +1,7 @@
 <?php
 namespace ScriptFUSION\Porter\Provider\Resource;
 
-use ScriptFUSION\Porter\Connector\Connector;
-use ScriptFUSION\Porter\Options\EncapsulatedOptions;
+use ScriptFUSION\Porter\Connector\ImportConnector;
 
 /**
  * Defines methods for fetching data from a specific provider resource.
@@ -17,20 +16,11 @@ interface ProviderResource
     public function getProviderClassName();
 
     /**
-     * Gets the provider identifier tag.
+     * Fetches data from the provider using the the specified connector and presents its data as an enumerable series.
      *
-     * @return string|null Provider tag.
-     */
-    public function getProviderTag();
-
-    /**
-     * Fetches data from the provider using the the specified connector and
-     * presents its data as an enumerable series.
-     *
-     * @param Connector $connector Connector.
-     * @param EncapsulatedOptions $options Optional. Options.
+     * @param ImportConnector $connector Connector.
      *
      * @return \Iterator Enumerable data series.
      */
-    public function fetch(Connector $connector, EncapsulatedOptions $options = null);
+    public function fetch(ImportConnector $connector);
 }

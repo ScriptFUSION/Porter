@@ -1,13 +1,15 @@
 <?php
 namespace ScriptFUSIONTest\Unit\Porter;
 
-use ScriptFUSION\Porter\Cache\CacheAdvice;
+use ScriptFUSION\Porter\Connector\FetchExceptionHandler\FetchExceptionHandler;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Specification\DuplicateTransformerException;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\Porter\Transform\Transformer;
-use ScriptFUSIONTest\Stubs\Invokable;
 
+/**
+ * @see ImportSpecification
+ */
 final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
 {
     /** @var ImportSpecification */
@@ -28,7 +30,7 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
         $this->specification
             ->addTransformer(\Mockery::mock(Transformer::class))
             ->setContext($context = (object)[])
-            ->setFetchExceptionHandler($handler = new Invokable)
+            ->setFetchExceptionHandler($handler = \Mockery::mock(FetchExceptionHandler::class))
         ;
 
         $specification = clone $this->specification;
@@ -49,9 +51,14 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
         self::assertNotSame($handler, $specification->getFetchExceptionHandler());
     }
 
-    public function testProviderData()
+    public function testGetResource()
     {
         self::assertSame($this->resource, $this->specification->getResource());
+    }
+
+    public function testProviderName()
+    {
+        self::assertSame($name = 'foo', $this->specification->setProviderName($name)->getProviderName());
     }
 
     public function testAddTransformer()
@@ -92,46 +99,62 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
 
     public function testContext()
     {
-        self::assertSame('foo', $this->specification->setContext('foo')->getContext());
+        self::assertSame($context = 'foo', $this->specification->setContext($context)->getContext());
     }
 
-    public function testCacheAdvice()
+    public function testCache()
     {
-        self::assertSame(
-            $advice = CacheAdvice::MUST_CACHE(),
-            $this->specification->setCacheAdvice($advice)->getCacheAdvice()
-        );
+        self::assertFalse($this->specification->mustCache());
+
+        $this->specification->enableCache();
+        self::assertTrue($this->specification->mustCache());
+
+        $this->specification->disableCache();
+        self::assertFalse($this->specification->mustCache());
     }
 
     /**
-     * @param mixed $input
-     * @param int $output
+     * @param int $value
      *
-     * @dataProvider provideFetchAttempts
+     * @dataProvider provideValidFetchAttempts
      */
-    public function testMaxFetchAttempts($input, $output)
+    public function testValidMaxFetchAttempts($value)
     {
-        self::assertSame($output, $this->specification->setMaxFetchAttempts($input)->getMaxFetchAttempts());
+        self::assertSame($value, $this->specification->setMaxFetchAttempts($value)->getMaxFetchAttempts());
     }
 
-    public function provideFetchAttempts()
+    public function provideValidFetchAttempts()
     {
         return [
-            // Valid.
-            [1, 1],
-            [2, 2],
+            [1],
+            [PHP_INT_MAX],
+        ];
+    }
 
-            // Invalid.
-            'Too low, positive' => [0, 1],
-            'Too low, negative' => [-1, 1],
-            'Float in range' => [1.9, 1],
+    /**
+     * @param mixed $value
+     *
+     * @dataProvider provideInvalidFetchAttempts
+     */
+    public function testInvalidMaxFetchAttempts($value)
+    {
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->specification->setMaxFetchAttempts($value);
+    }
+
+    public function provideInvalidFetchAttempts()
+    {
+        return [
+            'Too low, positive' => [0],
+            'Too low, negative' => [-1],
+            'Float in range' => [1.9],
         ];
     }
 
     public function testExceptionHandler()
     {
         self::assertSame(
-            $handler = new Invokable,
+            $handler = \Mockery::mock(FetchExceptionHandler::class),
             $this->specification->setFetchExceptionHandler($handler)->getFetchExceptionHandler()
         );
     }

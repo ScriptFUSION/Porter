@@ -1,10 +1,10 @@
 <?php
 namespace ScriptFUSION\Porter\Specification;
 
-use ScriptFUSION\Porter\Cache\CacheAdvice;
+use ScriptFUSION\Porter\Connector\FetchExceptionHandler\ExponentialSleepFetchExceptionHandler;
+use ScriptFUSION\Porter\Connector\FetchExceptionHandler\FetchExceptionHandler;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Transform\Transformer;
-use ScriptFUSION\Retry\ExceptionHandler\ExponentialBackoffExceptionHandler;
 
 /**
  * Specifies which resource to import and how the data should be transformed.
@@ -19,6 +19,11 @@ class ImportSpecification
     private $resource;
 
     /**
+     * @var string
+     */
+    private $providerName;
+
+    /**
      * @var Transformer[]
      */
     private $transformers;
@@ -29,14 +34,9 @@ class ImportSpecification
     private $context;
 
     /**
-     * @var CacheAdvice|null
+     * @var bool
      */
-    private $cacheAdvice;
-
-    /**
-     * @var CacheAdvice
-     */
-    private $defaultCacheAdvice;
+    private $mustCache = false;
 
     /**
      * @var int
@@ -44,7 +44,7 @@ class ImportSpecification
     private $maxFetchAttempts = self::DEFAULT_FETCH_ATTEMPTS;
 
     /**
-     * @var callable
+     * @var FetchExceptionHandler
      */
     private $fetchExceptionHandler;
 
@@ -53,7 +53,6 @@ class ImportSpecification
         $this->resource = $resource;
 
         $this->clearTransformers();
-        $this->defaultCacheAdvice = CacheAdvice::SHOULD_NOT_CACHE();
     }
 
     public function __clone()
@@ -69,7 +68,7 @@ class ImportSpecification
         ));
 
         is_object($this->context) && $this->context = clone $this->context;
-        is_object($this->fetchExceptionHandler) && $this->fetchExceptionHandler = clone $this->fetchExceptionHandler;
+        $this->fetchExceptionHandler && $this->fetchExceptionHandler = clone $this->fetchExceptionHandler;
     }
 
     /**
@@ -81,6 +80,32 @@ class ImportSpecification
     }
 
     /**
+     * Gets the provider service name.
+     *
+     * @return string Provider name.
+     */
+    final public function getProviderName()
+    {
+        return $this->providerName;
+    }
+
+    /**
+     * Sets the provider service name.
+     *
+     * @param string $providerName Provider name.
+     *
+     * @return $this
+     */
+    final public function setProviderName($providerName)
+    {
+        $this->providerName = "$providerName";
+
+        return $this;
+    }
+
+    /**
+     * Gets the ordered list of transformers.
+     *
      * @return Transformer[]
      */
     final public function getTransformers()
@@ -158,27 +183,35 @@ class ImportSpecification
     }
 
     /**
-     * @return CacheAdvice
+     * @return bool
      */
-    final public function getCacheAdvice()
+    final public function mustCache()
     {
-        return $this->cacheAdvice ?: $this->defaultCacheAdvice;
+        return $this->mustCache;
     }
 
     /**
-     * @param CacheAdvice $cacheAdvice
-     *
      * @return $this
      */
-    final public function setCacheAdvice(CacheAdvice $cacheAdvice)
+    final public function enableCache()
     {
-        $this->cacheAdvice = $cacheAdvice;
+        $this->mustCache = true;
 
         return $this;
     }
 
     /**
-     * Gets the maximum number of fetch attempts per import.
+     * @return $this
+     */
+    final public function disableCache()
+    {
+        $this->mustCache = false;
+
+        return $this;
+    }
+
+    /**
+     * Gets the maximum number of fetch attempts per connection.
      *
      * @return int Maximum fetch attempts.
      */
@@ -188,7 +221,7 @@ class ImportSpecification
     }
 
     /**
-     * Sets the maximum number of fetch attempts per import.
+     * Sets the maximum number of fetch attempts per connection before failure is considered permanent.
      *
      * @param int $attempts Maximum fetch attempts.
      *
@@ -196,7 +229,11 @@ class ImportSpecification
      */
     final public function setMaxFetchAttempts($attempts)
     {
-        $this->maxFetchAttempts = max(1, $attempts | 0);
+        if (!is_int($attempts) || $attempts < 1) {
+            throw new \InvalidArgumentException('Fetch attempts must be greater than or equal to 1.');
+        }
+
+        $this->maxFetchAttempts = $attempts;
 
         return $this;
     }
@@ -204,21 +241,21 @@ class ImportSpecification
     /**
      * Gets the exception handler invoked each time a fetch attempt fails.
      *
-     * @return callable Exception handler.
+     * @return FetchExceptionHandler Fetch exception handler.
      */
     final public function getFetchExceptionHandler()
     {
-        return $this->fetchExceptionHandler ?: $this->fetchExceptionHandler = new ExponentialBackoffExceptionHandler;
+        return $this->fetchExceptionHandler ?: $this->fetchExceptionHandler = new ExponentialSleepFetchExceptionHandler;
     }
 
     /**
      * Sets the exception handler invoked each time a fetch attempt fails.
      *
-     * @param callable $fetchExceptionHandler Exception handler.
+     * @param FetchExceptionHandler $fetchExceptionHandler Fetch exception handler.
      *
      * @return $this
      */
-    final public function setFetchExceptionHandler(callable $fetchExceptionHandler)
+    final public function setFetchExceptionHandler(FetchExceptionHandler $fetchExceptionHandler)
     {
         $this->fetchExceptionHandler = $fetchExceptionHandler;
 

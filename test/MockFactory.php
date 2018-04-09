@@ -2,33 +2,58 @@
 namespace ScriptFUSIONTest;
 
 use Mockery\MockInterface;
+use ScriptFUSION\Porter\Connector\Connector;
+use ScriptFUSION\Porter\Connector\ImportConnector;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
-use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\StaticClass;
 
 final class MockFactory
 {
     use StaticClass;
 
-    public static function mockImportSpecification(ProviderResource $resource = null)
+    /**
+     * @return Provider|MockInterface
+     */
+    public static function mockProvider()
     {
-        return \Mockery::mock(ImportSpecification::class, [$resource ?: \Mockery::mock(ProviderResource::class)]);
+        return \Mockery::namedMock(uniqid(Provider::class, false), Provider::class)
+            ->shouldReceive('getConnector')
+                ->andReturn(
+                    \Mockery::mock(Connector::class)
+                        ->shouldReceive('fetch')
+                        ->andReturn('foo')
+                        ->getMock()
+                        ->byDefault()
+                )
+                ->byDefault()
+            ->getMock()
+        ;
     }
 
     /**
      * @param Provider $provider
+     * @param \Iterator $return
      *
-     * @return MockInterface|ProviderResource
+     * @return ProviderResource|MockInterface
      */
-    public static function mockResource(Provider $provider)
+    public static function mockResource(Provider $provider, \Iterator $return = null)
     {
-        return \Mockery::mock(ProviderResource::class)
+        $resource = \Mockery::mock(ProviderResource::class)
             ->shouldReceive('getProviderClassName')
-            ->andReturn(get_class($provider))
-            ->shouldReceive('getProviderTag')
-            ->andReturn(null)
-            ->byDefault()
-            ->getMock();
+                ->andReturn(get_class($provider))
+            ->shouldReceive('fetch')
+                ->andReturnUsing(function (ImportConnector $connector) {
+                    return new \ArrayIterator([[$connector->fetch('foo')]]);
+                })
+                ->byDefault()
+            ->getMock()
+        ;
+
+        if ($return !== null) {
+            $resource->shouldReceive('fetch')->andReturn($return);
+        }
+
+        return $resource;
     }
 }

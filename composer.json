@@ -10,12 +10,10 @@
   "license": "LGPL-3.0",
   "require": {
     "php": "^5.5|^7",
-    "connectors/http": "^1",
-    "connectors/soap": "^1",
     "scriptfusion/static-class": "^1",
     "scriptfusion/retry": "^1.1",
-    "scriptfusion/retry-exception-handlers": "^1",
-    "eloquent/enumeration": "^5",
+    "scriptfusion/retry-exception-handlers": "^1.1",
+    "psr/container": "^1",
     "psr/cache": "^1"
   },
   "require-dev": {
@@ -23,7 +21,8 @@
     "mockery/mockery": "^0.9.4"
   },
   "suggest" : {
-    "transformers/mapping": "Transforms array collections using Mappings."
+    "connectors/http": "Provides an HTTP connector for Porter providers.",
+    "transformers/mapping-transformer": "Transforms records using Mappings."
   },
   "autoload": {
     "psr-4": {
@@ -37,10 +36,5 @@
   },
   "scripts": {
     "test": "phpunit -c test"
-  },
-  "extra": {
-    "branch-alias": {
-      "dev-master": "3-dev"
-    }
   }
 }

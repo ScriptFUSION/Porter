@@ -3,10 +3,17 @@ namespace ScriptFUSION\Porter\Provider;
 
 use ScriptFUSION\Porter\Connector\NullConnector;
 
-class StaticDataProvider extends AbstractProvider
+class StaticDataProvider implements Provider
 {
+    private $connector;
+
     public function __construct()
     {
-        parent::__construct(new NullConnector);
+        $this->connector = new NullConnector;
+    }
+
+    public function getConnector()
+    {
+        return $this->connector;
     }
 }

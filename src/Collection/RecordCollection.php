@@ -10,32 +10,54 @@ abstract class RecordCollection implements \Iterator
 
     private $previousCollection;
 
-    public function __construct(\Iterator $records, RecordCollection $previousCollection = null)
+    public function __construct(\Iterator $records, self $previousCollection = null)
     {
         $this->records = $records;
         $this->previousCollection = $previousCollection;
     }
 
+    /**
+     * @return array
+     */
     public function current()
     {
-        return $this->records->current();
+        $current = $this->records->current();
+
+        // TODO: Consider removing when dropping PHP 5 support (replace with type hint).
+        if (!is_array($current)) {
+            throw new \RuntimeException('Record collection did not return an array.');
+        }
+
+        return $current;
     }
 
+    /**
+     * @return void
+     */
     public function next()
     {
         $this->records->next();
     }
 
+    /**
+     * @return mixed
+     */
     public function key()
     {
         return $this->records->key();
     }
 
+    /**
+     * @return bool
+     */
     public function valid()
     {
         return $this->records->valid();
     }
 
+    /**
+     * @return void
+     */
     public function rewind()
     {
         $this->records->rewind();

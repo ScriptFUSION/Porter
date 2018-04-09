@@ -7,151 +7,128 @@ use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use ScriptFUSION\Porter\Cache\CacheKeyGenerator;
 use ScriptFUSION\Porter\Cache\InvalidCacheKeyException;
-use ScriptFUSION\Porter\Cache\JsonCacheKeyGenerator;
-use ScriptFUSION\Porter\Cache\MemoryCache;
 use ScriptFUSION\Porter\Connector\CachingConnector;
+use ScriptFUSION\Porter\Connector\ConnectionContext;
+use ScriptFUSION\Porter\Connector\Connector;
+use ScriptFUSION\Porter\Connector\ConnectorOptions;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
+use ScriptFUSIONTest\FixtureFactory;
 use ScriptFUSIONTest\Stubs\TestOptions;
 
+/**
+ * @see CachingConnector
+ */
 final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
 {
     use MockeryPHPUnitIntegration;
 
-    /** @var CachingConnector|MockInterface $connector */
+    /**
+     * @var CachingConnector $connector
+     */
     private $connector;
 
-    /** @var TestOptions */
+    /**
+     * @var Connector|ConnectorOptions|MockInterface
+     */
+    private $wrappedConnector;
+
+    /**
+     * @var ConnectionContext
+     */
+    private $context;
+
+    /**
+     * @var TestOptions
+     */
     private $options;
 
     protected function setUp()
     {
-        $this->connector = \Mockery::mock(CachingConnector::class, [])->makePartial()
-            ->shouldReceive('fetchFreshData')
-            ->andReturn('foo', 'bar')
-            ->getMock();
-
         $this->options = new TestOptions;
+
+        $this->connector = new CachingConnector(
+            $this->wrappedConnector = \Mockery::mock(Connector::class, ConnectorOptions::class)
+                ->shouldReceive('fetch')
+                    ->andReturn('foo', 'bar')
+                ->shouldReceive('getOptions')
+                    ->andReturn($this->options)
+                    ->byDefault()
+                ->shouldReceive('clone')
+                    ->andReturn(null)
+                ->getMock()
+        );
+
+        $this->context = FixtureFactory::buildConnectionContext(true);
     }
 
+    /**
+     * Tests that when cache is enabled, the same result is returned because the wrapped connector is bypassed.
+     */
     public function testCacheEnabled()
     {
-        self::assertSame('foo', $this->connector->fetch('baz', $this->options));
-        self::assertSame('foo', $this->connector->fetch('baz', $this->options));
+        self::assertSame('foo', $this->connector->fetch($this->context, 'baz'));
+        self::assertSame('foo', $this->connector->fetch($this->context, 'baz'));
     }
 
+    /**
+     * Tests that when cache is disabled, different results are returned from the wrapped connector.
+     */
     public function testCacheDisabled()
     {
-        $this->connector->disableCache();
+        // The default connection context has caching disabled.
+        $context = FixtureFactory::buildConnectionContext();
 
-        self::assertSame('foo', $this->connector->fetch('baz', $this->options));
-        self::assertSame('bar', $this->connector->fetch('baz', $this->options));
+        self::assertSame('foo', $this->connector->fetch($context, 'baz'));
+        self::assertSame('bar', $this->connector->fetch($context, 'baz'));
     }
 
-    public function testGetSetCache()
-    {
-        self::assertInstanceOf(CacheItemPoolInterface::class, $this->connector->getCache());
-        self::assertNotSame($cache = new MemoryCache, $this->connector->getCache());
-
-        $this->connector->setCache($cache);
-        self::assertSame($cache, $this->connector->getCache());
-    }
-
-    public function testGetSetCacheKeyGenerator()
-    {
-        self::assertInstanceOf(CacheKeyGenerator::class, $this->connector->getCacheKeyGenerator());
-        self::assertNotSame($cacheKeyGenerator = new JsonCacheKeyGenerator, $this->connector->getCacheKeyGenerator());
-
-        $this->connector->setCacheKeyGenerator($cacheKeyGenerator);
-        self::assertSame($cacheKeyGenerator, $this->connector->getCacheKeyGenerator());
-    }
-
+    /**
+     * Tests that when sources are the same but options are different, the cache is not reused.
+     */
     public function testCacheBypassedForDifferentOptions()
     {
-        self::assertSame('foo', $this->connector->fetch('baz', $this->options));
+        self::assertSame('foo', $this->connector->fetch($this->context, 'baz'));
 
         $this->options->setFoo('bar');
-
-        self::assertSame('bar', $this->connector->fetch('baz', $this->options));
+        self::assertSame('bar', $this->connector->fetch($this->context, 'baz'));
     }
 
+    /**
+     * Tests that when the same options are specified by two different object instances, the cache is reused.
+     */
     public function testCacheUsedForDifferentOptionsInstance()
     {
-        self::assertSame('foo', $this->connector->fetch('baz', $this->options));
-        self::assertSame('foo', $this->connector->fetch('baz', clone $this->options));
+        self::assertSame('foo', $this->connector->fetch($this->context, 'baz'));
+
+        $this->wrappedConnector->shouldReceive('getOptions')->andReturn($options = clone $this->options);
+        self::assertNotSame($this->options, $options);
+        self::assertSame('foo', $this->connector->fetch($this->context, 'baz'));
+
+        // Ensure new options have really taken effect by changing option. Cache should no longer be used.
+        $options->setFoo('bar');
+        self::assertSame('bar', $this->connector->fetch($this->context, 'baz'));
     }
 
-    public function testCacheUsedForCacheKeyGenerator()
-    {
-        $this->connector->setCacheKeyGenerator(
-            \Mockery::mock(CacheKeyGenerator::class)
-                ->shouldReceive('generateCacheKey')
-                ->with('quux', $this->options->copy())
-                ->andReturn('quuz', 'quuz', 'corge')
-                ->getMock()
-        );
-
-        self::assertSame('foo', $this->connector->fetch('quux', $this->options));
-        self::assertSame('foo', $this->connector->fetch('quux', $this->options));
-        self::assertSame('bar', $this->connector->fetch('quux', $this->options));
-    }
-
-    public function testFetchThrowsInvalidCacheKeyExceptionOnNonStringCackeKey()
-    {
-        $this->connector->setCacheKeyGenerator(
-            \Mockery::mock(CacheKeyGenerator::class)
-                ->shouldReceive('generateCacheKey')
-                ->with('quux', $this->options->copy())
-                ->andReturn([])
-                ->getMock()
-        );
-
-        $this->setExpectedException(InvalidCacheKeyException::class, 'Cache key must be a string.');
-        $this->connector->fetch('quux', $this->options);
-    }
-
-    public function testFetchThrowsInvalidCacheKeyExceptionOnNonPSR6CompliantCacheKey()
-    {
-        $cacheKey = CachingConnector::RESERVED_CHARACTERS;
-
-        $this->connector->setCacheKeyGenerator(
-            \Mockery::mock(CacheKeyGenerator::class)
-                ->shouldReceive('generateCacheKey')
-                ->with('quux', $this->options->copy())
-                ->andReturn($cacheKey)
-                ->getMock()
-        );
-
-        $this->setExpectedException(InvalidCacheKeyException::class, 'contains one or more reserved characters');
-        $this->connector->fetch('quux', $this->options);
-    }
-
-    public function testNullAndEmptyAreEquivalent()
+    public function testNullAndEmptyOptionsAreEquivalent()
     {
         /** @var EncapsulatedOptions $options */
         $options = \Mockery::mock(EncapsulatedOptions::class)->shouldReceive('copy')->andReturn([])->getMock();
+        $this->wrappedConnector->shouldReceive('getOptions')->andReturn($options);
+        self::assertEmpty($this->wrappedConnector->getOptions()->copy());
 
-        self::assertEmpty($options->copy());
-        self::assertSame('foo', $this->connector->fetch('baz', $options));
-
-        self::assertSame('foo', $this->connector->fetch('baz'));
+        self::assertSame('foo', $this->connector->fetch($this->context, 'baz'));
+        self::assertSame('foo', $this->connector->fetch($this->context, 'baz'));
     }
 
-    public function testEnableCache()
-    {
-        self::assertTrue($this->connector->isCacheEnabled());
-
-        $this->connector->disableCache();
-        self::assertFalse($this->connector->isCacheEnabled());
-
-        $this->connector->enableCache();
-        self::assertTrue($this->connector->isCacheEnabled());
-    }
-
+    /**
+     * Tests that the default cache key generator does not output reserved characters even when comprised of options
+     * containing them.
+     */
     public function testCacheKeyExcludesReservedCharacters()
     {
-        $reservedCharacters = CachingConnector::RESERVED_CHARACTERS;
+        $reservedCharacters = CacheKeyGenerator::RESERVED_CHARACTERS;
 
-        $this->connector->setCache($cache = \Mockery::spy(CacheItemPoolInterface::class));
+        $connector = $this->createConnector($cache = \Mockery::spy(CacheItemPoolInterface::class));
 
         $cache->shouldReceive('hasItem')
             ->andReturnUsing(
@@ -162,8 +139,83 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
                 }
             )->once()
             ->shouldReceive('getItem')->andReturnSelf()
-            ->shouldReceive('set')->andReturn(\Mockery::mock(CacheItemInterface::class));
+            ->shouldReceive('set')->andReturn(\Mockery::mock(CacheItemInterface::class))
+        ;
 
-        $this->connector->fetch($reservedCharacters, (new TestOptions)->setFoo($reservedCharacters));
+        $connector->fetch($this->context, $reservedCharacters);
+    }
+
+    /**
+     * Tests that when the cache key generator returns the same key the same data is fetched, and when it does not,
+     * fresh data is fetched.
+     */
+    public function testCacheKeyGenerator()
+    {
+        $connector = $this->createConnector(
+            null,
+            \Mockery::mock(CacheKeyGenerator::class)
+                ->shouldReceive('generateCacheKey')
+                ->with($source = 'baz', $this->options->copy())
+                ->andReturn('qux', 'qux', 'quux')
+                ->getMock()
+        );
+
+        self::assertSame('foo', $connector->fetch($this->context, $source));
+        self::assertSame('foo', $connector->fetch($this->context, $source));
+        self::assertSame('bar', $connector->fetch($this->context, $source));
+    }
+
+    /**
+     * TODO: Remove when PHP 5 support dropped.
+     */
+    public function testFetchThrowsInvalidCacheKeyExceptionOnNonStringCacheKey()
+    {
+        $connector = $this->createConnector(
+            null,
+            \Mockery::mock(CacheKeyGenerator::class)
+                ->shouldReceive('generateCacheKey')
+                ->andReturn(1)
+                ->getMock()
+        );
+
+        $this->setExpectedException(InvalidCacheKeyException::class, 'Cache key must be a string.');
+        $connector->fetch($this->context, 'baz');
+    }
+
+    public function testFetchThrowsInvalidCacheKeyExceptionOnNonPSR6CompliantCacheKey()
+    {
+        $connector = $this->createConnector(
+            null,
+            \Mockery::mock(CacheKeyGenerator::class)
+                ->shouldReceive('generateCacheKey')
+                ->andReturn(CacheKeyGenerator::RESERVED_CHARACTERS)
+                ->getMock()
+        );
+
+        $this->setExpectedException(InvalidCacheKeyException::class, 'contains one or more reserved characters');
+        $connector->fetch($this->context, 'baz');
+    }
+
+    /**
+     * Tests that getting the wrapped connector returns exactly the same connector as constructed with.
+     */
+    public function testGetWrappedConnector()
+    {
+        self::assertSame($this->wrappedConnector, $this->connector->getWrappedConnector());
+    }
+
+    /**
+     * Tests that cloning the caching connector also clones the wrapped connector.
+     */
+    public function testClone()
+    {
+        $clone = clone $this->connector;
+
+        self::assertNotSame($this->wrappedConnector, $clone->getWrappedConnector());
+    }
+
+    private function createConnector(MockInterface $cache = null, MockInterface $cacheKeyGenerator = null)
+    {
+        return new CachingConnector($this->wrappedConnector, $cache, $cacheKeyGenerator);
     }
 }

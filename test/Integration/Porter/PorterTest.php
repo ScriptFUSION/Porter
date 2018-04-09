@@ -3,27 +3,30 @@ namespace ScriptFUSIONTest\Integration\Porter;
 
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
-use ScriptFUSION\Porter\Cache\CacheAdvice;
-use ScriptFUSION\Porter\Cache\CacheToggle;
+use Psr\Container\ContainerInterface;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Collection\FilteredRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
+use ScriptFUSION\Porter\Connector\ConnectionContext;
+use ScriptFUSION\Porter\Connector\Connector;
+use ScriptFUSION\Porter\Connector\ConnectorOptions;
+use ScriptFUSION\Porter\Connector\FetchExceptionHandler\FetchExceptionHandler;
+use ScriptFUSION\Porter\Connector\FetchExceptionHandler\StatelessFetchExceptionHandler;
+use ScriptFUSION\Porter\Connector\ImportConnector;
 use ScriptFUSION\Porter\Connector\RecoverableConnectorException;
 use ScriptFUSION\Porter\ImportException;
 use ScriptFUSION\Porter\Porter;
 use ScriptFUSION\Porter\PorterAware;
+use ScriptFUSION\Porter\Provider\ForeignResourceException;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
-use ScriptFUSION\Porter\Provider\StaticDataProvider;
-use ScriptFUSION\Porter\ProviderAlreadyRegisteredException;
 use ScriptFUSION\Porter\ProviderNotFoundException;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\Porter\Specification\StaticDataImportSpecification;
 use ScriptFUSION\Porter\Transform\FilterTransformer;
 use ScriptFUSION\Porter\Transform\Transformer;
-use ScriptFUSION\Retry\ExceptionHandler\ExponentialBackoffExceptionHandler;
 use ScriptFUSION\Retry\FailingTooHardException;
 use ScriptFUSIONTest\MockFactory;
 
@@ -31,97 +34,45 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 {
     use MockeryPHPUnitIntegration;
 
-    /** @var Porter */
+    /**
+     * @var Porter
+     */
     private $porter;
 
-    /** @var Provider|MockInterface */
+    /**
+     * @var Provider|MockInterface
+     */
     private $provider;
 
-    /** @var ProviderResource */
+    /**
+     * @var ProviderResource|MockInterface
+     */
     private $resource;
 
-    /** @var ImportSpecification */
+    /**
+     * @var Connector|MockInterface
+     */
+    private $connector;
+
+    /**
+     * @var ImportSpecification
+     */
     private $specification;
+
+    /**
+     * @var ContainerInterface|MockInterface
+     */
+    private $container;
 
     protected function setUp()
     {
-        $this->porter = (new Porter)->registerProvider(
-            $this->provider =
-                \Mockery::mock(Provider::class)
-                    ->shouldReceive('fetch')
-                    ->andReturnUsing(function () {
-                        yield 'foo';
-                    })
-                    ->byDefault()
-                    ->getMock()
-        );
+        $this->porter = new Porter($this->container = \Mockery::spy(ContainerInterface::class));
 
+        $this->registerProvider($this->provider = MockFactory::mockProvider());
+        $this->connector = $this->provider->getConnector();
         $this->resource = MockFactory::mockResource($this->provider);
         $this->specification = new ImportSpecification($this->resource);
     }
-
-    #region Providers
-
-    public function testGetProvider()
-    {
-        self::assertSame($this->provider, $this->porter->getProvider(get_class($this->provider)));
-    }
-
-    public function testRegisterSameProvider()
-    {
-        $this->setExpectedException(ProviderAlreadyRegisteredException::class);
-
-        $this->porter->registerProvider($this->provider);
-    }
-
-    public function testRegisterSameProviderType()
-    {
-        $this->setExpectedException(ProviderAlreadyRegisteredException::class);
-
-        $this->porter->registerProvider(clone $this->provider);
-    }
-
-    public function testRegisterProviderTag()
-    {
-        $this->porter->registerProvider($provider = clone $this->provider, 'foo');
-
-        self::assertSame($provider, $this->porter->getProvider(get_class($this->provider), 'foo'));
-    }
-
-    public function testGetStaticProvider()
-    {
-        self::assertInstanceOf(StaticDataProvider::class, $this->porter->getProvider(StaticDataProvider::class));
-    }
-
-    public function testGetInvalidProvider()
-    {
-        $this->setExpectedException(ProviderNotFoundException::class);
-
-        $this->porter->getProvider('foo');
-    }
-
-    public function testGetInvalidTag()
-    {
-        $this->setExpectedException(ProviderNotFoundException::class);
-
-        $this->porter->getProvider(get_class($this->provider), 'foo');
-    }
-
-    public function testGetStaticProviderTag()
-    {
-        $this->setExpectedException(ProviderNotFoundException::class);
-
-        $this->porter->getProvider(StaticDataProvider::class, 'foo');
-    }
-
-    public function testHasProvider()
-    {
-        self::assertTrue($this->porter->hasProvider(get_class($this->provider)));
-        self::assertFalse($this->porter->hasProvider(get_class($this->provider), 'foo'));
-        self::assertFalse($this->porter->hasProvider('foo'));
-    }
-
-    #endregion
 
     #region Import
 
@@ -131,7 +82,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
         self::assertInstanceOf(PorterRecords::class, $records);
         self::assertNotSame($this->specification, $records->getSpecification(), 'Specification was not cloned.');
-        self::assertSame('foo', $records->current());
+        self::assertSame(['foo'], $records->current());
 
         /** @var ProviderRecords $previous */
         self::assertInstanceOf(ProviderRecords::class, $previous = $records->getPreviousCollection());
@@ -175,6 +126,18 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Tests that when importing using a connector that exports options, but no clone method, an exception is thrown.
+     */
+    public function testImportConnectorWithOptions()
+    {
+        $this->provider->shouldReceive('getConnector')
+            ->andReturn(\Mockery::mock(Connector::class, ConnectorOptions::class));
+
+        $this->setExpectedException(\LogicException::class);
+        $this->porter->import($this->specification);
+    }
+
+    /**
      * Tests that when a Transformer is PorterAware it receives the Porter instance that invoked it.
      */
     public function testPorterAwareTransformer()
@@ -192,31 +155,52 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    public function testImportTaggedResource()
+    /**
+     * Tests that when provider name is specified in an import specification its value is used instead of the default
+     * provider class name of the resource.
+     */
+    public function testImportCustomProviderName()
     {
-        $this->porter->registerProvider(
-            $provider = \Mockery::mock(Provider::class)
-                ->shouldReceive('fetch')
-                ->andReturn(new \ArrayIterator([$output = 'bar']))
-                ->getMock(),
-            $tag = 'foo'
+        $this->registerProvider(
+            $provider = clone $this->provider,
+            $providerName = 'foo'
         );
 
-        $records = $this->porter->import(MockFactory::mockImportSpecification(
-            MockFactory::mockResource($provider)
-                ->shouldReceive('getProviderTag')
-                ->andReturn($tag)
-                ->getMock()
-        ));
+        $records = $this->porter->import(
+            (new ImportSpecification(MockFactory::mockResource($provider, new \ArrayIterator([$output = ['bar']]))))
+                ->setProviderName($providerName)
+        );
 
         self::assertSame($output, $records->current());
     }
 
+    /**
+     * Tests that when a resource does not return an iterator, ImportException is thrown.
+     */
     public function testImportFailure()
     {
-        $this->provider->shouldReceive('fetch')->andReturn(null);
+        $this->resource->shouldReceive('fetch')->andReturn(null);
 
-        $this->setExpectedException(ImportException::class, get_class($this->provider));
+        $this->setExpectedException(ImportException::class, get_class($this->resource));
+        $this->porter->import($this->specification);
+    }
+
+    public function testImportUnregisteredProvider()
+    {
+        $this->setExpectedException(ProviderNotFoundException::class);
+
+        $this->porter->import($this->specification->setProviderName('foo'));
+    }
+
+    /**
+     * Tests that when a resource's provider class name does not match the provider an exception is thrown.
+     */
+    public function testImportForeignResource()
+    {
+        // Replace existing provider with a different one.
+        $this->registerProvider(MockFactory::mockProvider(), get_class($this->provider));
+
+        $this->setExpectedException(ForeignResourceException::class);
         $this->porter->import($this->specification);
     }
 
@@ -228,12 +212,12 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     {
         $result = $this->porter->importOne($this->specification);
 
-        self::assertSame('foo', $result);
+        self::assertSame(['foo'], $result);
     }
 
     public function testImportOneOfNone()
     {
-        $this->provider->shouldReceive('fetch')->andReturn(new \EmptyIterator);
+        $this->resource->shouldReceive('fetch')->andReturn(new \EmptyIterator);
 
         $result = $this->porter->importOne($this->specification);
 
@@ -242,7 +226,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     public function testImportOneOfMany()
     {
-        $this->provider->shouldReceive('fetch')->andReturn(new \ArrayIterator(['foo', 'bar']));
+        $this->resource->shouldReceive('fetch')->andReturn(new \ArrayIterator([['foo'], ['bar']]));
 
         $this->setExpectedException(ImportException::class);
         $this->porter->importOne($this->specification);
@@ -252,110 +236,174 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     #region Durability
 
+    /**
+     * Tests that when a connector throws the recoverable exception type, the connection attempt is retried once.
+     */
     public function testOneTry()
     {
-        $this->provider->shouldReceive('fetch')->once()->andThrow(RecoverableConnectorException::class);
+        $this->arrangeConnectorException(new RecoverableConnectorException);
 
         $this->setExpectedException(FailingTooHardException::class, '1');
         $this->porter->import($this->specification->setMaxFetchAttempts(1));
     }
 
+    /**
+     * Tests that when a connector throws an exception type derived from the recoverable exception type, the connection
+     * is retried.
+     */
     public function testDerivedRecoverableException()
     {
-        $this->provider->shouldReceive('fetch')->once()->andThrow(\Mockery::mock(RecoverableConnectorException::class));
+        $this->arrangeConnectorException(new RecoverableConnectorException);
 
         $this->setExpectedException(FailingTooHardException::class);
         $this->porter->import($this->specification->setMaxFetchAttempts(1));
     }
 
+    /**
+     * Tests that when a connector throws the recoverable exception type, the connection can be retried the default
+     * number of times (more than once).
+     */
     public function testDefaultTries()
     {
-        $this->provider->shouldReceive('fetch')->times(ImportSpecification::DEFAULT_FETCH_ATTEMPTS)
-            ->andThrow(RecoverableConnectorException::class);
+        $this->arrangeConnectorException(new RecoverableConnectorException);
 
-        $this->setExpectedException(FailingTooHardException::class, (string)ImportSpecification::DEFAULT_FETCH_ATTEMPTS);
+        $this->setExpectedException(
+            FailingTooHardException::class,
+            (string)ImportSpecification::DEFAULT_FETCH_ATTEMPTS
+        );
         $this->porter->import($this->specification);
     }
 
+    /**
+     * Tests that when a connector throws a non-recoverable exception type, the connection is not retried.
+     */
     public function testUnrecoverableException()
     {
-        $this->provider->shouldReceive('fetch')->once()->andThrow(\Exception::class);
+        // Subclass Exception so it's not an ancestor of any other exception.
+        $this->arrangeConnectorException($exception = \Mockery::mock(\Exception::class));
 
-        $this->setExpectedException(\Exception::class);
+        $this->setExpectedException(get_class($exception));
         $this->porter->import($this->specification);
     }
 
+    /**
+     * Tests that when a custom fetch exception handler is specified and the connector throws a recoverable exception
+     * type, the handler is called on each retry.
+     */
     public function testCustomFetchExceptionHandler()
     {
         $this->specification->setFetchExceptionHandler(
-            \Mockery::mock(ExponentialBackoffExceptionHandler::class)
+            \Mockery::mock(FetchExceptionHandler::class)
+                ->shouldReceive('initialize')
+                    ->once()
                 ->shouldReceive('__invoke')
-                ->times(ImportSpecification::DEFAULT_FETCH_ATTEMPTS - 1)
+                    ->times(ImportSpecification::DEFAULT_FETCH_ATTEMPTS - 1)
                 ->getMock()
         );
-        $this->provider->shouldReceive('fetch')->times(ImportSpecification::DEFAULT_FETCH_ATTEMPTS)
-            ->andThrow(RecoverableConnectorException::class);
+
+        $this->arrangeConnectorException(new RecoverableConnectorException);
 
         $this->setExpectedException(FailingTooHardException::class);
         $this->porter->import($this->specification);
     }
 
     /**
-     * Tests that when a generator throws a recoverable exception before the first yield, the fetch is retried.
-     *
-     * Note this does not support cases where exceptions may be thrown in subsequent iterations.
+     * Tests that when a provider fetch exception handler is specified and the connector throws a recoverable
+     * exception, the handler is called before the user handler.
      */
-    public function testGeneratorException()
+    public function testCustomProviderFetchExceptionHandler()
     {
-        $this->provider->shouldReceive('fetch')->once()->andReturnUsing(function () {
-            throw new RecoverableConnectorException;
+        $this->specification->setFetchExceptionHandler(new StatelessFetchExceptionHandler(function () {
+            throw new \LogicException('This exception must not be thrown!');
+        }));
 
-            yield;
-        });
+        $this->arrangeConnectorException($connectorException =
+            new RecoverableConnectorException('This exception is caught by the provider handler.'));
 
-        $this->setExpectedException(FailingTooHardException::class, '1');
-        $this->porter->import($this->specification->setMaxFetchAttempts(1));
+        $this->resource
+            ->shouldReceive('fetch')
+            ->andReturnUsing(function (ImportConnector $connector) use ($connectorException) {
+                $connector->setExceptionHandler(new StatelessFetchExceptionHandler(
+                    function (\Exception $exception) use ($connectorException) {
+                        self::assertSame($connectorException, $exception);
+
+                        throw new \RuntimeException('This exception is thrown by the provider handler.');
+                    }
+                ));
+
+                yield $connector->fetch('foo');
+            })
+        ;
+
+        $this->setExpectedException(\RuntimeException::class);
+        $this->porter->importOne($this->specification);
     }
 
     #endregion
 
     public function testFilter()
     {
-        $this->provider->shouldReceive('fetch')->andReturn(new \ArrayIterator(range(1, 10)));
+        $this->resource->shouldReceive('fetch')->andReturnUsing(
+            static function () {
+                foreach (range(1, 10) as $i) {
+                    yield [$i];
+                }
+            }
+        );
 
         $records = $this->porter->import(
             $this->specification
                 ->addTransformer(new FilterTransformer($filter = function ($record) {
-                    return $record % 2;
+                    return $record[0] % 2;
                 }))
         );
 
         self::assertInstanceOf(PorterRecords::class, $records);
-        self::assertSame([1, 3, 5, 7, 9], iterator_to_array($records));
+        self::assertSame([[1], [3], [5], [7], [9]], iterator_to_array($records));
 
         /** @var FilteredRecords $previous */
         self::assertInstanceOf(FilteredRecords::class, $previous = $records->getPreviousCollection());
         self::assertNotSame($previous->getFilter(), $filter, 'Filter was not cloned.');
     }
 
-    public function testApplyCacheAdvice()
-    {
-        $this->porter->registerProvider(
-            $provider = \Mockery::mock(implode(',', [Provider::class, CacheToggle::class]))
-                ->shouldReceive('fetch')->andReturn(new \EmptyIterator)
-                ->shouldReceive('disableCache')->once()
-                ->shouldReceive('enableCache')->once()
-                ->getMock()
-        );
-
-        $this->porter->import($specification = new ImportSpecification(MockFactory::mockResource($provider)));
-        $this->porter->import($specification->setCacheAdvice(CacheAdvice::SHOULD_CACHE()));
-    }
-
+    /**
+     * Tests that when caching is required but a caching facility is unavailable, an exception is thrown.
+     */
     public function testCacheUnavailable()
     {
         $this->setExpectedException(CacheUnavailableException::class);
 
-        $this->porter->import($this->specification->setCacheAdvice(CacheAdvice::MUST_CACHE()));
+        $this->porter->import($this->specification->enableCache());
+    }
+
+    /**
+     * @param Provider $provider
+     * @param string|null $name
+     */
+    private function registerProvider(Provider $provider, $name = null)
+    {
+        $name = $name ?: get_class($provider);
+
+        $this->container
+            ->shouldReceive('has')->with($name)->andReturn(true)
+            ->shouldReceive('get')->with($name)->andReturn($provider)->byDefault()
+        ;
+    }
+
+    /**
+     * Arranges for the current connector to throw an exception in the retry callback.
+     *
+     * @param \Exception $exception
+     */
+    private function arrangeConnectorException(\Exception $exception)
+    {
+        $this->connector->shouldReceive('fetch')->with(
+            \Mockery::on(function (ConnectionContext $context) use ($exception) {
+                $context->retry(function () use ($exception) {
+                    throw $exception;
+                });
+            }),
+            \Mockery::any()
+        );
     }
 }

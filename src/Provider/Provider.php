@@ -1,19 +1,17 @@
 <?php
 namespace ScriptFUSION\Porter\Provider;
 
-use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
+use ScriptFUSION\Porter\Connector\Connector;
 
 /**
- * Provides a method for fetching data from a resource.
+ * Provides a method for accessing a connector.
  */
 interface Provider
 {
     /**
-     * Fetches data from the specified resource.
+     * Gets a connector for accessing resource data.
      *
-     * @param ProviderResource $resource Resource.
-     *
-     * @return \Iterator Enumerable data series.
+     * @return Connector
      */
-    public function fetch(ProviderResource $resource);
+    public function getConnector();
 }

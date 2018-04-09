@@ -3,18 +3,19 @@ namespace ScriptFUSION\Porter\Connector;
 
 use Psr\Cache\CacheItemPoolInterface;
 use ScriptFUSION\Porter\Cache\CacheKeyGenerator;
-use ScriptFUSION\Porter\Cache\CacheToggle;
 use ScriptFUSION\Porter\Cache\InvalidCacheKeyException;
 use ScriptFUSION\Porter\Cache\JsonCacheKeyGenerator;
 use ScriptFUSION\Porter\Cache\MemoryCache;
-use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 
 /**
- * Caches remote data using PSR-6-compliant objects.
+ * Wraps a connector to cache fetched data using PSR-6-compliant objects.
  */
-abstract class CachingConnector implements Connector, CacheToggle
+class CachingConnector implements Connector, ConnectorWrapper
 {
-    const RESERVED_CHARACTERS = '{}()/\@:';
+    /**
+     * @var Connector
+     */
+    private $connector;
 
     /**
      * @var CacheItemPoolInterface
@@ -22,108 +23,81 @@ abstract class CachingConnector implements Connector, CacheToggle
     private $cache;
 
     /**
-     * @var bool
-     */
-    private $cacheEnabled = true;
-
-    /**
      * @var CacheKeyGenerator
      */
     private $cacheKeyGenerator;
 
-    public function __construct(CacheItemPoolInterface $cache = null, CacheKeyGenerator $cacheKeyGenerator = null)
-    {
+    public function __construct(
+        Connector $connector,
+        CacheItemPoolInterface $cache = null,
+        CacheKeyGenerator $cacheKeyGenerator = null
+    ) {
+        $this->connector = $connector;
         $this->cache = $cache ?: new MemoryCache;
         $this->cacheKeyGenerator = $cacheKeyGenerator ?: new JsonCacheKeyGenerator;
     }
 
+    public function __clone()
+    {
+        $this->connector = clone $this->connector;
+
+        /* It doesn't make sense to clone the cache because we want cache state to be shared between imports.
+           We're also not cloning the CacheKeyGenerator because they're expected to be stateless algorithms. */
+    }
+
     /**
+     * @param ConnectionContext $context
      * @param string $source
-     * @param EncapsulatedOptions|null $options
      *
      * @return mixed
      *
      * @throws InvalidCacheKeyException
      */
-    public function fetch($source, EncapsulatedOptions $options = null)
+    public function fetch(ConnectionContext $context, $source)
     {
-        if ($this->isCacheEnabled()) {
-            $optionsCopy = $options ? $options->copy() : [];
+        if ($context->mustCache()) {
+            $options = $this->connector instanceof ConnectorOptions ? $this->connector->getOptions()->copy() : [];
+            ksort($options);
 
-            ksort($optionsCopy);
-
-            $key = $this->validateCacheKey($this->getCacheKeyGenerator()->generateCacheKey($source, $optionsCopy));
+            $this->validateCacheKey($key = $this->cacheKeyGenerator->generateCacheKey($source, $options));
 
             if ($this->cache->hasItem($key)) {
                 return $this->cache->getItem($key)->get();
             }
         }
 
-        $data = $this->fetchFreshData($source, $options);
+        $data = $this->connector->fetch($context, $source);
 
         isset($key) && $this->cache->save($this->cache->getItem($key)->set($data));
 
         return $data;
     }
 
-    abstract public function fetchFreshData($source, EncapsulatedOptions $options = null);
-
-    public function getCache()
-    {
-        return $this->cache;
-    }
-
-    public function setCache(CacheItemPoolInterface $cache)
-    {
-        $this->cache = $cache;
-    }
-
-    public function enableCache()
-    {
-        $this->cacheEnabled = true;
-    }
-
-    public function disableCache()
-    {
-        $this->cacheEnabled = false;
-    }
-
-    public function isCacheEnabled()
-    {
-        return $this->cacheEnabled;
-    }
-
-    public function getCacheKeyGenerator()
-    {
-        return $this->cacheKeyGenerator;
-    }
-
-    public function setCacheKeyGenerator(CacheKeyGenerator $cacheKeyGenerator)
-    {
-        $this->cacheKeyGenerator = $cacheKeyGenerator;
-    }
-
     /**
      * @param mixed $key
      *
-     * @return string
+     * @return void
      *
      * @throws InvalidCacheKeyException Cache key contains invalid data.
      */
     private function validateCacheKey($key)
     {
+        // TODO: Remove when PHP 5 support dropped and replace with string hint.
         if (!is_string($key)) {
             throw new InvalidCacheKeyException('Cache key must be a string.');
         }
 
-        if (strpbrk($key, self::RESERVED_CHARACTERS) !== false) {
+        if (strpbrk($key, CacheKeyGenerator::RESERVED_CHARACTERS) !== false) {
             throw new InvalidCacheKeyException(sprintf(
                 'Cache key "%s" contains one or more reserved characters: "%s".',
                 $key,
-                self::RESERVED_CHARACTERS
+                CacheKeyGenerator::RESERVED_CHARACTERS
             ));
         }
+    }
 
-        return $key;
+    public function getWrappedConnector()
+    {
+        return $this->connector;
     }
 }
