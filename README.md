@@ -1,4 +1,3 @@
-
 Porter <img src="https://github.com/ScriptFUSION/Porter/wiki/images/porter%20222x.png" align="right">
 ======
 
@@ -22,11 +21,11 @@ Contents
 --------
 
   1. [Benefits](#benefits)
-  1. [Overview](#overview)
-  1. [Understanding this manual](#understanding-this-manual)
   1. [Quick start](#quick-start)
+  1. [Understanding this manual](#understanding-this-manual)
   1. [Usage](#usage)
   1. [Porter's API](#porters-api)
+  1. [Overview](#overview)
   1. [Import specifications](#import-specifications)
   1. [Record collections](#record-collections)
   1. [Transformers](#transformers)
@@ -46,8 +45,6 @@ Contents
 Benefits
 --------
 
-Here are some of the benefits of using Porter to import data into your application.
-
  * Formally defines a structured data import framework with the following concepts: [providers](#providers) represent one or more [resources](#resources) that fetch data from [connectors](#connectors).
  * Provides efficient in-memory data processing interfaces to handle large data sets one record at a time, via iterators, which can be implemented using generators.
  * Offers post-import [transformations](#transformers), such as [filtering](#filtering) and [mapping][MappingTransformer], to transform third-party into data useful for first-party applications.
@@ -55,18 +52,64 @@ Here are some of the benefits of using Porter to import data into your applicati
  * Supports PSR-6 [caching](#caching), at the connector level, for each fetch operation.
  * Joins two or more linked data sets together using [sub-imports][Sub-imports] automatically.
 
-Overview
---------
+Quick start
+-----------
 
-The following data flow diagram gives a high level overview of Porter's main interfaces and the data flows between them when importing data. Note that we use the term *resource* for brevity, but the actual interface is called `ProviderResource`, because *resource* is a reserved word in PHP. Also note, I don't know how to draw data flow diagrams, so just go with it.
+This quick start guide will walk through getting up and running with Porter from scratch and assumes you already have a PHP environment set up with Composer. Let's start by initializing our Composer file by running `composer init` in our project's root directory and accepting the defaults. We can skip defining dependencies interactively because we'll issue separate commands in  a moment.
 
-<div align="center">
+Let's start with the [European Central Bank][ECB provider] (ECB) provider by including it in our `composer.json` with the following command.
 
-![Data flow diagram][Data flow diagram]
+```sh
+composer require provider/european-central-bank
+```
 
-</div>
+We now have the provider installed along with all its dependencies, including Porter herself. We want to create a `new Porter` instance now, but we need to pass a `ContainerInterface` to her constructor. Any PSR-11 container is valid, but let's use Joomla DI for now.
 
-Our application calls `Porter::import()` with an `ImportSpecification` and receives `PorterRecords` in return. Everything else happens internally and we don't need to worry about it unless writing custom providers and resources.
+```sh
+composer require joomla/di
+```
+
+Create a new container and register an instance of `EuropeanCentralBankProvider` with it. Pass the container to a new Porter instance. Don't forget to include the autoloader!
+
+```php
+use Joomla\DI\Container;
+use ScriptFUSION\Porter\Porter;
+use ScriptFUSION\Porter\Provider\EuropeanCentralBank\Provider\EuropeanCentralBankProvider;
+
+require 'vendor/autoload.php';
+
+$container = new Container;
+$container->set(EuropeanCentralBankProvider::class, new EuropeanCentralBankProvider);
+
+$porter = new Porter($container);
+```
+
+We're now ready to import any of the ECB's resources. Let's import the latest daily foreign exchange rates provided by `DailyForexRates`. Porter's `import()` method requires an `ImportSpecification` that accepts the resource we want to import.
+
+```php
+$rates = $porter->import(new ImportSpecification(new DailyForexRates));
+```
+
+Porter returns an iterator so we can now loop over the rates and print them out.
+
+```php
+foreach ($rates as $rate) {
+    echo "$rate[currency]: $rate[rate]\n";
+}
+```
+
+This outputs something similar to the following, with today's current rates.
+
+>USD: 1.2304  
+JPY: 131.66  
+BGN: 1.9558  
+CZK: 25.357  
+DKK: 7.4469  
+...
+
+Since these rates come from the European Central Bank, they're relative to the Euro (EUR), which is assumed to always be `1`. We can use this information to write a currency converter that's always up-to-date with the latest exchange rate information.
+
+This just scratches the surface of Porter without going into any details. Explore the rest of this manual at your leisure to gain a fuller understanding of the features at your disposal.
 
 Understanding this manual
 -------------------------
@@ -74,13 +117,6 @@ Understanding this manual
 The first half of this manual covers Porter's main features and how to use them. The second half covers architecture, interface and implementation details for Porter developers. There's an intermission inbetween so you'll know where the cut-off is!
 
 Text marked as `inline code` denotes literal code, as it would appear in a PHP file. For example, `Porter` refers specifically to the class of the same name within this library, whereas *Porter* refers to this entire project as a whole.
-
-Quick start
------------
-
-The quickest way to start is with a [ready-made provider][Provider]. [Usage](#usage) shows how to register a provider and import data from its resources. Even if there isn't an existing provider you want to use, it's still recommended to try out an existing one first, to get comfortable with Porter before writing your own.
-
-If a provider does not yet exist for the service we want to use, we must write one from scratch. This isn't as quick, but don't worry, it's pretty easy! Start by writing the [provider](#providers) that supplies the appropriate connector to access the service. Next, define a [resource](#resources) that fetches data using the connector and `yield` it as an `array`. For more information, see [writing a provider](#writing-a-provider) and [writing a resource](#writing-a-resource).
 
 Usage
 -----
@@ -124,6 +160,19 @@ Porter's API
 
 * `import(ImportSpecification) : PorterRecords|CountablePorterRecords` &ndash; Imports data according to the design of the specified import specification.
 * `importOne(ImportSpecification) : ?array` &ndash; Imports one record according to the design of the specified import specification. If more than one record is imported, `ImportException` is thrown. Use this when you're sure a provider just returns a single record.
+
+Overview
+--------
+
+The following data flow diagram gives a high level overview of Porter's main interfaces and the data flows between them when importing data. Note that we use the term *resource* for brevity, but the actual interface is called `ProviderResource`, because *resource* is a reserved word in PHP. Also note, I don't know how to draw data flow diagrams, so just go with it.
+
+<div align="center">
+
+![Data flow diagram][Data flow diagram]
+
+</div>
+
+Our application calls `Porter::import()` with an `ImportSpecification` and receives `PorterRecords` in return. Everything else happens internally and we don't need to worry about it unless writing custom providers and resources.
 
 Import specifications
 ---------------------
