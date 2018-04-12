@@ -11,11 +11,11 @@ Porter <img src="https://github.com/ScriptFUSION/Porter/wiki/images/porter%20222
 [![][Porter transformers icon]][Porter transformers]
 [![][Porter connectors icon]][Porter connectors]
 
-Porter is the PHP data importer. She fetches data from anywhere, from the local file system to third party online services, and returns an [iterator](#record-collections). The iterator represents a single data record or repeating series of records, with or without additional metadata. Porter is a fully pluggable import framework that can be extended with [connectors](#connectors) for any protocol and [transformers](#transformers) to manipulate data.
+Porter is the PHP data importer. She fetches data from anywhere, from the local file system to third party online services, and returns an [iterator](#record-collections). Porter is a fully pluggable import framework that can be extended with [connectors](#connectors) for any protocol and [transformers](#transformers) to manipulate data immediately after import.
 
-Ready-to-use data [providers][Provider] are just a `composer require` away, and will include all the necessary connectors and other dependencies to access popular online services such as [Stripe][Stripe provider] for online payments or [foreign exchange rates][ECB provider]. Truthfully, Porter's open source provider library is very limited right now, and some implementations are incomplete, but we hope the PHP community will rally around Porter's abstractions to become the de facto framework for publishing PHP APIs because her interfaces have undergone intensive scrutiny and several iterations during years of production use to ensure they are efficient, robust, flexible, testable and easy to implement.
+Ready-to-use data [providers][Provider] include all the necessary connectors and other dependencies to access popular online services such as [Stripe][Stripe provider] for online payments, the [European Central Bank][ECB provider] for foreign exchange rates or [Steam][Steam provider] for its complete PC games library and more. Porter's provider library is limited right now, and some implementations are incomplete, but we hope the PHP community will rally around Porter's abstractions and become the de facto framework for publishing online services, APIs, web scrapers and data dumps. Porter's interfaces have undergone intensive scrutiny and several iterations during years of production use to ensure they are efficient, robust, flexible, testable and easy to implement.
 
-Porter's key [durability](#durability) feature ensures failed connections are transparently retried up to five times by default, with increasing delays between each attempt until the fetch is successful, provided the failure type is marked as recoverable. The retry mechanism is safe for concurrent requests because objects are cloned internally, and this technique is used throughout Porter wherever necessary to ensure immutability and predicable behaviour, reducing the chance of bugs and other unpleasant surprises in your code regarding concurrency.
+Porter's key [durability](#durability) feature ensures recoverable connection failures are transparently retried up to five times by default, with increasing delays between each attempt until the fetch is successful. This helps ensure intermittent network failures will not disrupt the entire import operation. Special care has been taken to ensure Porter's features are safe for concurrency, such that multiple imports can be paused and resumed simultaneously, which is especially important for iterators implemented with generators (which can be paused) as well as the upcoming asynchronous imports in v5.
 
 Contents
 --------
@@ -592,6 +592,7 @@ Porter is published under the open source GNU Lesser General Public License v3.0
   [Porter connectors]: https://github.com/Porter-connectors
   [Stripe provider]: https://github.com/Provider/Stripe
   [ECB provider]: https://github.com/Provider/European-Central-Bank
+  [Steam provider]: https://github.com/Provider/Steam
   [MappingTransformer]: https://github.com/Porter-transformers/MappingTransformer
   [Sub-imports]: https://github.com/Porter-transformers/MappingTransformer#sub-imports
   [Mapper]: https://github.com/ScriptFUSION/Mapper
