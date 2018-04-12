@@ -16,19 +16,9 @@ abstract class RecordCollection implements \Iterator
         $this->previousCollection = $previousCollection;
     }
 
-    /**
-     * @return array
-     */
-    public function current()
+    public function current(): array
     {
-        $current = $this->records->current();
-
-        // TODO: Consider removing when dropping PHP 5 support (replace with type hint).
-        if (!is_array($current)) {
-            throw new \RuntimeException('Record collection did not return an array.');
-        }
-
-        return $current;
+        return $this->records->current();
     }
 
     /**

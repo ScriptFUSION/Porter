@@ -8,7 +8,7 @@ use ScriptFUSIONTest\FixtureFactory;
 
 final class NullResourceTest extends \PHPUnit_Framework_TestCase
 {
-    public function test()
+    public function test(): void
     {
         self::assertFalse(
             (new NullResource)->fetch(

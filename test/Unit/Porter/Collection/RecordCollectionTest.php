@@ -8,7 +8,7 @@ use ScriptFUSION\Porter\Collection\RecordCollection;
  */
 final class RecordCollectionTest extends \PHPUnit_Framework_TestCase
 {
-    public function testFindParent()
+    public function testFindParent(): void
     {
         /**
          * @var RecordCollection $collection1
@@ -37,7 +37,7 @@ final class RecordCollectionTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that when a RecordCollection yields a non-array datum, an exception is thrown.
      */
-    public function testNonArrayYield()
+    public function testNonArrayYield(): void
     {
         /** @var RecordCollection $collection */
         $collection = \Mockery::mock(
@@ -45,7 +45,7 @@ final class RecordCollectionTest extends \PHPUnit_Framework_TestCase
             [new \ArrayIterator(['foo'])]
         )->makePartial();
 
-        $this->setExpectedException(\RuntimeException::class);
+        $this->setExpectedException(\TypeError::class, 'must be of the type array');
         $collection->current();
     }
 }

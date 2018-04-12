@@ -6,7 +6,7 @@ use ScriptFUSIONTest\FixtureFactory;
 
 final class NullConnectorTest extends \PHPUnit_Framework_TestCase
 {
-    public function test()
+    public function test(): void
     {
         self::assertNull((new NullConnector)->fetch(FixtureFactory::buildConnectionContext(), 'foo'));
     }

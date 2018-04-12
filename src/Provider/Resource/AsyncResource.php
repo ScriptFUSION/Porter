@@ -1,12 +1,12 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Provider\Resource;
 
+use Amp\Producer;
 use ScriptFUSION\Porter\Connector\ImportConnector;
 
-/**
- * Defines methods for fetching data from a specific provider resource.
- */
-interface ProviderResource
+interface AsyncResource
 {
     /**
      * Gets the class name of the provider this resource belongs to.
@@ -20,7 +20,7 @@ interface ProviderResource
      *
      * @param ImportConnector $connector Connector.
      *
-     * @return \Iterator Enumerable data series.
+     * @return Producer Enumerable data series.
      */
-    public function fetch(ImportConnector $connector): \Iterator;
+    public function fetchAsync(ImportConnector $connector): Producer;
 }

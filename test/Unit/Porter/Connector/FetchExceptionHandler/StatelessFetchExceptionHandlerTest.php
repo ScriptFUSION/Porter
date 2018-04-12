@@ -11,7 +11,7 @@ final class StatelessFetchExceptionHandlerTest extends \PHPUnit_Framework_TestCa
     /**
      * Tests that the initialize() method does not throw any exception. This test exists solely for code coverage.
      */
-    public function testInitialize()
+    public function testInitialize(): void
     {
         (new StatelessFetchExceptionHandler(static function () {
             // Intentionally empty.

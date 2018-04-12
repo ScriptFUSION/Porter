@@ -18,26 +18,26 @@ final class EncapsulatedOptionsTest extends \PHPUnit_Framework_TestCase
         $this->options = new TestOptions;
     }
 
-    public function testGet()
+    public function testGet(): void
     {
         self::assertSame('foo', $this->options->getFoo());
     }
 
-    public function testSet()
+    public function testSet(): void
     {
         self::assertSame($this->options, $this->options->setFoo('bar'));
 
         self::assertSame('bar', $this->options->getFoo());
     }
 
-    public function testSetNullOverridesDefault()
+    public function testSetNullOverridesDefault(): void
     {
         $this->options->setFoo(null);
 
         self::assertNull($this->options->getFoo());
     }
 
-    public function testCopy()
+    public function testCopy(): void
     {
         self::assertSame(['foo' => 'foo'], $this->options->copy());
 
@@ -46,7 +46,7 @@ final class EncapsulatedOptionsTest extends \PHPUnit_Framework_TestCase
         self::assertSame(['foo' => 'bar'], $this->options->copy());
     }
 
-    public function testGetReference()
+    public function testGetReference(): void
     {
         $this->options->setFoo(['bar' => 'bar', 'baz' => 'baz']);
 
@@ -58,7 +58,7 @@ final class EncapsulatedOptionsTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that getting a value that is neither set nor has a default defined returns null.
      */
-    public function testGetUnset()
+    public function testGetUnset(): void
     {
         self::assertNull($this->options->getBar());
     }

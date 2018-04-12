@@ -14,34 +14,34 @@ final class CacheItemTest extends \PHPUnit_Framework_TestCase
         $this->item = $this->createCacheItem();
     }
 
-    public function testGetKey()
+    public function testGetKey(): void
     {
         self::assertSame('foo', $this->item->getKey());
     }
 
-    public function testGet()
+    public function testGet(): void
     {
         self::assertSame('bar', $this->item->get());
     }
 
-    public function testIsHit()
+    public function testIsHit(): void
     {
         self::assertTrue($this->item->isHit());
     }
 
-    public function testSet()
+    public function testSet(): void
     {
         self::assertSame('baz', $this->item->set('baz')->get());
     }
 
-    public function testExpiresAt()
+    public function testExpiresAt(): void
     {
         $this->setExpectedException(NotImplementedException::class);
 
         $this->item->expiresAt(null);
     }
 
-    public function testExpiresAfter()
+    public function testExpiresAfter(): void
     {
         $this->setExpectedException(NotImplementedException::class);
 

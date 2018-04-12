@@ -6,7 +6,7 @@ use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 
 final class ProviderRecordsTest extends \PHPUnit_Framework_TestCase
 {
-    public function test()
+    public function test(): void
     {
         $records = new ProviderRecords(
             \Mockery::mock(\Iterator::class),

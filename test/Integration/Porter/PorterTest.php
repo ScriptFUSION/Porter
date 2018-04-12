@@ -76,7 +76,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     #region Import
 
-    public function testImport()
+    public function testImport(): void
     {
         $records = $this->porter->import($this->specification);
 
@@ -92,7 +92,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that when the resource is countable the count is propagated to the outermost collection.
      */
-    public function testImportCountableRecords()
+    public function testImportCountableRecords(): void
     {
         $records = $this->porter->import(
             new StaticDataImportSpecification(new \ArrayIterator(range(1, $count = 10)))
@@ -110,7 +110,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that when the resource is countable the count is lost when filtering is applied.
      */
-    public function testImportAndFilterCountableRecords()
+    public function testImportAndFilterCountableRecords(): void
     {
         $records = $this->porter->import(
             (new StaticDataImportSpecification(
@@ -128,7 +128,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that when importing using a connector that exports options, but no clone method, an exception is thrown.
      */
-    public function testImportConnectorWithOptions()
+    public function testImportConnectorWithOptions(): void
     {
         $this->provider->shouldReceive('getConnector')
             ->andReturn(\Mockery::mock(Connector::class, ConnectorOptions::class));
@@ -140,7 +140,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that when a Transformer is PorterAware it receives the Porter instance that invoked it.
      */
-    public function testPorterAwareTransformer()
+    public function testPorterAwareTransformer(): void
     {
         $this->porter->import(
             $this->specification->addTransformer(
@@ -159,7 +159,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
      * Tests that when provider name is specified in an import specification its value is used instead of the default
      * provider class name of the resource.
      */
-    public function testImportCustomProviderName()
+    public function testImportCustomProviderName(): void
     {
         $this->registerProvider(
             $provider = clone $this->provider,
@@ -177,15 +177,15 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that when a resource does not return an iterator, ImportException is thrown.
      */
-    public function testImportFailure()
+    public function testImportFailure(): void
     {
         $this->resource->shouldReceive('fetch')->andReturn(null);
 
-        $this->setExpectedException(ImportException::class, get_class($this->resource));
+        $this->setExpectedException(\TypeError::class, \get_class($this->resource));
         $this->porter->import($this->specification);
     }
 
-    public function testImportUnregisteredProvider()
+    public function testImportUnregisteredProvider(): void
     {
         $this->setExpectedException(ProviderNotFoundException::class);
 
@@ -195,7 +195,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that when a resource's provider class name does not match the provider an exception is thrown.
      */
-    public function testImportForeignResource()
+    public function testImportForeignResource(): void
     {
         // Replace existing provider with a different one.
         $this->registerProvider(MockFactory::mockProvider(), get_class($this->provider));
@@ -208,14 +208,14 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     #region Import one
 
-    public function testImportOne()
+    public function testImportOne(): void
     {
         $result = $this->porter->importOne($this->specification);
 
         self::assertSame(['foo'], $result);
     }
 
-    public function testImportOneOfNone()
+    public function testImportOneOfNone(): void
     {
         $this->resource->shouldReceive('fetch')->andReturn(new \EmptyIterator);
 
@@ -224,7 +224,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         self::assertNull($result);
     }
 
-    public function testImportOneOfMany()
+    public function testImportOneOfMany(): void
     {
         $this->resource->shouldReceive('fetch')->andReturn(new \ArrayIterator([['foo'], ['bar']]));
 
@@ -239,7 +239,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that when a connector throws the recoverable exception type, the connection attempt is retried once.
      */
-    public function testOneTry()
+    public function testOneTry(): void
     {
         $this->arrangeConnectorException(new RecoverableConnectorException);
 
@@ -251,7 +251,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
      * Tests that when a connector throws an exception type derived from the recoverable exception type, the connection
      * is retried.
      */
-    public function testDerivedRecoverableException()
+    public function testDerivedRecoverableException(): void
     {
         $this->arrangeConnectorException(new RecoverableConnectorException);
 
@@ -263,7 +263,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
      * Tests that when a connector throws the recoverable exception type, the connection can be retried the default
      * number of times (more than once).
      */
-    public function testDefaultTries()
+    public function testDefaultTries(): void
     {
         $this->arrangeConnectorException(new RecoverableConnectorException);
 
@@ -277,7 +277,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that when a connector throws a non-recoverable exception type, the connection is not retried.
      */
-    public function testUnrecoverableException()
+    public function testUnrecoverableException(): void
     {
         // Subclass Exception so it's not an ancestor of any other exception.
         $this->arrangeConnectorException($exception = \Mockery::mock(\Exception::class));
@@ -290,7 +290,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
      * Tests that when a custom fetch exception handler is specified and the connector throws a recoverable exception
      * type, the handler is called on each retry.
      */
-    public function testCustomFetchExceptionHandler()
+    public function testCustomFetchExceptionHandler(): void
     {
         $this->specification->setFetchExceptionHandler(
             \Mockery::mock(FetchExceptionHandler::class)
@@ -311,7 +311,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
      * Tests that when a provider fetch exception handler is specified and the connector throws a recoverable
      * exception, the handler is called before the user handler.
      */
-    public function testCustomProviderFetchExceptionHandler()
+    public function testCustomProviderFetchExceptionHandler(): void
     {
         $this->specification->setFetchExceptionHandler(new StatelessFetchExceptionHandler(function () {
             throw new \LogicException('This exception must not be thrown!');
@@ -341,7 +341,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
     #endregion
 
-    public function testFilter()
+    public function testFilter(): void
     {
         $this->resource->shouldReceive('fetch')->andReturnUsing(
             static function () {
@@ -369,7 +369,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that when caching is required but a caching facility is unavailable, an exception is thrown.
      */
-    public function testCacheUnavailable()
+    public function testCacheUnavailable(): void
     {
         $this->setExpectedException(CacheUnavailableException::class);
 
@@ -380,7 +380,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
      * @param Provider $provider
      * @param string|null $name
      */
-    private function registerProvider(Provider $provider, $name = null)
+    private function registerProvider(Provider $provider, $name = null): void
     {
         $name = $name ?: get_class($provider);
 
@@ -395,7 +395,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
      *
      * @param \Exception $exception
      */
-    private function arrangeConnectorException(\Exception $exception)
+    private function arrangeConnectorException(\Exception $exception): void
     {
         $this->connector->shouldReceive('fetch')->with(
             \Mockery::on(function (ConnectionContext $context) use ($exception) {

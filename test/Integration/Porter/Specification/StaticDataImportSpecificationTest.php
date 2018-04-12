@@ -10,7 +10,7 @@ use ScriptFUSION\Porter\Specification\StaticDataImportSpecification;
  */
 final class StaticDataImportSpecificationTest extends \PHPUnit_Framework_TestCase
 {
-    public function test()
+    public function test(): void
     {
         $records = (new Porter(\Mockery::spy(ContainerInterface::class)))
             ->import(new StaticDataImportSpecification(new \ArrayIterator([$output = ['foo']])));

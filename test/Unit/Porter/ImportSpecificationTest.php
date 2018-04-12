@@ -25,7 +25,7 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    public function testClone()
+    public function testClone(): void
     {
         $this->specification
             ->addTransformer(\Mockery::mock(Transformer::class))
@@ -51,17 +51,17 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
         self::assertNotSame($handler, $specification->getFetchExceptionHandler());
     }
 
-    public function testGetResource()
+    public function testGetResource(): void
     {
         self::assertSame($this->resource, $this->specification->getResource());
     }
 
-    public function testProviderName()
+    public function testProviderName(): void
     {
         self::assertSame($name = 'foo', $this->specification->setProviderName($name)->getProviderName());
     }
 
-    public function testAddTransformer()
+    public function testAddTransformer(): void
     {
         self::assertEmpty($this->specification->getTransformers());
 
@@ -75,7 +75,7 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
         self::assertContains($transformer2, $this->specification->getTransformers());
     }
 
-    public function testAddTransformers()
+    public function testAddTransformers(): void
     {
         self::assertEmpty($this->specification->getTransformers());
 
@@ -89,7 +89,7 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
         self::assertContains($transformer2, $this->specification->getTransformers());
     }
 
-    public function testAddSameTransformer()
+    public function testAddSameTransformer(): void
     {
         $this->specification->addTransformer($transformer = \Mockery::mock(Transformer::class));
 
@@ -97,12 +97,12 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
         $this->specification->addTransformer($transformer);
     }
 
-    public function testContext()
+    public function testContext(): void
     {
         self::assertSame($context = 'foo', $this->specification->setContext($context)->getContext());
     }
 
-    public function testCache()
+    public function testCache(): void
     {
         self::assertFalse($this->specification->mustCache());
 
@@ -118,12 +118,12 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
      *
      * @dataProvider provideValidFetchAttempts
      */
-    public function testValidMaxFetchAttempts($value)
+    public function testValidMaxFetchAttempts($value): void
     {
         self::assertSame($value, $this->specification->setMaxFetchAttempts($value)->getMaxFetchAttempts());
     }
 
-    public function provideValidFetchAttempts()
+    public function provideValidFetchAttempts(): array
     {
         return [
             [1],
@@ -136,13 +136,13 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
      *
      * @dataProvider provideInvalidFetchAttempts
      */
-    public function testInvalidMaxFetchAttempts($value)
+    public function testInvalidMaxFetchAttempts($value): void
     {
         $this->setExpectedException(\InvalidArgumentException::class);
         $this->specification->setMaxFetchAttempts($value);
     }
 
-    public function provideInvalidFetchAttempts()
+    public function provideInvalidFetchAttempts(): array
     {
         return [
             'Too low, positive' => [0],
@@ -151,7 +151,7 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
-    public function testExceptionHandler()
+    public function testExceptionHandler(): void
     {
         self::assertSame(
             $handler = \Mockery::mock(FetchExceptionHandler::class),

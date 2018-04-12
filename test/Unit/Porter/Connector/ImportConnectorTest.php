@@ -17,7 +17,7 @@ final class ImportConnectorTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that when fetching, the specified context and source are passed verbatim to the underlying connector.
      */
-    public function testCallGraph()
+    public function testCallGraph(): void
     {
         $connector = new ImportConnector(
             \Mockery::mock(Connector::class)
@@ -37,7 +37,7 @@ final class ImportConnectorTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that when context specifies no cache required and a normal connector is used, fetch succeeds.
      */
-    public function testFetchCacheDisabled()
+    public function testFetchCacheDisabled(): void
     {
         $connector = new ImportConnector(
             \Mockery::mock(Connector::class)
@@ -53,7 +53,7 @@ final class ImportConnectorTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that when context specifies cache required and a caching connector is used, fetch succeeds.
      */
-    public function testFetchCacheEnabled()
+    public function testFetchCacheEnabled(): void
     {
         $connector = new ImportConnector(
             \Mockery::mock(CachingConnector::class, [\Mockery::mock(Connector::class)])
@@ -69,7 +69,7 @@ final class ImportConnectorTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that when context specifies cache required but a non-caching connector is used, an exception is thrown.
      */
-    public function testFetchCacheEnabledButNotAvailable()
+    public function testFetchCacheEnabledButNotAvailable(): void
     {
         $this->setExpectedException(CacheUnavailableException::class);
 
@@ -82,7 +82,7 @@ final class ImportConnectorTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that getting the wrapped connector returns a clone of the original connector passed to the constructor.
      */
-    public function testGetWrappedConnector()
+    public function testGetWrappedConnector(): void
     {
         $connector = new ImportConnector(
             $wrappedConnector = \Mockery::mock(Connector::class),
@@ -96,7 +96,7 @@ final class ImportConnectorTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that setting the provider exception handler twice produces an exception the second time.
      */
-    public function testSetExceptionHandlerTwice()
+    public function testSetExceptionHandlerTwice(): void
     {
         $connector = new ImportConnector(
             $wrappedConnector = \Mockery::mock(Connector::class),
@@ -112,7 +112,7 @@ final class ImportConnectorTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that finding the base connector returns the connector at the bottom of a ConnectorWrapper stack.
      */
-    public function testFindBaseConnector()
+    public function testFindBaseConnector(): void
     {
         $connector = new ImportConnector(
             \Mockery::mock(Connector::class, ConnectorWrapper::class)

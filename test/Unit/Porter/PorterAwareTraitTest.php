@@ -6,7 +6,7 @@ use ScriptFUSION\Porter\PorterAwareTrait;
 
 final class PorterAwareTraitTest extends \PHPUnit_Framework_TestCase
 {
-    public function testGetSetPorter()
+    public function testGetSetPorter(): void
     {
         /** @var PorterAwareTrait $porterAware */
         $porterAware = $this->getObjectForTrait(PorterAwareTrait::class);

@@ -12,7 +12,7 @@ final class CountableProviderRecordsTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that counting the collection matches the passed count value.
      */
-    public function testCount()
+    public function testCount(): void
     {
         $records = new CountableProviderRecords(
             new \EmptyIterator,

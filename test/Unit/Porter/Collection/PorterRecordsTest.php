@@ -7,7 +7,7 @@ use ScriptFUSION\Porter\Specification\ImportSpecification;
 
 final class PorterRecordsTest extends \PHPUnit_Framework_TestCase
 {
-    public function test()
+    public function test(): void
     {
         $records = new PorterRecords(
             \Mockery::mock(RecordCollection::class),

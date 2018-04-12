@@ -17,7 +17,7 @@ final class MemoryCacheTest extends \PHPUnit_Framework_TestCase
         $this->cache = new MemoryCache($this->items = ['foo' => 'bar']);
     }
 
-    public function testGetItem()
+    public function testGetItem(): void
     {
         $item = $this->cache->getItem('foo');
 
@@ -27,7 +27,7 @@ final class MemoryCacheTest extends \PHPUnit_Framework_TestCase
         self::assertFalse($this->cache->getItem('baz')->isHit());
     }
 
-    public function testGetItems()
+    public function testGetItems(): void
     {
         self::assertEmpty(iterator_to_array($this->cache->getItems()));
 
@@ -40,55 +40,55 @@ final class MemoryCacheTest extends \PHPUnit_Framework_TestCase
         self::assertFalse($item->isHit());
     }
 
-    public function testHasItem()
+    public function testHasItem(): void
     {
         self::assertTrue($this->cache->hasItem('foo'));
         self::assertFalse($this->cache->hasItem('bar'));
     }
 
-    public function testClear()
+    public function testClear(): void
     {
         $this->cache->clear();
 
         self::assertEmpty($this->cache->getArrayCopy());
     }
 
-    public function testDeleteItem()
+    public function testDeleteItem(): void
     {
         $this->cache->deleteItem('foo');
 
         self::assertFalse($this->cache->hasItem('foo'));
     }
 
-    public function testDeleteItems()
+    public function testDeleteItems(): void
     {
         $this->cache->deleteItems(['foo']);
 
         self::assertEmpty($this->cache->getArrayCopy());
     }
 
-    public function testDeleteInvalidItem()
+    public function testDeleteInvalidItem(): void
     {
         $this->setExpectedException(InvalidArgumentException::class);
 
         $this->cache->deleteItems(['foo', 'bar']);
     }
 
-    public function testSave()
+    public function testSave(): void
     {
         $this->cache->save($this->cache->getItem('bar')->set('baz'));
 
         self::assertSame('baz', $this->cache->getItem('bar')->get());
     }
 
-    public function testSaveDeferred()
+    public function testSaveDeferred(): void
     {
         $this->cache->saveDeferred($this->cache->getItem('bar')->set('baz'));
 
         self::assertSame('baz', $this->cache->getItem('bar')->get());
     }
 
-    public function testCommit()
+    public function testCommit(): void
     {
         self::assertTrue($this->cache->commit());
     }

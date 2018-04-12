@@ -1,12 +1,13 @@
 <?php
 namespace ScriptFUSION\Porter\Connector;
 
+use Amp\Promise;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Connector\FetchExceptionHandler\FetchExceptionHandler;
 
 /**
  * Connector whose lifecycle is synchronised with an import operation. Ensures correct ConnectionContext is delivered
- * to each fetch() operation.
+ * to the wrapped connector.
  *
  * Do not store references to this connector that would prevent it expiring when an import operation ends.
  */
@@ -16,7 +17,11 @@ final class ImportConnector implements ConnectorWrapper
 
     private $context;
 
-    public function __construct(Connector $connector, ConnectionContext $context)
+    /**
+     * @param Connector|AsyncConnector $connector Wrapped connector.
+     * @param ConnectionContext $context Connection context.
+     */
+    public function __construct($connector, ConnectionContext $context)
     {
         if ($context->mustCache() && !$connector instanceof CachingConnector) {
             throw CacheUnavailableException::createUnsupported();
@@ -31,10 +36,15 @@ final class ImportConnector implements ConnectorWrapper
         return $this->connector->fetch($this->context, $source);
     }
 
+    public function fetchAsync(string $source): Promise
+    {
+        return $this->connector->fetchAsync($this->context, $source);
+    }
+
     /**
      * Gets the wrapped connector. Useful for resources to reconfigure connector options during this import.
      *
-     * @return Connector Wrapped connector.
+     * @return Connector|AsyncConnector Wrapped connector.
      */
     public function getWrappedConnector()
     {
@@ -44,7 +54,7 @@ final class ImportConnector implements ConnectorWrapper
     /**
      * Finds the base connector by traversing the stack of wrapped connectors.
      *
-     * @return Connector Base connector.
+     * @return Connector|AsyncConnector Base connector.
      */
     public function findBaseConnector()
     {
@@ -62,7 +72,7 @@ final class ImportConnector implements ConnectorWrapper
      *
      * @param FetchExceptionHandler $exceptionHandler Fetch exception handler.
      */
-    public function setExceptionHandler(FetchExceptionHandler $exceptionHandler)
+    public function setExceptionHandler(FetchExceptionHandler $exceptionHandler): void
     {
         $this->context->setResourceFetchExceptionHandler($exceptionHandler);
     }

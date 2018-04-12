@@ -6,7 +6,7 @@ use ScriptFUSIONTest\Stubs\TestOptions;
 
 final class JsonCacheKeyGeneratorTest extends \PHPUnit_Framework_TestCase
 {
-    public function testGenerateCacheKey()
+    public function testGenerateCacheKey(): void
     {
         $options = new TestOptions;
         $options->setFoo('(baz@quz\quux/quuz)');

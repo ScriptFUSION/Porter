@@ -1,6 +1,8 @@
 <?php
 namespace ScriptFUSION\Porter;
 
+use Amp\Producer;
+use Amp\Promise;
 use Psr\Container\ContainerInterface;
 use ScriptFUSION\Porter\Collection\CountablePorterRecords;
 use ScriptFUSION\Porter\Collection\CountableProviderRecords;
@@ -11,11 +13,14 @@ use ScriptFUSION\Porter\Connector\ConnectionContext;
 use ScriptFUSION\Porter\Connector\ConnectionContextFactory;
 use ScriptFUSION\Porter\Connector\ConnectorOptions;
 use ScriptFUSION\Porter\Connector\ImportConnector;
+use ScriptFUSION\Porter\Provider\AsyncProvider;
 use ScriptFUSION\Porter\Provider\ForeignResourceException;
 use ScriptFUSION\Porter\Provider\ObjectNotCreatedException;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\ProviderFactory;
+use ScriptFUSION\Porter\Provider\Resource\AsyncResource;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
+use ScriptFUSION\Porter\Specification\AsyncImportSpecification;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\Porter\Transform\Transformer;
 
@@ -102,10 +107,10 @@ class Porter
     {
         $provider = $this->getProvider($providerName ?: $resource->getProviderClassName());
 
-        if ($resource->getProviderClassName() !== get_class($provider)) {
+        if ($resource->getProviderClassName() !== \get_class($provider)) {
             throw new ForeignResourceException(sprintf(
                 'Cannot fetch data from foreign resource: "%s".',
-                get_class($resource)
+                \get_class($resource)
             ));
         }
 
@@ -119,13 +124,74 @@ class Porter
             );
         }
 
-        $records = $resource->fetch(new ImportConnector($connector, $context));
+        return $resource->fetch(new ImportConnector($connector, $context));
+    }
 
-        if (!$records instanceof \Iterator) {
-            throw new ImportException(get_class($resource) . '::fetch() did not return an Iterator.');
-        }
+    public function importAsync(AsyncImportSpecification $specification): Producer
+    {
+        $specification = clone $specification;
+
+        $records = $this->fetchAsync(
+            $specification->getAsyncResource(),
+            $specification->getProviderName(),
+            ConnectionContextFactory::create($specification)
+        );
+
+//        if (!$records instanceof ProviderRecords) {
+//            $records = $this->createProviderRecords($records, $specification->getResource());
+//        }
+
+//        $records = $this->transformRecords($records, $specification->getTransformers(), $specification->getContext());
+
+//        return $this->createPorterRecords($records, $specification);
 
         return $records;
+    }
+
+    public function importOneAsync(AsyncImportSpecification $specification): Promise
+    {
+        return \Amp\call(function () use ($specification) {
+            $results = $this->importAsync($specification);
+
+            \Amp\Promise\rethrow(yield $results->advance());
+
+            $one = $results->getCurrent();
+
+            if (yield $results->advance() !== null) {
+                throw new ImportException('Cannot import one: more than one record imported.');
+            }
+
+            return $one;
+        });
+    }
+
+    private function fetchAsync(AsyncResource $resource, $providerName, ConnectionContext $context): Producer
+    {
+        $provider = $this->getProvider($providerName ?: $resource->getProviderClassName());
+
+        if (!$provider instanceof AsyncProvider) {
+            // TODO: Specific exception type.
+            throw new \RuntimeException('Provider does not implement AsyncProvider.');
+        }
+
+        if ($resource->getProviderClassName() !== \get_class($provider)) {
+            throw new ForeignResourceException(sprintf(
+                'Cannot fetch data from foreign resource: "%s".',
+                \get_class($resource)
+            ));
+        }
+
+        $connector = $provider->getAsyncConnector();
+
+        /* __clone method cannot be specified in interface due to Mockery limitation.
+           See https://github.com/mockery/mockery/issues/669 */
+        if ($connector instanceof ConnectorOptions && !method_exists($connector, '__clone')) {
+            throw new \LogicException(
+                'Connector with options must implement __clone() method to deep clone options.'
+            );
+        }
+
+        return $resource->fetchAsync(new ImportConnector($connector, $context));
     }
 
     /**
@@ -171,7 +237,7 @@ class Porter
      *
      * @param string $name Provider name.
      *
-     * @return Provider
+     * @return Provider|AsyncProvider
      *
      * @throws ProviderNotFoundException The specified provider was not found.
      */
@@ -188,7 +254,7 @@ class Porter
         }
     }
 
-    private function getOrCreateProviderFactory()
+    private function getOrCreateProviderFactory(): ProviderFactory
     {
         return $this->providerFactory ?: $this->providerFactory = new ProviderFactory;
     }

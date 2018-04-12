@@ -19,8 +19,10 @@ final class ConnectionContextTest extends \PHPUnit_Framework_TestCase
      *
      * @dataProvider provideHandlerAndContext
      */
-    public function testFetchExceptionHandlerCloned(TestFetchExceptionHandler $handler, ConnectionContext $context)
-    {
+    public function testFetchExceptionHandlerCloned(
+        TestFetchExceptionHandler $handler,
+        ConnectionContext $context
+    ): void {
         $handler->initialize();
         $initial = $handler->getCurrent();
 
@@ -46,7 +48,7 @@ final class ConnectionContextTest extends \PHPUnit_Framework_TestCase
      * Tests that when retry() is called, a stateless fetch exception handler is neither cloned nor reinitialized.
      * For stateless handlers, initialization is a NOOP, so avoiding cloning is a small optimization.
      */
-    public function testStatelessExceptionHandlerNotCloned()
+    public function testStatelessExceptionHandlerNotCloned(): void
     {
         $context = FixtureFactory::buildConnectionContext(
             false,
@@ -73,10 +75,8 @@ final class ConnectionContextTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Creates a closure that only throws an exception on the first invocation.
-     *
-     * @return \Closure
      */
-    private static function createExceptionThrowingClosure()
+    private static function createExceptionThrowingClosure(): \Closure
     {
         return static function () {
             static $invocationCount;

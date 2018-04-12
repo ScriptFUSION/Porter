@@ -14,12 +14,12 @@ class StaticResource implements ProviderResource
         $this->data = $data;
     }
 
-    public function getProviderClassName()
+    public function getProviderClassName(): string
     {
         return StaticDataProvider::class;
     }
 
-    public function fetch(ImportConnector $connector, EncapsulatedOptions $options = null)
+    public function fetch(ImportConnector $connector, EncapsulatedOptions $options = null): \Iterator
     {
         return $this->data;
     }

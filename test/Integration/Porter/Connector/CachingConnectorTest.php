@@ -64,7 +64,7 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that when cache is enabled, the same result is returned because the wrapped connector is bypassed.
      */
-    public function testCacheEnabled()
+    public function testCacheEnabled(): void
     {
         self::assertSame('foo', $this->connector->fetch($this->context, 'baz'));
         self::assertSame('foo', $this->connector->fetch($this->context, 'baz'));
@@ -73,7 +73,7 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that when cache is disabled, different results are returned from the wrapped connector.
      */
-    public function testCacheDisabled()
+    public function testCacheDisabled(): void
     {
         // The default connection context has caching disabled.
         $context = FixtureFactory::buildConnectionContext();
@@ -85,7 +85,7 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that when sources are the same but options are different, the cache is not reused.
      */
-    public function testCacheBypassedForDifferentOptions()
+    public function testCacheBypassedForDifferentOptions(): void
     {
         self::assertSame('foo', $this->connector->fetch($this->context, 'baz'));
 
@@ -96,7 +96,7 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that when the same options are specified by two different object instances, the cache is reused.
      */
-    public function testCacheUsedForDifferentOptionsInstance()
+    public function testCacheUsedForDifferentOptionsInstance(): void
     {
         self::assertSame('foo', $this->connector->fetch($this->context, 'baz'));
 
@@ -109,7 +109,7 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
         self::assertSame('bar', $this->connector->fetch($this->context, 'baz'));
     }
 
-    public function testNullAndEmptyOptionsAreEquivalent()
+    public function testNullAndEmptyOptionsAreEquivalent(): void
     {
         /** @var EncapsulatedOptions $options */
         $options = \Mockery::mock(EncapsulatedOptions::class)->shouldReceive('copy')->andReturn([])->getMock();
@@ -124,7 +124,7 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
      * Tests that the default cache key generator does not output reserved characters even when comprised of options
      * containing them.
      */
-    public function testCacheKeyExcludesReservedCharacters()
+    public function testCacheKeyExcludesReservedCharacters(): void
     {
         $reservedCharacters = CacheKeyGenerator::RESERVED_CHARACTERS;
 
@@ -149,7 +149,7 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
      * Tests that when the cache key generator returns the same key the same data is fetched, and when it does not,
      * fresh data is fetched.
      */
-    public function testCacheKeyGenerator()
+    public function testCacheKeyGenerator(): void
     {
         $connector = $this->createConnector(
             null,
@@ -168,7 +168,7 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
     /**
      * TODO: Remove when PHP 5 support dropped.
      */
-    public function testFetchThrowsInvalidCacheKeyExceptionOnNonStringCacheKey()
+    public function testFetchThrowsInvalidCacheKeyExceptionOnNonStringCacheKey(): void
     {
         $connector = $this->createConnector(
             null,
@@ -182,7 +182,7 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
         $connector->fetch($this->context, 'baz');
     }
 
-    public function testFetchThrowsInvalidCacheKeyExceptionOnNonPSR6CompliantCacheKey()
+    public function testFetchThrowsInvalidCacheKeyExceptionOnNonPSR6CompliantCacheKey(): void
     {
         $connector = $this->createConnector(
             null,
@@ -199,7 +199,7 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that getting the wrapped connector returns exactly the same connector as constructed with.
      */
-    public function testGetWrappedConnector()
+    public function testGetWrappedConnector(): void
     {
         self::assertSame($this->wrappedConnector, $this->connector->getWrappedConnector());
     }
@@ -207,7 +207,7 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests that cloning the caching connector also clones the wrapped connector.
      */
-    public function testClone()
+    public function testClone(): void
     {
         $clone = clone $this->connector;
 
