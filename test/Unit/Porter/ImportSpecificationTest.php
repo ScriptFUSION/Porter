@@ -1,6 +1,7 @@
 <?php
 namespace ScriptFUSIONTest\Unit\Porter;
 
+use PHPUnit\Framework\TestCase;
 use ScriptFUSION\Porter\Connector\FetchExceptionHandler\FetchExceptionHandler;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Specification\DuplicateTransformerException;
@@ -10,7 +11,7 @@ use ScriptFUSION\Porter\Transform\Transformer;
 /**
  * @see ImportSpecification
  */
-final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
+final class ImportSpecificationTest extends TestCase
 {
     /** @var ImportSpecification */
     private $specification;
@@ -93,7 +94,7 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
     {
         $this->specification->addTransformer($transformer = \Mockery::mock(Transformer::class));
 
-        $this->setExpectedException(DuplicateTransformerException::class);
+        $this->expectException(DuplicateTransformerException::class);
         $this->specification->addTransformer($transformer);
     }
 
@@ -138,7 +139,7 @@ final class ImportSpecificationTest extends \PHPUnit_Framework_TestCase
      */
     public function testInvalidMaxFetchAttempts($value): void
     {
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->specification->setMaxFetchAttempts($value);
     }
 

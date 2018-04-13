@@ -1,10 +1,11 @@
 <?php
 namespace ScriptFUSIONTest\Unit\Porter\Collection;
 
+use PHPUnit\Framework\TestCase;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 
-final class ProviderRecordsTest extends \PHPUnit_Framework_TestCase
+final class ProviderRecordsTest extends TestCase
 {
     public function test(): void
     {

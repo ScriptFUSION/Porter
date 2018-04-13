@@ -1,12 +1,13 @@
 <?php
 namespace ScriptFUSIONTest\Unit\Porter\Collection;
 
+use PHPUnit\Framework\TestCase;
 use ScriptFUSION\Porter\Collection\RecordCollection;
 
 /**
  * @see RecordCollection
  */
-final class RecordCollectionTest extends \PHPUnit_Framework_TestCase
+final class RecordCollectionTest extends TestCase
 {
     public function testFindParent(): void
     {
@@ -45,7 +46,7 @@ final class RecordCollectionTest extends \PHPUnit_Framework_TestCase
             [new \ArrayIterator(['foo'])]
         )->makePartial();
 
-        $this->setExpectedException(\TypeError::class, 'must be of the type array');
+        $this->expectException(\TypeError::class, 'must be of the type array');
         $collection->current();
     }
 }

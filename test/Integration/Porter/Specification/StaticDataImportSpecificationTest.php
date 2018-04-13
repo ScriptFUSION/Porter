@@ -1,6 +1,7 @@
 <?php
 namespace ScriptFUSIONTest\Integration\Porter\Specification;
 
+use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use ScriptFUSION\Porter\Porter;
 use ScriptFUSION\Porter\Specification\StaticDataImportSpecification;
@@ -8,7 +9,7 @@ use ScriptFUSION\Porter\Specification\StaticDataImportSpecification;
 /**
  * @see StaticDataImportSpecification
  */
-final class StaticDataImportSpecificationTest extends \PHPUnit_Framework_TestCase
+final class StaticDataImportSpecificationTest extends TestCase
 {
     public function test(): void
     {

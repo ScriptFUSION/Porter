@@ -3,6 +3,7 @@ namespace ScriptFUSIONTest\Integration\Porter;
 
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
+use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Collection\FilteredRecords;
@@ -30,7 +31,7 @@ use ScriptFUSION\Porter\Transform\Transformer;
 use ScriptFUSION\Retry\FailingTooHardException;
 use ScriptFUSIONTest\MockFactory;
 
-final class PorterTest extends \PHPUnit_Framework_TestCase
+final class PorterTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 
@@ -133,7 +134,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         $this->provider->shouldReceive('getConnector')
             ->andReturn(\Mockery::mock(Connector::class, ConnectorOptions::class));
 
-        $this->setExpectedException(\LogicException::class);
+        $this->expectException(\LogicException::class);
         $this->porter->import($this->specification);
     }
 
@@ -181,13 +182,14 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     {
         $this->resource->shouldReceive('fetch')->andReturn(null);
 
-        $this->setExpectedException(\TypeError::class, \get_class($this->resource));
+        $this->expectException(\TypeError::class);
+        $this->expectExceptionMessage(\get_class($this->resource));
         $this->porter->import($this->specification);
     }
 
     public function testImportUnregisteredProvider(): void
     {
-        $this->setExpectedException(ProviderNotFoundException::class);
+        $this->expectException(ProviderNotFoundException::class);
 
         $this->porter->import($this->specification->setProviderName('foo'));
     }
@@ -200,7 +202,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         // Replace existing provider with a different one.
         $this->registerProvider(MockFactory::mockProvider(), get_class($this->provider));
 
-        $this->setExpectedException(ForeignResourceException::class);
+        $this->expectException(ForeignResourceException::class);
         $this->porter->import($this->specification);
     }
 
@@ -228,7 +230,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     {
         $this->resource->shouldReceive('fetch')->andReturn(new \ArrayIterator([['foo'], ['bar']]));
 
-        $this->setExpectedException(ImportException::class);
+        $this->expectException(ImportException::class);
         $this->porter->importOne($this->specification);
     }
 
@@ -243,7 +245,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     {
         $this->arrangeConnectorException(new RecoverableConnectorException);
 
-        $this->setExpectedException(FailingTooHardException::class, '1');
+        $this->expectException(FailingTooHardException::class, '1');
         $this->porter->import($this->specification->setMaxFetchAttempts(1));
     }
 
@@ -255,7 +257,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     {
         $this->arrangeConnectorException(new RecoverableConnectorException);
 
-        $this->setExpectedException(FailingTooHardException::class);
+        $this->expectException(FailingTooHardException::class);
         $this->porter->import($this->specification->setMaxFetchAttempts(1));
     }
 
@@ -267,10 +269,8 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
     {
         $this->arrangeConnectorException(new RecoverableConnectorException);
 
-        $this->setExpectedException(
-            FailingTooHardException::class,
-            (string)ImportSpecification::DEFAULT_FETCH_ATTEMPTS
-        );
+        $this->expectException(FailingTooHardException::class);
+        $this->expectExceptionMessage((string)ImportSpecification::DEFAULT_FETCH_ATTEMPTS);
         $this->porter->import($this->specification);
     }
 
@@ -282,7 +282,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
         // Subclass Exception so it's not an ancestor of any other exception.
         $this->arrangeConnectorException($exception = \Mockery::mock(\Exception::class));
 
-        $this->setExpectedException(get_class($exception));
+        $this->expectException(get_class($exception));
         $this->porter->import($this->specification);
     }
 
@@ -303,7 +303,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
 
         $this->arrangeConnectorException(new RecoverableConnectorException);
 
-        $this->setExpectedException(FailingTooHardException::class);
+        $this->expectException(FailingTooHardException::class);
         $this->porter->import($this->specification);
     }
 
@@ -335,7 +335,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
             })
         ;
 
-        $this->setExpectedException(\RuntimeException::class);
+        $this->expectException(\RuntimeException::class);
         $this->porter->importOne($this->specification);
     }
 
@@ -371,7 +371,7 @@ final class PorterTest extends \PHPUnit_Framework_TestCase
      */
     public function testCacheUnavailable(): void
     {
-        $this->setExpectedException(CacheUnavailableException::class);
+        $this->expectException(CacheUnavailableException::class);
 
         $this->porter->import($this->specification->enableCache());
     }

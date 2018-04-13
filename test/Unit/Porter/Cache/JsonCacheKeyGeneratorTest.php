@@ -1,10 +1,11 @@
 <?php
 namespace ScriptFUSIONTest\Unit\Porter\Cache;
 
+use PHPUnit\Framework\TestCase;
 use ScriptFUSION\Porter\Cache\JsonCacheKeyGenerator;
 use ScriptFUSIONTest\Stubs\TestOptions;
 
-final class JsonCacheKeyGeneratorTest extends \PHPUnit_Framework_TestCase
+final class JsonCacheKeyGeneratorTest extends TestCase
 {
     public function testGenerateCacheKey(): void
     {

@@ -1,12 +1,13 @@
 <?php
 namespace ScriptFUSIONTest\Unit\Porter\Provider\Resource;
 
+use PHPUnit\Framework\TestCase;
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Connector\ImportConnector;
 use ScriptFUSION\Porter\Provider\Resource\NullResource;
 use ScriptFUSIONTest\FixtureFactory;
 
-final class NullResourceTest extends \PHPUnit_Framework_TestCase
+final class NullResourceTest extends TestCase
 {
     public function test(): void
     {

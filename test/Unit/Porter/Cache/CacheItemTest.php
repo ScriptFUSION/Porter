@@ -1,10 +1,11 @@
 <?php
 namespace ScriptFUSIONTest\Unit\Porter\Cache;
 
+use PHPUnit\Framework\TestCase;
 use ScriptFUSION\Porter\Cache\CacheItem;
 use ScriptFUSION\Porter\Cache\NotImplementedException;
 
-final class CacheItemTest extends \PHPUnit_Framework_TestCase
+final class CacheItemTest extends TestCase
 {
     /** @var CacheItem */
     private $item;
@@ -36,14 +37,14 @@ final class CacheItemTest extends \PHPUnit_Framework_TestCase
 
     public function testExpiresAt(): void
     {
-        $this->setExpectedException(NotImplementedException::class);
+        $this->expectException(NotImplementedException::class);
 
         $this->item->expiresAt(null);
     }
 
     public function testExpiresAfter(): void
     {
-        $this->setExpectedException(NotImplementedException::class);
+        $this->expectException(NotImplementedException::class);
 
         $this->item->expiresAfter(null);
     }

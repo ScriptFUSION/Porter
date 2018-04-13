@@ -1,6 +1,7 @@
 <?php
 namespace ScriptFUSIONTest\Integration\Porter\Connector;
 
+use PHPUnit\Framework\TestCase;
 use ScriptFUSION\Porter\Connector\ConnectionContext;
 use ScriptFUSION\Porter\Connector\FetchExceptionHandler\StatelessFetchExceptionHandler;
 use ScriptFUSION\Porter\Connector\RecoverableConnectorException;
@@ -10,7 +11,7 @@ use ScriptFUSIONTest\Stubs\TestFetchExceptionHandler;
 /**
  * @see ConnectionContext
  */
-final class ConnectionContextTest extends \PHPUnit_Framework_TestCase
+final class ConnectionContextTest extends TestCase
 {
     /**
      * Tests that when retry() is called multiple times, the original fetch exception handler is unmodified.

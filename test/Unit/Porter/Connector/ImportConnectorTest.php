@@ -1,6 +1,7 @@
 <?php
 namespace ScriptFUSIONTest\Unit\Porter\Connector;
 
+use PHPUnit\Framework\TestCase;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Connector\CachingConnector;
 use ScriptFUSION\Porter\Connector\Connector;
@@ -12,7 +13,7 @@ use ScriptFUSIONTest\FixtureFactory;
 /**
  * @see ImportConnector
  */
-final class ImportConnectorTest extends \PHPUnit_Framework_TestCase
+final class ImportConnectorTest extends TestCase
 {
     /**
      * Tests that when fetching, the specified context and source are passed verbatim to the underlying connector.
@@ -71,7 +72,7 @@ final class ImportConnectorTest extends \PHPUnit_Framework_TestCase
      */
     public function testFetchCacheEnabledButNotAvailable(): void
     {
-        $this->setExpectedException(CacheUnavailableException::class);
+        $this->expectException(CacheUnavailableException::class);
 
         new ImportConnector(
             \Mockery::mock(Connector::class),
@@ -105,7 +106,7 @@ final class ImportConnectorTest extends \PHPUnit_Framework_TestCase
 
         $connector->setExceptionHandler($handler = \Mockery::mock(FetchExceptionHandler::class));
 
-        $this->setExpectedException(\LogicException::class);
+        $this->expectException(\LogicException::class);
         $connector->setExceptionHandler($handler);
     }
 

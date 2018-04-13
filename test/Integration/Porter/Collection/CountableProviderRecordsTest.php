@@ -1,13 +1,14 @@
 <?php
 namespace ScriptFUSIONTest\Integration\Porter\Collection;
 
+use PHPUnit\Framework\TestCase;
 use ScriptFUSION\Porter\Collection\CountableProviderRecords;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 
 /**
  * @see CountableProviderRecords
  */
-final class CountableProviderRecordsTest extends \PHPUnit_Framework_TestCase
+final class CountableProviderRecordsTest extends TestCase
 {
     /**
      * Tests that counting the collection matches the passed count value.

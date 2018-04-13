@@ -3,6 +3,7 @@ namespace ScriptFUSIONTest\Integration\Porter\Connector;
 
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
+use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use ScriptFUSION\Porter\Cache\CacheKeyGenerator;
@@ -18,7 +19,7 @@ use ScriptFUSIONTest\Stubs\TestOptions;
 /**
  * @see CachingConnector
  */
-final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
+final class CachingConnectorTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 
@@ -178,7 +179,8 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
                 ->getMock()
         );
 
-        $this->setExpectedException(InvalidCacheKeyException::class, 'Cache key must be a string.');
+        $this->expectException(InvalidCacheKeyException::class);
+        $this->expectExceptionMessage('Cache key must be a string.');
         $connector->fetch($this->context, 'baz');
     }
 
@@ -192,7 +194,8 @@ final class CachingConnectorTest extends \PHPUnit_Framework_TestCase
                 ->getMock()
         );
 
-        $this->setExpectedException(InvalidCacheKeyException::class, 'contains one or more reserved characters');
+        $this->expectException(InvalidCacheKeyException::class);
+        $this->expectExceptionMessage('contains one or more reserved characters');
         $connector->fetch($this->context, 'baz');
     }
 

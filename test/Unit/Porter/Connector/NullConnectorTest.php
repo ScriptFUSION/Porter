@@ -1,10 +1,11 @@
 <?php
 namespace ScriptFUSIONTest\Unit\Porter\Connector;
 
+use PHPUnit\Framework\TestCase;
 use ScriptFUSION\Porter\Connector\NullConnector;
 use ScriptFUSIONTest\FixtureFactory;
 
-final class NullConnectorTest extends \PHPUnit_Framework_TestCase
+final class NullConnectorTest extends TestCase
 {
     public function test(): void
     {

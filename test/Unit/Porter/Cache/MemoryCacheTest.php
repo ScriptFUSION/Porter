@@ -1,11 +1,12 @@
 <?php
 namespace ScriptFUSIONTest\Unit\Porter\Cache;
 
+use PHPUnit\Framework\TestCase;
 use ScriptFUSION\Porter\Cache\CacheItem;
 use ScriptFUSION\Porter\Cache\InvalidArgumentException;
 use ScriptFUSION\Porter\Cache\MemoryCache;
 
-final class MemoryCacheTest extends \PHPUnit_Framework_TestCase
+final class MemoryCacheTest extends TestCase
 {
     /** @var MemoryCache */
     private $cache;
@@ -69,7 +70,7 @@ final class MemoryCacheTest extends \PHPUnit_Framework_TestCase
 
     public function testDeleteInvalidItem(): void
     {
-        $this->setExpectedException(InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
         $this->cache->deleteItems(['foo', 'bar']);
     }
