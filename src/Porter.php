@@ -153,11 +153,11 @@ class Porter
         return \Amp\call(function () use ($specification) {
             $results = $this->importAsync($specification);
 
-            \Amp\Promise\rethrow(yield $results->advance());
+            yield $results->advance();
 
             $one = $results->getCurrent();
 
-            if (yield $results->advance() !== null) {
+            if ((yield $results->advance()) !== false) {
                 throw new ImportException('Cannot import one: more than one record imported.');
             }
 

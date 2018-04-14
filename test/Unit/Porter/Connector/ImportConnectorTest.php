@@ -91,7 +91,7 @@ final class ImportConnectorTest extends TestCase
         );
 
         self::assertNotSame($wrappedConnector, $connector->getWrappedConnector());
-        self::assertSame(get_class($wrappedConnector), get_class($connector->getWrappedConnector()));
+        self::assertSame(\get_class($wrappedConnector), \get_class($connector->getWrappedConnector()));
     }
 
     /**

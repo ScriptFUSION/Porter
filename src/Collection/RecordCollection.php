@@ -21,10 +21,7 @@ abstract class RecordCollection implements \Iterator
         return $this->records->current();
     }
 
-    /**
-     * @return void
-     */
-    public function next()
+    public function next(): void
     {
         $this->records->next();
     }
@@ -37,34 +34,25 @@ abstract class RecordCollection implements \Iterator
         return $this->records->key();
     }
 
-    /**
-     * @return bool
-     */
-    public function valid()
+    public function valid(): bool
     {
         return $this->records->valid();
     }
 
-    /**
-     * @return void
-     */
-    public function rewind()
+    public function rewind(): void
     {
         $this->records->rewind();
     }
 
-    /**
-     * @return RecordCollection|null
-     */
-    public function getPreviousCollection()
+    public function getPreviousCollection(): ?RecordCollection
     {
         return $this->previousCollection;
     }
 
-    public function findFirstCollection()
+    public function findFirstCollection(): ?RecordCollection
     {
         do {
-            $previous = isset($nextPrevious) ? $nextPrevious : $this->getPreviousCollection();
+            $previous = $nextPrevious ?? $this->getPreviousCollection();
         } while ($previous && $nextPrevious = $previous->getPreviousCollection());
 
         return $previous ?: $this;

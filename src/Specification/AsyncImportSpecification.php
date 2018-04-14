@@ -18,6 +18,8 @@ class AsyncImportSpecification extends ImportSpecification
         }
 
         parent::__construct($resource);
+
+        $this->asyncResource = $resource;
     }
 
     public function __clone()
