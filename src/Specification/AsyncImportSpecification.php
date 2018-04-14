@@ -7,6 +7,9 @@ use ScriptFUSION\Porter\Provider\Resource\AsyncResource;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Provider\Resource\PseudoBisyncResource;
 
+/**
+ * TODO: Use trait instead of extending ImportSpecification. Async specs are NOT a type of sync spec.
+ */
 class AsyncImportSpecification extends ImportSpecification
 {
     private $asyncResource;

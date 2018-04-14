@@ -7,11 +7,15 @@ use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
+use ScriptFUSION\Porter\Connector\AsyncConnector;
 use ScriptFUSION\Porter\Connector\ConnectionContext;
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Porter;
+use ScriptFUSION\Porter\Provider\AsyncProvider;
 use ScriptFUSION\Porter\Provider\Provider;
+use ScriptFUSION\Porter\Provider\Resource\AsyncResource;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
+use ScriptFUSION\Porter\Specification\AsyncImportSpecification;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSIONTest\MockFactory;
 
@@ -25,22 +29,22 @@ abstract class PorterTest extends TestCase
     protected $porter;
 
     /**
-     * @var Provider|MockInterface
+     * @var Provider|AsyncProvider|MockInterface
      */
     protected $provider;
 
     /**
-     * @var ProviderResource|MockInterface
+     * @var ProviderResource|AsyncResource|MockInterface
      */
     protected $resource;
 
     /**
-     * @var Connector|MockInterface
+     * @var Connector|AsyncConnector|MockInterface
      */
     protected $connector;
 
     /**
-     * @var ImportSpecification
+     * @var ImportSpecification|AsyncImportSpecification
      */
     protected $specification;
 

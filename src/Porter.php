@@ -1,6 +1,9 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter;
 
+use Amp\Iterator;
 use Amp\Producer;
 use Amp\Promise;
 use Psr\Container\ContainerInterface;
@@ -22,6 +25,7 @@ use ScriptFUSION\Porter\Provider\Resource\AsyncResource;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Specification\AsyncImportSpecification;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
+use ScriptFUSION\Porter\Transform\AsyncTransformer;
 use ScriptFUSION\Porter\Transform\Transformer;
 
 /**
@@ -58,7 +62,7 @@ class Porter
      *
      * @throws ImportException Provider failed to return an iterator.
      */
-    public function import(ImportSpecification $specification)
+    public function import(ImportSpecification $specification): PorterRecords
     {
         $specification = clone $specification;
 
@@ -86,7 +90,7 @@ class Porter
      *
      * @throws ImportException More than one record was imported.
      */
-    public function importOne(ImportSpecification $specification)
+    public function importOne(ImportSpecification $specification): ?array
     {
         $results = $this->import($specification);
 
@@ -103,7 +107,7 @@ class Porter
         return $one;
     }
 
-    private function fetch(ProviderResource $resource, $providerName, ConnectionContext $context)
+    private function fetch(ProviderResource $resource, $providerName, ConnectionContext $context): \Iterator
     {
         $provider = $this->getProvider($providerName ?: $resource->getProviderClassName());
 
@@ -127,7 +131,7 @@ class Porter
         return $resource->fetch(new ImportConnector($connector, $context));
     }
 
-    public function importAsync(AsyncImportSpecification $specification): Producer
+    public function importAsync(AsyncImportSpecification $specification): Iterator
     {
         $specification = clone $specification;
 
@@ -137,15 +141,7 @@ class Porter
             ConnectionContextFactory::create($specification)
         );
 
-//        if (!$records instanceof ProviderRecords) {
-//            $records = $this->createProviderRecords($records, $specification->getResource());
-//        }
-
-//        $records = $this->transformRecords($records, $specification->getTransformers(), $specification->getContext());
-
-//        return $this->createPorterRecords($records, $specification);
-
-        return $records;
+        return $this->transformAsync($records, $specification->getTransformers(), $specification->getContext());
     }
 
     public function importOneAsync(AsyncImportSpecification $specification): Promise
@@ -157,7 +153,7 @@ class Porter
 
             $one = $results->getCurrent();
 
-            if ((yield $results->advance()) !== false) {
+            if (yield $results->advance()) {
                 throw new ImportException('Cannot import one: more than one record imported.');
             }
 
@@ -165,7 +161,7 @@ class Porter
         });
     }
 
-    private function fetchAsync(AsyncResource $resource, $providerName, ConnectionContext $context): Producer
+    private function fetchAsync(AsyncResource $resource, $providerName, ConnectionContext $context): Iterator
     {
         $provider = $this->getProvider($providerName ?: $resource->getProviderClassName());
 
@@ -201,7 +197,7 @@ class Porter
      *
      * @return RecordCollection
      */
-    private function transformRecords(RecordCollection $records, array $transformers, $context)
+    private function transformRecords(RecordCollection $records, array $transformers, $context): RecordCollection
     {
         foreach ($transformers as $transformer) {
             if ($transformer instanceof PorterAware) {
@@ -214,19 +210,50 @@ class Porter
         return $records;
     }
 
-    private function createProviderRecords(\Iterator $records, ProviderResource $resource)
+    private function transformAsync(Iterator $records, array $transformers, $context): Producer
+    {
+        return new Producer(static function (\Closure $emit) use ($records, $transformers, $context) {
+            while (yield $records->advance()) {
+                $record = $records->getCurrent();
+
+                foreach ($transformers as $transformer) {
+                    if (!$transformer instanceof AsyncTransformer) {
+                        // TODO: Proper exception or separate async stack.
+                        throw new \RuntimeException('Cannot use sync transformer.');
+                    }
+
+                    $record = yield $transformer->transformAsync($record, $context);
+
+                    if ($record === null) {
+                        // Do not process more transformers.
+                        break;
+                    }
+                }
+
+                if ($record !== null) {
+                    if (!\is_array($record)) {
+                        throw new \RuntimeException('Unexpected type: record must be array or null.');
+                    }
+
+                    yield $emit($record);
+                }
+            }
+        });
+    }
+
+    private function createProviderRecords(\Iterator $records, ProviderResource $resource): ProviderRecords
     {
         if ($records instanceof \Countable) {
-            return new CountableProviderRecords($records, count($records), $resource);
+            return new CountableProviderRecords($records, \count($records), $resource);
         }
 
         return new ProviderRecords($records, $resource);
     }
 
-    private function createPorterRecords(RecordCollection $records, ImportSpecification $specification)
+    private function createPorterRecords(RecordCollection $records, ImportSpecification $specification): PorterRecords
     {
         if ($records instanceof \Countable) {
-            return new CountablePorterRecords($records, count($records), $specification);
+            return new CountablePorterRecords($records, \count($records), $specification);
         }
 
         return new PorterRecords($records, $specification);

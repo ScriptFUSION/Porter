@@ -13,7 +13,7 @@
     "scriptfusion/static-class": "^1",
     "scriptfusion/retry": "^1.1",
     "scriptfusion/retry-exception-handlers": "^1.1",
-    "amphp/amp": "^2.0",
+    "amphp/amp": "^2",
     "psr/container": "^1",
     "psr/cache": "^1"
   },

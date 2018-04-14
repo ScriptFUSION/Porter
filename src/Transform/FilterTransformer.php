@@ -1,10 +1,12 @@
 <?php
 namespace ScriptFUSION\Porter\Transform;
 
+use Amp\Promise;
+use Amp\Success;
 use ScriptFUSION\Porter\Collection\FilteredRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
 
-class FilterTransformer implements Transformer
+class FilterTransformer implements Transformer, AsyncTransformer
 {
     /**
      * @var callable
@@ -21,7 +23,7 @@ class FilterTransformer implements Transformer
 
     public function transform(RecordCollection $records, $context)
     {
-        $filter = function ($predicate) use ($records, $context) {
+        $filter = static function ($predicate) use ($records, $context) {
             foreach ($records as $record) {
                 if ($predicate($record, $context)) {
                     yield $record;
@@ -30,5 +32,10 @@ class FilterTransformer implements Transformer
         };
 
         return new FilteredRecords($filter($this->filter), $records, $filter);
+    }
+
+    public function transformAsync(array $record, $context): Promise
+    {
+        return new Success(($this->filter)($record, $context) ? $record : null);
     }
 }

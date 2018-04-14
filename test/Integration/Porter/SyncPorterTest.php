@@ -297,15 +297,15 @@ final class SyncPorterTest extends PorterTest
     {
         $this->resource->shouldReceive('fetch')->andReturnUsing(
             static function () {
-                foreach (range(1, 10) as $i) {
-                    yield [$i];
+                foreach (range(1, 10) as $integer) {
+                    yield [$integer];
                 }
             }
         );
 
         $records = $this->porter->import(
             $this->specification
-                ->addTransformer(new FilterTransformer($filter = function ($record) {
+                ->addTransformer(new FilterTransformer($filter = static function (array $record) {
                     return $record[0] % 2;
                 }))
         );

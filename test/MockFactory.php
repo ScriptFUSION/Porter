@@ -62,7 +62,7 @@ final class MockFactory
                         $emit([yield $connector->fetchAsync('foo')]);
                     });
                 })
-
+                ->byDefault()
             ->getMock()
         ;
 

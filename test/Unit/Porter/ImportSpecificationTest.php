@@ -46,7 +46,7 @@ final class ImportSpecificationTest extends TestCase
             array_keys($this->specification->getTransformers()),
             array_keys($specification->getTransformers())
         );
-        self::assertCount(count($this->specification->getTransformers()), $specification->getTransformers());
+        self::assertCount(\count($this->specification->getTransformers()), $specification->getTransformers());
 
         self::assertNotSame($context, $specification->getContext());
         self::assertNotSame($handler, $specification->getFetchExceptionHandler());
