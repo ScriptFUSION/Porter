@@ -212,7 +212,7 @@ class Porter
 
     private function transformAsync(Iterator $records, array $transformers, $context): Producer
     {
-        return new Producer(static function (\Closure $emit) use ($records, $transformers, $context) {
+        return new Producer(function (\Closure $emit) use ($records, $transformers, $context) {
             while (yield $records->advance()) {
                 $record = $records->getCurrent();
 
@@ -220,6 +220,9 @@ class Porter
                     if (!$transformer instanceof AsyncTransformer) {
                         // TODO: Proper exception or separate async stack.
                         throw new \RuntimeException('Cannot use sync transformer.');
+                    }
+                    if ($transformer instanceof PorterAware) {
+                        $transformer->setPorter($this);
                     }
 
                     $record = yield $transformer->transformAsync($record, $context);
