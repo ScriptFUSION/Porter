@@ -1,6 +1,7 @@
 <?php
 namespace ScriptFUSION\Porter\Connector;
 
+use Amp\Promise;
 use ScriptFUSION\Porter\Connector\FetchExceptionHandler\FetchExceptionHandler;
 use ScriptFUSION\Porter\Connector\FetchExceptionHandler\StatelessFetchExceptionHandler;
 
@@ -39,13 +40,14 @@ final class ConnectionContext
      *
      * @return bool True if the response must be cached, otherwise false.
      */
-    public function mustCache()
+    public function mustCache(): bool
     {
         return $this->mustCache;
     }
 
     /**
-     * Retries the specified callback a predefined number of times with a predefined exception handler.
+     * Retries the specified callback a predefined number of times with the specified resource fetch exception handler,
+     * if set, and then the predefined fetch exception handler.
      *
      * @param callable $callback Callback.
      *
@@ -53,26 +55,46 @@ final class ConnectionContext
      */
     public function retry(callable $callback)
     {
-        $userHandlerCloned = $providerHandlerCloned = false;
-
         return \ScriptFUSION\Retry\retry(
             $this->maxFetchAttempts,
             $callback,
-            function (\Exception $exception) use (&$userHandlerCloned, &$providerHandlerCloned) {
-                // Throw exception instead of retrying, if unrecoverable.
-                if (!$exception instanceof RecoverableConnectorException) {
-                    throw $exception;
-                }
-
-                // Call provider's exception handler, if defined.
-                if ($this->resourceFetchExceptionHandler) {
-                    self::invokeHandler($this->resourceFetchExceptionHandler, $exception, $providerHandlerCloned);
-                }
-
-                // Call user's exception handler.
-                self::invokeHandler($this->fetchExceptionHandler, $exception, $userHandlerCloned);
-            }
+            $this->createExceptionHandler()
         );
+    }
+
+    /**
+     * Retries the specified callback asynchronously a predefined number of times with the specified resource fetch
+     * exception handler, if set, and then the predefined fetch exception handler.
+     *
+     * @param callable $callback
+     */
+    public function retryAsync(callable $callback): Promise
+    {
+        return \ScriptFUSION\Retry\retryAsync(
+            $this->maxFetchAttempts,
+            $callback,
+            $this->createExceptionHandler()
+        );
+    }
+
+    private function createExceptionHandler(): \Closure
+    {
+        $userHandlerCloned = $providerHandlerCloned = false;
+
+        return function (\Exception $exception) use (&$userHandlerCloned, &$providerHandlerCloned) {
+            // Throw exception instead of retrying, if unrecoverable.
+            if (!$exception instanceof RecoverableConnectorException) {
+                throw $exception;
+            }
+
+            // Call provider's exception handler, if defined.
+            if ($this->resourceFetchExceptionHandler) {
+                self::invokeHandler($this->resourceFetchExceptionHandler, $exception, $providerHandlerCloned);
+            }
+
+            // Call user's exception handler.
+            self::invokeHandler($this->fetchExceptionHandler, $exception, $userHandlerCloned);
+        };
     }
 
     /**
@@ -82,7 +104,7 @@ final class ConnectionContext
      * @param \Exception $exception Exception to pass to the handler.
      * @param bool $cloned False if handler requires cloning, true if handler has already been cloned.
      */
-    private static function invokeHandler(FetchExceptionHandler &$handler, \Exception $exception, &$cloned)
+    private static function invokeHandler(FetchExceptionHandler &$handler, \Exception $exception, &$cloned): void
     {
         if (!$cloned && !$handler instanceof StatelessFetchExceptionHandler) {
             $handler = clone $handler;
@@ -100,7 +122,7 @@ final class ConnectionContext
      *
      * @param FetchExceptionHandler $resourceFetchExceptionHandler Exception handler.
      */
-    public function setResourceFetchExceptionHandler(FetchExceptionHandler $resourceFetchExceptionHandler)
+    public function setResourceFetchExceptionHandler(FetchExceptionHandler $resourceFetchExceptionHandler): void
     {
         if ($this->resourceFetchExceptionHandler !== null) {
             throw new \LogicException('Cannot set resource fetch exception handler: already set!');
