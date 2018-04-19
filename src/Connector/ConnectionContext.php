@@ -1,6 +1,7 @@
 <?php
 namespace ScriptFUSION\Porter\Connector;
 
+use Amp\Coroutine;
 use Amp\Promise;
 use ScriptFUSION\Porter\Connector\FetchExceptionHandler\FetchExceptionHandler;
 use ScriptFUSION\Porter\Connector\FetchExceptionHandler\StatelessFetchExceptionHandler;
@@ -46,8 +47,8 @@ final class ConnectionContext
     }
 
     /**
-     * Retries the specified callback a predefined number of times with the specified resource fetch exception handler,
-     * if set, and then the predefined fetch exception handler.
+     * Retries the specified callback up to a predefined number of times. If it throws a recoverable exception, the
+     * resource fetch exception handler is invoked, if set, and then the predefined fetch exception handler.
      *
      * @param callable $callback Callback.
      *
@@ -63,16 +64,21 @@ final class ConnectionContext
     }
 
     /**
-     * Retries the specified callback asynchronously a predefined number of times with the specified resource fetch
-     * exception handler, if set, and then the predefined fetch exception handler.
+     * Closes over the specified async generator function with a static factory method that invokes it as a coroutine
+     * and retries it up to the predefined number of fetch attempts. If it throws a recoverable exception, the resource
+     * fetch exception handler is invoked, if set, and then the predefined fetch exception handler.
      *
-     * @param callable $callback
+     * @param \Closure $asyncGenerator Async generator function.
+     *
+     * @return Promise The result returned by the async function.
      */
-    public function retryAsync(callable $callback): Promise
+    public function retryAsync(\Closure $asyncGenerator): Promise
     {
         return \ScriptFUSION\Retry\retryAsync(
             $this->maxFetchAttempts,
-            $callback,
+            static function () use ($asyncGenerator): Coroutine {
+                return new Coroutine($asyncGenerator());
+            },
             $this->createExceptionHandler()
         );
     }
@@ -81,7 +87,7 @@ final class ConnectionContext
     {
         $userHandlerCloned = $providerHandlerCloned = false;
 
-        return function (\Exception $exception) use (&$userHandlerCloned, &$providerHandlerCloned) {
+        return function (\Exception $exception) use (&$userHandlerCloned, &$providerHandlerCloned): void {
             // Throw exception instead of retrying, if unrecoverable.
             if (!$exception instanceof RecoverableConnectorException) {
                 throw $exception;
