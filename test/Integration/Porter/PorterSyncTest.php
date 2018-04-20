@@ -25,7 +25,7 @@ use ScriptFUSION\Porter\Transform\Transformer;
 use ScriptFUSION\Retry\FailingTooHardException;
 use ScriptFUSIONTest\MockFactory;
 
-final class SyncPorterTest extends PorterTest
+final class PorterSyncTest extends PorterTest
 {
     #region Import
 
@@ -197,7 +197,8 @@ final class SyncPorterTest extends PorterTest
     {
         $this->arrangeConnectorException(new RecoverableConnectorException);
 
-        $this->expectException(FailingTooHardException::class, '1');
+        $this->expectException(FailingTooHardException::class);
+        $this->expectExceptionMessage('1');
         $this->porter->import($this->specification->setMaxFetchAttempts(1));
     }
 
@@ -265,7 +266,7 @@ final class SyncPorterTest extends PorterTest
      */
     public function testCustomProviderFetchExceptionHandler(): void
     {
-        $this->specification->setFetchExceptionHandler(new StatelessFetchExceptionHandler(function () {
+        $this->specification->setFetchExceptionHandler(new StatelessFetchExceptionHandler(static function (): void {
             throw new \LogicException('This exception must not be thrown!');
         }));
 
@@ -274,7 +275,7 @@ final class SyncPorterTest extends PorterTest
 
         $this->resource
             ->shouldReceive('fetch')
-            ->andReturnUsing(function (ImportConnector $connector) use ($connectorException) {
+            ->andReturnUsing(static function (ImportConnector $connector) use ($connectorException): \Generator {
                 $connector->setExceptionHandler(new StatelessFetchExceptionHandler(
                     function (\Exception $exception) use ($connectorException) {
                         self::assertSame($connectorException, $exception);
@@ -296,7 +297,7 @@ final class SyncPorterTest extends PorterTest
     public function testFilter(): void
     {
         $this->resource->shouldReceive('fetch')->andReturnUsing(
-            static function () {
+            static function (): \Generator {
                 foreach (range(1, 10) as $integer) {
                     yield [$integer];
                 }
@@ -305,7 +306,7 @@ final class SyncPorterTest extends PorterTest
 
         $records = $this->porter->import(
             $this->specification
-                ->addTransformer(new FilterTransformer($filter = static function (array $record) {
+                ->addTransformer(new FilterTransformer($filter = static function (array $record): int {
                     return $record[0] % 2;
                 }))
         );

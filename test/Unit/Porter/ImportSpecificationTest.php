@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSIONTest\Unit\Porter;
 
 use PHPUnit\Framework\TestCase;
@@ -19,7 +21,7 @@ final class ImportSpecificationTest extends TestCase
     /** @var ProviderResource */
     private $resource;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->specification = new ImportSpecification(
             $this->resource = \Mockery::mock(ProviderResource::class)
@@ -59,7 +61,9 @@ final class ImportSpecificationTest extends TestCase
 
     public function testProviderName(): void
     {
+        self::assertNull($this->specification->getProviderName());
         self::assertSame($name = 'foo', $this->specification->setProviderName($name)->getProviderName());
+        self::assertNull($this->specification->setProviderName(null)->getProviderName());
     }
 
     public function testAddTransformer(): void
@@ -115,11 +119,9 @@ final class ImportSpecificationTest extends TestCase
     }
 
     /**
-     * @param int $value
-     *
      * @dataProvider provideValidFetchAttempts
      */
-    public function testValidMaxFetchAttempts($value): void
+    public function testValidMaxFetchAttempts(int $value): void
     {
         self::assertSame($value, $this->specification->setMaxFetchAttempts($value)->getMaxFetchAttempts());
     }
@@ -134,21 +136,22 @@ final class ImportSpecificationTest extends TestCase
 
     /**
      * @param mixed $value
+     * @param string $exceptionType
      *
      * @dataProvider provideInvalidFetchAttempts
      */
-    public function testInvalidMaxFetchAttempts($value): void
+    public function testInvalidMaxFetchAttempts($value, string $exceptionType): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException($exceptionType);
         $this->specification->setMaxFetchAttempts($value);
     }
 
     public function provideInvalidFetchAttempts(): array
     {
         return [
-            'Too low, positive' => [0],
-            'Too low, negative' => [-1],
-            'Float in range' => [1.9],
+            'Too low, positive' => [0, \InvalidArgumentException::class],
+            'Too low, negative' => [-1, \InvalidArgumentException::class],
+            'Float in range' => [1.9, \TypeError::class],
         ];
     }
 

@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSIONTest\Unit\Porter\Connector\FetchExceptionHandler;
 
 use PHPUnit\Framework\TestCase;
@@ -16,7 +18,7 @@ final class StatelessFetchExceptionHandlerTest extends TestCase
      */
     public function testInitialize(): void
     {
-        (new StatelessFetchExceptionHandler(static function () {
+        (new StatelessFetchExceptionHandler(static function (): void {
             // Intentionally empty.
         }))->initialize();
 

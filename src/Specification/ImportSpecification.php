@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Specification;
 
 use ScriptFUSION\Porter\Connector\FetchExceptionHandler\ExponentialSleepFetchExceptionHandler;
@@ -11,7 +13,7 @@ use ScriptFUSION\Porter\Transform\Transformer;
  */
 class ImportSpecification
 {
-    const DEFAULT_FETCH_ATTEMPTS = 5;
+    public const DEFAULT_FETCH_ATTEMPTS = 5;
 
     /**
      * @var ProviderResource
@@ -19,7 +21,7 @@ class ImportSpecification
     private $resource;
 
     /**
-     * @var string
+     * @var string|null
      */
     private $providerName;
 
@@ -67,14 +69,14 @@ class ImportSpecification
             $transformers
         ));
 
-        is_object($this->context) && $this->context = clone $this->context;
+        \is_object($this->context) && $this->context = clone $this->context;
         $this->fetchExceptionHandler && $this->fetchExceptionHandler = clone $this->fetchExceptionHandler;
     }
 
     /**
      * @return ProviderResource
      */
-    final public function getResource()
+    final public function getResource(): ProviderResource
     {
         return $this->resource;
     }
@@ -82,9 +84,9 @@ class ImportSpecification
     /**
      * Gets the provider service name.
      *
-     * @return string Provider name.
+     * @return string|null Provider name.
      */
-    final public function getProviderName()
+    final public function getProviderName(): ?string
     {
         return $this->providerName;
     }
@@ -92,13 +94,13 @@ class ImportSpecification
     /**
      * Sets the provider service name.
      *
-     * @param string $providerName Provider name.
+     * @param string|null $providerName Provider name.
      *
      * @return $this
      */
-    final public function setProviderName($providerName)
+    final public function setProviderName(?string $providerName): self
     {
-        $this->providerName = "$providerName";
+        $this->providerName = $providerName;
 
         return $this;
     }
@@ -108,7 +110,7 @@ class ImportSpecification
      *
      * @return Transformer[]
      */
-    final public function getTransformers()
+    final public function getTransformers(): array
     {
         return $this->transformers;
     }
@@ -120,7 +122,7 @@ class ImportSpecification
      *
      * @return $this
      */
-    final public function addTransformer(Transformer $transformer)
+    final public function addTransformer(Transformer $transformer): self
     {
         if ($this->hasTransformer($transformer)) {
             throw new DuplicateTransformerException('Transformer already added.');
@@ -138,7 +140,7 @@ class ImportSpecification
      *
      * @return $this
      */
-    final public function addTransformers(array $transformers)
+    final public function addTransformers(array $transformers): self
     {
         foreach ($transformers as $transformer) {
             $this->addTransformer($transformer);
@@ -150,14 +152,14 @@ class ImportSpecification
     /**
      * @return $this
      */
-    final public function clearTransformers()
+    final public function clearTransformers(): self
     {
         $this->transformers = [];
 
         return $this;
     }
 
-    private function hasTransformer(Transformer $transformer)
+    private function hasTransformer(Transformer $transformer): bool
     {
         return isset($this->transformers[spl_object_hash($transformer)]);
     }
@@ -175,7 +177,7 @@ class ImportSpecification
      *
      * @return $this
      */
-    final public function setContext($context)
+    final public function setContext($context): self
     {
         $this->context = $context;
 
@@ -185,7 +187,7 @@ class ImportSpecification
     /**
      * @return bool
      */
-    final public function mustCache()
+    final public function mustCache(): bool
     {
         return $this->mustCache;
     }
@@ -193,7 +195,7 @@ class ImportSpecification
     /**
      * @return $this
      */
-    final public function enableCache()
+    final public function enableCache(): self
     {
         $this->mustCache = true;
 
@@ -203,7 +205,7 @@ class ImportSpecification
     /**
      * @return $this
      */
-    final public function disableCache()
+    final public function disableCache(): self
     {
         $this->mustCache = false;
 
@@ -215,7 +217,7 @@ class ImportSpecification
      *
      * @return int Maximum fetch attempts.
      */
-    final public function getMaxFetchAttempts()
+    final public function getMaxFetchAttempts(): int
     {
         return $this->maxFetchAttempts;
     }
@@ -227,9 +229,9 @@ class ImportSpecification
      *
      * @return $this
      */
-    final public function setMaxFetchAttempts($attempts)
+    final public function setMaxFetchAttempts(int $attempts): self
     {
-        if (!is_int($attempts) || $attempts < 1) {
+        if ($attempts < 1) {
             throw new \InvalidArgumentException('Fetch attempts must be greater than or equal to 1.');
         }
 
@@ -243,7 +245,7 @@ class ImportSpecification
      *
      * @return FetchExceptionHandler Fetch exception handler.
      */
-    final public function getFetchExceptionHandler()
+    final public function getFetchExceptionHandler(): FetchExceptionHandler
     {
         return $this->fetchExceptionHandler ?: $this->fetchExceptionHandler = new ExponentialSleepFetchExceptionHandler;
     }
@@ -255,7 +257,7 @@ class ImportSpecification
      *
      * @return $this
      */
-    final public function setFetchExceptionHandler(FetchExceptionHandler $fetchExceptionHandler)
+    final public function setFetchExceptionHandler(FetchExceptionHandler $fetchExceptionHandler): self
     {
         $this->fetchExceptionHandler = $fetchExceptionHandler;
 

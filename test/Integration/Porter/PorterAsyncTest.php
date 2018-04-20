@@ -12,7 +12,7 @@ use ScriptFUSION\Porter\Transform\FilterTransformer;
 /**
  * @see Porter
  */
-final class AsyncPorterTest extends PorterTest
+final class PorterAsyncTest extends PorterTest
 {
     protected function setUp(): void
     {

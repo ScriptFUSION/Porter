@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Cache;
 
 use Psr\Cache\CacheItemInterface;
@@ -9,42 +11,45 @@ use Psr\Cache\CacheItemPoolInterface;
  */
 class MemoryCache extends \ArrayObject implements CacheItemPoolInterface
 {
+    /**
+     * @param string $key
+     *
+     * @return mixed
+     */
     public function getItem($key)
     {
-        return call_user_func(
-            \Closure::bind(
-                function () use ($key) {
-                    return new self($key, $this->hasItem($key) ? $this[$key] : null, $this->hasItem($key));
-                },
-                $this,
-                CacheItem::class
-            )
-        );
+        return \Closure::bind(
+            function () use ($key): CacheItem {
+                return new self($key, $this->hasItem($key) ? $this[$key] : null, $this->hasItem($key));
+            },
+            $this,
+            CacheItem::class
+        )();
     }
 
-    public function getItems(array $keys = [])
+    public function getItems(array $keys = []): iterable
     {
         foreach ($keys as $key) {
             yield $this->getItem($key);
         }
     }
 
-    public function hasItem($key)
+    public function hasItem($key): bool
     {
         return isset($this[$key]);
     }
 
-    public function clear()
+    public function clear(): void
     {
         $this->exchangeArray([]);
     }
 
-    public function deleteItem($key)
+    public function deleteItem($key): void
     {
         unset($this[$key]);
     }
 
-    public function deleteItems(array $keys)
+    public function deleteItems(array $keys): void
     {
         foreach ($keys as $key) {
             if (!$this->hasItem($key)) {
@@ -55,17 +60,17 @@ class MemoryCache extends \ArrayObject implements CacheItemPoolInterface
         }
     }
 
-    public function save(CacheItemInterface $item)
+    public function save(CacheItemInterface $item): void
     {
         $this[$item->getKey()] = $item->get();
     }
 
-    public function saveDeferred(CacheItemInterface $item)
+    public function saveDeferred(CacheItemInterface $item): void
     {
         $this->save($item);
     }
 
-    public function commit()
+    public function commit(): bool
     {
         return true;
     }

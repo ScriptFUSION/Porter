@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Cache;
 
 use Psr\Cache\CacheItemInterface;
@@ -14,41 +16,47 @@ final class CacheItem implements CacheItemInterface
 
     private $hit;
 
-    private function __construct($key, $value, $hit)
+    private function __construct(string $key, $value, bool $hit)
     {
-        $this->key = "$key";
+        $this->key = $key;
         $this->value = $value;
-        $this->hit = (bool)$hit;
+        $this->hit = $hit;
     }
 
-    public function getKey()
+    public function getKey(): string
     {
         return $this->key;
     }
 
+    /**
+     * @return mixed
+     */
     public function get()
     {
         return $this->value;
     }
 
-    public function isHit()
+    public function isHit(): bool
     {
         return $this->hit;
     }
 
-    public function set($value)
+    /**
+     * @param mixed $value
+     */
+    public function set($value): self
     {
         $this->value = $value;
 
         return $this;
     }
 
-    public function expiresAt($expiration)
+    public function expiresAt($expiration): self
     {
         throw new NotImplementedException;
     }
 
-    public function expiresAfter($time)
+    public function expiresAfter($time): self
     {
         throw new NotImplementedException;
     }

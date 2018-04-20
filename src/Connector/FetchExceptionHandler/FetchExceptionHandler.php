@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Connector\FetchExceptionHandler;
 
 /**
@@ -21,7 +23,7 @@ interface FetchExceptionHandler
      *
      * @return void
      */
-    public function initialize();
+    public function initialize(): void;
 
     /**
      * Handles a fetch() exception.
@@ -30,5 +32,5 @@ interface FetchExceptionHandler
      *
      * @return void
      */
-    public function __invoke(\Exception $exception);
+    public function __invoke(\Exception $exception): void;
 }

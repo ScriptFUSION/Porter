@@ -1,9 +1,10 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Collection;
 
 class FilteredRecords extends RecordCollection
 {
-    /** @var callable */
     private $filter;
 
     public function __construct(\Iterator $records, RecordCollection $previousCollection, callable $filter)
@@ -13,10 +14,7 @@ class FilteredRecords extends RecordCollection
         $this->filter = $filter;
     }
 
-    /**
-     * @return callable
-     */
-    public function getFilter()
+    public function getFilter(): callable
     {
         return $this->filter;
     }

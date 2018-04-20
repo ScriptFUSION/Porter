@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Transform;
 
 use Amp\Promise;
@@ -21,7 +23,7 @@ class FilterTransformer implements Transformer, AsyncTransformer
         $this->filter = $filter;
     }
 
-    public function transform(RecordCollection $records, $context)
+    public function transform(RecordCollection $records, $context): RecordCollection
     {
         $filter = static function ($predicate) use ($records, $context) {
             foreach ($records as $record) {

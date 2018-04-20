@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Connector;
 
 use Amp\Coroutine;
@@ -29,11 +31,11 @@ final class ConnectionContext
 
     private $maxFetchAttempts;
 
-    public function __construct($mustCache, FetchExceptionHandler $fetchExceptionHandler, $maxFetchAttempts)
+    public function __construct(bool $mustCache, FetchExceptionHandler $fetchExceptionHandler, int $maxFetchAttempts)
     {
-        $this->mustCache = (bool)$mustCache;
+        $this->mustCache = $mustCache;
         $this->fetchExceptionHandler = $fetchExceptionHandler;
-        $this->maxFetchAttempts = (int)$maxFetchAttempts;
+        $this->maxFetchAttempts = $maxFetchAttempts;
     }
 
     /**
@@ -110,7 +112,7 @@ final class ConnectionContext
      * @param \Exception $exception Exception to pass to the handler.
      * @param bool $cloned False if handler requires cloning, true if handler has already been cloned.
      */
-    private static function invokeHandler(FetchExceptionHandler &$handler, \Exception $exception, &$cloned): void
+    private static function invokeHandler(FetchExceptionHandler &$handler, \Exception $exception, bool &$cloned): void
     {
         if (!$cloned && !$handler instanceof StatelessFetchExceptionHandler) {
             $handler = clone $handler;

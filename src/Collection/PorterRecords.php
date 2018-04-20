@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Collection;
 
 use ScriptFUSION\Porter\Specification\ImportSpecification;
@@ -14,10 +16,7 @@ class PorterRecords extends RecordCollection
         $this->specification = $specification;
     }
 
-    /**
-     * @return ImportSpecification
-     */
-    public function getSpecification()
+    public function getSpecification(): ImportSpecification
     {
         return $this->specification;
     }

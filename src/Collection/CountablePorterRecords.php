@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Collection;
 
 use ScriptFUSION\Porter\Specification\ImportSpecification;
@@ -12,7 +14,7 @@ class CountablePorterRecords extends PorterRecords implements \Countable
      * @param int $count
      * @param ImportSpecification $specification
      */
-    public function __construct(RecordCollection $records, $count, ImportSpecification $specification)
+    public function __construct(RecordCollection $records, int $count, ImportSpecification $specification)
     {
         parent::__construct($records, $specification);
 

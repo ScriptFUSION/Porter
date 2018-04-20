@@ -1,6 +1,9 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSIONTest\Unit\Porter\Connector;
 
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Connector\CachingConnector;
@@ -15,6 +18,8 @@ use ScriptFUSIONTest\FixtureFactory;
  */
 final class ImportConnectorTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     /**
      * Tests that when fetching, the specified context and source are passed verbatim to the underlying connector.
      */

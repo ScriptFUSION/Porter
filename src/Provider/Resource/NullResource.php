@@ -1,7 +1,9 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Provider\Resource;
 
-class NullResource extends StaticResource
+final class NullResource extends StaticResource
 {
     public function __construct()
     {

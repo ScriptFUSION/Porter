@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSIONTest\Unit\Porter;
 
 use PHPUnit\Framework\TestCase;
@@ -16,16 +18,14 @@ final class PorterAwareTraitTest extends TestCase
 
         self::assertSame(
             $porter,
-            \call_user_func(
-                \Closure::bind(
-                    function () {
-                        /** @var PorterAwareTrait $this */
-                        return $this->getPorter();
-                    },
-                    $porterAware,
-                    $porterAware
-                )
-            )
+            \Closure::bind(
+                function (): Porter {
+                    /** @var PorterAwareTrait $this */
+                    return $this->getPorter();
+                },
+                $porterAware,
+                $porterAware
+            )()
         );
     }
 }

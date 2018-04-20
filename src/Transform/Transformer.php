@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Transform;
 
 use ScriptFUSION\Porter\Collection\RecordCollection;
@@ -13,8 +15,6 @@ interface Transformer
      *
      * @param RecordCollection $records Record collection.
      * @param mixed $context Context data.
-     *
-     * @return RecordCollection
      */
-    public function transform(RecordCollection $records, $context);
+    public function transform(RecordCollection $records, $context): RecordCollection;
 }

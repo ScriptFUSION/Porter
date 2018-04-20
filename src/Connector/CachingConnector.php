@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Connector;
 
 use Psr\Cache\CacheItemPoolInterface;
@@ -53,7 +55,7 @@ class CachingConnector implements Connector, ConnectorWrapper
      *
      * @throws InvalidCacheKeyException
      */
-    public function fetch(ConnectionContext $context, $source)
+    public function fetch(ConnectionContext $context, string $source)
     {
         if ($context->mustCache()) {
             $options = $this->connector instanceof ConnectorOptions ? $this->connector->getOptions()->copy() : [];
@@ -74,19 +76,10 @@ class CachingConnector implements Connector, ConnectorWrapper
     }
 
     /**
-     * @param mixed $key
-     *
-     * @return void
-     *
      * @throws InvalidCacheKeyException Cache key contains invalid data.
      */
-    private function validateCacheKey($key)
+    private function validateCacheKey(string $key): void
     {
-        // TODO: Remove when PHP 5 support dropped and replace with string hint.
-        if (!is_string($key)) {
-            throw new InvalidCacheKeyException('Cache key must be a string.');
-        }
-
         if (strpbrk($key, CacheKeyGenerator::RESERVED_CHARACTERS) !== false) {
             throw new InvalidCacheKeyException(sprintf(
                 'Cache key "%s" contains one or more reserved characters: "%s".',
@@ -96,7 +89,7 @@ class CachingConnector implements Connector, ConnectorWrapper
         }
     }
 
-    public function getWrappedConnector()
+    public function getWrappedConnector(): Connector
     {
         return $this->connector;
     }

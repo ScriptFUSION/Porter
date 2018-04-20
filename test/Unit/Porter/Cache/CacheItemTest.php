@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSIONTest\Unit\Porter\Cache;
 
 use PHPUnit\Framework\TestCase;
@@ -10,7 +12,7 @@ final class CacheItemTest extends TestCase
     /** @var CacheItem */
     private $item;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->item = $this->createCacheItem();
     }
@@ -49,16 +51,14 @@ final class CacheItemTest extends TestCase
         $this->item->expiresAfter(null);
     }
 
-    private function createCacheItem()
+    private function createCacheItem(): CacheItem
     {
-        return call_user_func(
-            \Closure::bind(
-                function () {
-                    return new self('foo', 'bar', true);
-                },
-                null,
-                CacheItem::class
-            )
-        );
+        return \Closure::bind(
+            static function (): CacheItem {
+                return new self('foo', 'bar', true);
+            },
+            null,
+            CacheItem::class
+        )();
     }
 }

@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Collection;
 
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
@@ -14,10 +16,7 @@ class ProviderRecords extends RecordCollection
         $this->resource = $resource;
     }
 
-    /**
-     * @return ProviderResource
-     */
-    public function getResource()
+    public function getResource(): ProviderResource
     {
         return $this->resource;
     }

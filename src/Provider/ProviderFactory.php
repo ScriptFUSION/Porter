@@ -1,9 +1,14 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Provider;
 
+/**
+ * @internal Do not use.
+ */
 final class ProviderFactory
 {
-    public function createProvider($name)
+    public function createProvider($name): Provider
     {
         switch ($name) {
             case StaticDataProvider::class:

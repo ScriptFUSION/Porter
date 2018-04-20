@@ -1,6 +1,9 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSIONTest\Unit\Porter\Collection;
 
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use ScriptFUSION\Porter\Collection\RecordCollection;
 
@@ -9,6 +12,8 @@ use ScriptFUSION\Porter\Collection\RecordCollection;
  */
 final class RecordCollectionTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testFindParent(): void
     {
         /**
@@ -46,7 +51,8 @@ final class RecordCollectionTest extends TestCase
             [new \ArrayIterator(['foo'])]
         )->makePartial();
 
-        $this->expectException(\TypeError::class, 'must be of the type array');
+        $this->expectException(\TypeError::class);
+        $this->expectExceptionMessage('must be of the type array');
         $collection->current();
     }
 }

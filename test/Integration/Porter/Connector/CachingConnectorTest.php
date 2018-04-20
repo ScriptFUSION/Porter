@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSIONTest\Integration\Porter\Connector;
 
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
@@ -43,7 +45,7 @@ final class CachingConnectorTest extends TestCase
      */
     private $options;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->options = new TestOptions;
 
@@ -133,7 +135,7 @@ final class CachingConnectorTest extends TestCase
 
         $cache->shouldReceive('hasItem')
             ->andReturnUsing(
-                function ($key) use ($reservedCharacters) {
+                function ($key) use ($reservedCharacters): void {
                     foreach (str_split($reservedCharacters) as $reservedCharacter) {
                         self::assertNotContains($reservedCharacter, $key);
                     }
@@ -164,24 +166,6 @@ final class CachingConnectorTest extends TestCase
         self::assertSame('foo', $connector->fetch($this->context, $source));
         self::assertSame('foo', $connector->fetch($this->context, $source));
         self::assertSame('bar', $connector->fetch($this->context, $source));
-    }
-
-    /**
-     * TODO: Remove when PHP 5 support dropped.
-     */
-    public function testFetchThrowsInvalidCacheKeyExceptionOnNonStringCacheKey(): void
-    {
-        $connector = $this->createConnector(
-            null,
-            \Mockery::mock(CacheKeyGenerator::class)
-                ->shouldReceive('generateCacheKey')
-                ->andReturn(1)
-                ->getMock()
-        );
-
-        $this->expectException(InvalidCacheKeyException::class);
-        $this->expectExceptionMessage('Cache key must be a string.');
-        $connector->fetch($this->context, 'baz');
     }
 
     public function testFetchThrowsInvalidCacheKeyExceptionOnNonPSR6CompliantCacheKey(): void
@@ -217,8 +201,10 @@ final class CachingConnectorTest extends TestCase
         self::assertNotSame($this->wrappedConnector, $clone->getWrappedConnector());
     }
 
-    private function createConnector(MockInterface $cache = null, MockInterface $cacheKeyGenerator = null)
-    {
+    private function createConnector(
+        MockInterface $cache = null,
+        MockInterface $cacheKeyGenerator = null
+    ): CachingConnector {
         return new CachingConnector($this->wrappedConnector, $cache, $cacheKeyGenerator);
     }
 }

@@ -1,9 +1,11 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Connector;
 
-class NullConnector implements Connector
+final class NullConnector implements Connector
 {
-    public function fetch(ConnectionContext $context, $source)
+    public function fetch(ConnectionContext $context, string $source)
     {
         // Intentionally empty.
     }

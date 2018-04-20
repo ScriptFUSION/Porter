@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Provider;
 
 use ScriptFUSION\Porter\Connector\Connector;
@@ -10,8 +12,6 @@ interface Provider
 {
     /**
      * Gets a connector for accessing resource data.
-     *
-     * @return Connector
      */
-    public function getConnector();
+    public function getConnector(): Connector;
 }

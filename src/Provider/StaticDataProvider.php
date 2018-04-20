@@ -1,6 +1,9 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Provider;
 
+use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Connector\NullConnector;
 
 class StaticDataProvider implements Provider
@@ -12,7 +15,7 @@ class StaticDataProvider implements Provider
         $this->connector = new NullConnector;
     }
 
-    public function getConnector()
+    public function getConnector(): Connector
     {
         return $this->connector;
     }

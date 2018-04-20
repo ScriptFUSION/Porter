@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Options;
 
 /**
@@ -15,7 +17,7 @@ abstract class EncapsulatedOptions
      *
      * @return array Options.
      */
-    final public function copy()
+    final public function copy(): array
     {
         return $this->options + $this->defaults;
     }
@@ -28,14 +30,14 @@ abstract class EncapsulatedOptions
      *
      * @return mixed Option value, default value or null.
      */
-    final protected function get($option)
+    final protected function get(string $option)
     {
-        if (array_key_exists($key = "$option", $this->options)) {
-            return $this->options[$key];
+        if (array_key_exists($option, $this->options)) {
+            return $this->options[$option];
         }
 
-        if (array_key_exists($key, $this->defaults)) {
-            return $this->defaults[$key];
+        if (array_key_exists($option, $this->defaults)) {
+            return $this->defaults[$option];
         }
     }
 
@@ -46,9 +48,9 @@ abstract class EncapsulatedOptions
      *
      * @return mixed
      */
-    final protected function &getReference($option)
+    final protected function &getReference(string $option)
     {
-        return $this->options["$option"];
+        return $this->options[$option];
     }
 
     /**
@@ -56,12 +58,10 @@ abstract class EncapsulatedOptions
      *
      * @param string $option Option name.
      * @param mixed $value Value.
-     *
-     * @return $this
      */
-    final protected function set($option, $value)
+    final protected function set(string $option, $value): self
     {
-        $this->options["$option"] = $value;
+        $this->options[$option] = $value;
 
         return $this;
     }
@@ -70,10 +70,8 @@ abstract class EncapsulatedOptions
      * Sets the default values for the specified map of keys and values.
      *
      * @param array $defaults Map of keys and default values.
-     *
-     * @return $this
      */
-    final protected function setDefaults(array $defaults)
+    final protected function setDefaults(array $defaults): self
     {
         $this->defaults = $defaults;
 

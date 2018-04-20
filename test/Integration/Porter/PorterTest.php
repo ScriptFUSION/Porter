@@ -53,7 +53,7 @@ abstract class PorterTest extends TestCase
      */
     protected $container;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->porter = new Porter($this->container = \Mockery::spy(ContainerInterface::class));
 
@@ -79,7 +79,7 @@ abstract class PorterTest extends TestCase
     protected function arrangeConnectorException(\Exception $exception): void
     {
         $this->connector->shouldReceive('fetch')->with(
-            \Mockery::on(function (ConnectionContext $context) use ($exception) {
+            \Mockery::on(function (ConnectionContext $context) use ($exception): void {
                 $context->retry(function () use ($exception) {
                     throw $exception;
                 });

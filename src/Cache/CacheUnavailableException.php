@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Cache;
 
 use Psr\Cache\CacheException;
@@ -8,7 +10,7 @@ use Psr\Cache\CacheException;
  */
 final class CacheUnavailableException extends \RuntimeException implements CacheException
 {
-    public static function createUnsupported()
+    public static function createUnsupported(): self
     {
         return new self('Cannot cache: connector does not support caching.');
     }

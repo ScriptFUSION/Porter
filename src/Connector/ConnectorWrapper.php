@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Connector;
 
 /**
@@ -9,7 +11,7 @@ interface ConnectorWrapper
     /**
      * Gets the wrapped connector.
      *
-     * @return Connector
+     * @return Connector|AsyncConnector
      */
     public function getWrappedConnector();
 }

@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Connector\FetchExceptionHandler;
 
 /**
@@ -13,13 +15,13 @@ class StatelessFetchExceptionHandler implements FetchExceptionHandler
         $this->handler = $handler;
     }
 
-    final public function initialize()
+    final public function initialize(): void
     {
         // Intentionally empty.
     }
 
-    final public function __invoke(\Exception $exception)
+    final public function __invoke(\Exception $exception): void
     {
-        call_user_func($this->handler, $exception);
+        ($this->handler)($exception);
     }
 }

@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSIONTest\Unit\Porter\Options;
 
 use PHPUnit\Framework\TestCase;
@@ -14,7 +16,7 @@ final class EncapsulatedOptionsTest extends TestCase
      */
     private $options;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->options = new TestOptions;
     }

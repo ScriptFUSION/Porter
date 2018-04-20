@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSIONTest\Unit\Porter\Cache;
 
 use PHPUnit\Framework\TestCase;
@@ -13,7 +15,7 @@ final class MemoryCacheTest extends TestCase
 
     private $items;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->cache = new MemoryCache($this->items = ['foo' => 'bar']);
     }

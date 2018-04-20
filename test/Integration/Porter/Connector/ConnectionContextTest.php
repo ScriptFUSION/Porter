@@ -1,8 +1,11 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSIONTest\Integration\Porter\Connector;
 
 use PHPUnit\Framework\TestCase;
 use ScriptFUSION\Porter\Connector\ConnectionContext;
+use ScriptFUSION\Porter\Connector\FetchExceptionHandler\FetchExceptionHandler;
 use ScriptFUSION\Porter\Connector\FetchExceptionHandler\StatelessFetchExceptionHandler;
 use ScriptFUSION\Porter\Connector\RecoverableConnectorException;
 use ScriptFUSIONTest\FixtureFactory;
@@ -32,7 +35,7 @@ final class ConnectionContextTest extends TestCase
         self::assertSame($initial, $handler->getCurrent());
     }
 
-    public function provideHandlerAndContext()
+    public function provideHandlerAndContext(): \Generator
     {
         yield 'User exception handler' => [
             $handler = new TestFetchExceptionHandler,
@@ -53,7 +56,7 @@ final class ConnectionContextTest extends TestCase
     {
         $context = FixtureFactory::buildConnectionContext(
             false,
-            $handler = new StatelessFetchExceptionHandler(static function () {
+            $handler = new StatelessFetchExceptionHandler(static function (): void {
                 // Intentionally empty.
             })
         );
@@ -62,15 +65,13 @@ final class ConnectionContextTest extends TestCase
 
         self::assertSame(
             $handler,
-            call_user_func(
-                \Closure::bind(
-                    function () {
-                        return $this->fetchExceptionHandler;
-                    },
-                    $context,
-                    $context
-                )
-            )
+            \Closure::bind(
+                function (): FetchExceptionHandler {
+                    return $this->fetchExceptionHandler;
+                },
+                $context,
+                $context
+            )()
         );
     }
 
@@ -79,7 +80,7 @@ final class ConnectionContextTest extends TestCase
      */
     private static function createExceptionThrowingClosure(): \Closure
     {
-        return static function () {
+        return static function (): void {
             static $invocationCount;
 
             if (!$invocationCount++) {

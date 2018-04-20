@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter;
 
 trait PorterAwareTrait
@@ -6,12 +8,12 @@ trait PorterAwareTrait
     /** @var Porter */
     private $porter;
 
-    protected function getPorter()
+    protected function getPorter(): Porter
     {
         return $this->porter;
     }
 
-    public function setPorter(Porter $porter)
+    public function setPorter(Porter $porter): self
     {
         $this->porter = $porter;
 

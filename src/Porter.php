@@ -107,7 +107,7 @@ class Porter
         return $one;
     }
 
-    private function fetch(ProviderResource $resource, $providerName, ConnectionContext $context): \Iterator
+    private function fetch(ProviderResource $resource, ?string $providerName, ConnectionContext $context): \Iterator
     {
         $provider = $this->getProvider($providerName ?: $resource->getProviderClassName());
 
@@ -161,7 +161,7 @@ class Porter
         });
     }
 
-    private function fetchAsync(AsyncResource $resource, $providerName, ConnectionContext $context): Iterator
+    private function fetchAsync(AsyncResource $resource, ?string $providerName, ConnectionContext $context): Iterator
     {
         $provider = $this->getProvider($providerName ?: $resource->getProviderClassName());
 
@@ -271,7 +271,7 @@ class Porter
      *
      * @throws ProviderNotFoundException The specified provider was not found.
      */
-    private function getProvider($name)
+    private function getProvider(string $name)
     {
         if ($this->providers->has($name)) {
             return $this->providers->get($name);

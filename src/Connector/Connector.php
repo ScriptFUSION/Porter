@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Connector;
 
 /**
@@ -14,5 +16,5 @@ interface Connector
      *
      * @return mixed Data.
      */
-    public function fetch(ConnectionContext $context, $source);
+    public function fetch(ConnectionContext $context, string $source);
 }

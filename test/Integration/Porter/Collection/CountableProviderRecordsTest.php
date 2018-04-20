@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSIONTest\Integration\Porter\Collection;
 
 use PHPUnit\Framework\TestCase;

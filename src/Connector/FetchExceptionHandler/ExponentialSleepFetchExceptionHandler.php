@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Connector\FetchExceptionHandler;
 
 use ScriptFUSION\Retry\ExceptionHandler\ExponentialBackoffExceptionHandler;
@@ -23,13 +25,13 @@ class ExponentialSleepFetchExceptionHandler implements FetchExceptionHandler
         $this->initialDelay = $initialDelay | 0;
     }
 
-    public function initialize()
+    public function initialize(): void
     {
         $this->handler = new ExponentialBackoffExceptionHandler($this->initialDelay);
     }
 
-    public function __invoke(\Exception $exception)
+    public function __invoke(\Exception $exception): void
     {
-        call_user_func($this->handler, $exception);
+        ($this->handler)($exception);
     }
 }

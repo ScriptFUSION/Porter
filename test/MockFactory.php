@@ -1,7 +1,10 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSIONTest;
 
 use Amp\Delayed;
+use Amp\Iterator;
 use Amp\Producer;
 use Mockery\MockInterface;
 use ScriptFUSION\Porter\Connector\AsyncConnector;
@@ -52,13 +55,13 @@ final class MockFactory
             ->shouldReceive('getProviderClassName')
                 ->andReturn(\get_class($provider))
             ->shouldReceive('fetch')
-                ->andReturnUsing(static function (ImportConnector $connector) {
+                ->andReturnUsing(static function (ImportConnector $connector): \Iterator {
                     return new \ArrayIterator([[$connector->fetch('foo')]]);
                 })
                 ->byDefault()
             ->shouldReceive('fetchAsync')
-                ->andReturnUsing(static function (ImportConnector $connector) {
-                    return new Producer(static function (\Closure $emit) use ($connector) {
+                ->andReturnUsing(static function (ImportConnector $connector): Iterator {
+                    return new Producer(static function (\Closure $emit) use ($connector): \Generator {
                         $emit([yield $connector->fetchAsync('foo')]);
                     });
                 })

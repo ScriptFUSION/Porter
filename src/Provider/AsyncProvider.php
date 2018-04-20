@@ -12,8 +12,6 @@ interface AsyncProvider
 {
     /**
      * Gets a connector for accessing resource data.
-     *
-     * @return AsyncConnector
      */
     public function getAsyncConnector(): AsyncConnector;
 }

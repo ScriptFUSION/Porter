@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSIONTest\Stubs;
 
 use ScriptFUSION\Porter\Connector\FetchExceptionHandler\FetchExceptionHandler;
@@ -10,22 +12,18 @@ final class TestFetchExceptionHandler implements FetchExceptionHandler
      */
     private $series;
 
-    public function initialize()
+    public function initialize(): void
     {
-        $this->series = call_user_func(function () {
+        $this->series = (static function (): \Generator {
             foreach (range(1, 10) as $value) {
                 yield $value;
             }
-        });
+        })();
     }
 
-    public function __invoke(\Exception $exception)
+    public function __invoke(\Exception $exception): void
     {
-        $current = $this->getCurrent();
-
         $this->series->next();
-
-        return $current;
     }
 
     public function getCurrent()

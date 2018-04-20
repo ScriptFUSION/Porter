@@ -1,12 +1,11 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter\Connector;
 
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 
 interface ConnectorOptions
 {
-    /**
-     * @return EncapsulatedOptions
-     */
-    public function getOptions();
+    public function getOptions(): EncapsulatedOptions;
 }

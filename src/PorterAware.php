@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace ScriptFUSION\Porter;
 
 /**
@@ -8,10 +10,6 @@ interface PorterAware
 {
     /**
      * Sets an instance of Porter.
-     *
-     * @param Porter $porter Porter.
-     *
-     * @return $this
      */
-    public function setPorter(Porter $porter);
+    public function setPorter(Porter $porter): self;
 }
