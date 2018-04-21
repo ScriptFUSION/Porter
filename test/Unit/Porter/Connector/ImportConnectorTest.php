@@ -32,8 +32,8 @@ final class ImportConnectorTest extends TestCase
             \Mockery::mock(Connector::class)
                 ->shouldReceive('fetch')
                 ->with(
-                    $context = FixtureFactory::buildConnectionContext(),
-                    $source = 'bar'
+                    $source = 'bar',
+                    $context = FixtureFactory::buildConnectionContext()
                 )->once()
                 ->andReturn($output = 'foo')
                 ->getMock(),

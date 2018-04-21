@@ -66,7 +66,7 @@ final class ImportConnector implements ConnectorWrapper
         return \ScriptFUSION\Retry\retry(
             $this->maxFetchAttempts,
             function () use ($source) {
-                return $this->connector->fetch($this->connectionContext, $source);
+                return $this->connector->fetch($source, $this->connectionContext);
             },
             $this->createExceptionHandler()
         );
@@ -77,7 +77,7 @@ final class ImportConnector implements ConnectorWrapper
         return \ScriptFUSION\Retry\retryAsync(
             $this->maxFetchAttempts,
             function () use ($source): Promise {
-                return \Amp\call($this->connector->fetchAsync($this->connectionContext, $source));
+                return \Amp\call($this->connector->fetchAsync($source, $this->connectionContext));
             },
             $this->createExceptionHandler()
         );

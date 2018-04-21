@@ -11,10 +11,10 @@ interface AsyncConnector
     /**
      * Fetches data from the specified source.
      *
-     * @param ConnectionContext $context Runtime connection settings and methods.
      * @param string $source Source.
+     * @param ConnectionContext $context Runtime connection settings and methods.
      *
      * @return \Closure Closure that returns a Promise or raw data.
      */
-    public function fetchAsync(ConnectionContext $context, string $source): \Closure;
+    public function fetchAsync(string $source, ConnectionContext $context): \Closure;
 }

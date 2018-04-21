@@ -50,14 +50,14 @@ class CachingConnector implements Connector, ConnectorWrapper
     }
 
     /**
-     * @param ConnectionContext $context
      * @param string $source
+     * @param ConnectionContext $context
      *
      * @return mixed
      *
-     * @throws InvalidCacheKeyException
+     * @throws InvalidCacheKeyException Cache key contains invalid data.
      */
-    public function fetch(ConnectionContext $context, string $source)
+    public function fetch(string $source, ConnectionContext $context)
     {
         if ($context->mustCache()) {
             $options = $this->connector instanceof ConnectorOptions ? $this->connector->getOptions()->copy() : [];
@@ -70,7 +70,7 @@ class CachingConnector implements Connector, ConnectorWrapper
             }
         }
 
-        $data = $this->connector->fetch($context, $source);
+        $data = $this->connector->fetch($source, $context);
 
         isset($key) && $this->cache->save($this->cache->getItem($key)->set($data));
 
