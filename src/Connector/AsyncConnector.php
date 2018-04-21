@@ -14,7 +14,7 @@ interface AsyncConnector
      * @param string $source Source.
      * @param ConnectionContext $context Runtime connection settings and methods.
      *
-     * @return \Closure Closure that returns a Promise or raw data.
+     * @return mixed Async generator function or any return value compatible with Amp\call.
      */
-    public function fetchAsync(string $source, ConnectionContext $context): \Closure;
+    public function fetchAsync(string $source, ConnectionContext $context);
 }

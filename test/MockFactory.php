@@ -6,7 +6,6 @@ namespace ScriptFUSIONTest;
 use Amp\Delayed;
 use Amp\Iterator;
 use Amp\Producer;
-use Amp\Promise;
 use Mockery\MockInterface;
 use ScriptFUSION\Porter\Connector\AsyncConnector;
 use ScriptFUSION\Porter\Connector\Connector;
@@ -40,9 +39,7 @@ final class MockFactory
                 ->andReturn(
                     \Mockery::mock(AsyncConnector::class)
                         ->shouldReceive('fetchAsync')
-                        ->andReturn(static function (): Promise {
-                            return new Delayed(0, 'foo');
-                        })
+                        ->andReturn(new Delayed(0, 'foo'))
                         ->getMock()
                 )
             ->getMock()
