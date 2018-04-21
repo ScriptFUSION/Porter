@@ -10,10 +10,10 @@ use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Connector\ConnectorOptions;
-use ScriptFUSION\Porter\Connector\FetchExceptionHandler\FetchExceptionHandler;
-use ScriptFUSION\Porter\Connector\FetchExceptionHandler\StatelessFetchExceptionHandler;
+use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
+use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandler;
 use ScriptFUSION\Porter\Connector\ImportConnector;
-use ScriptFUSION\Porter\Connector\RecoverableConnectorException;
+use ScriptFUSION\Porter\Connector\Recoverable\RecoverableConnectorException;
 use ScriptFUSION\Porter\ImportException;
 use ScriptFUSION\Porter\PorterAware;
 use ScriptFUSION\Porter\Provider\ForeignResourceException;
@@ -245,8 +245,8 @@ final class PorterSyncTest extends PorterTest
      */
     public function testCustomFetchExceptionHandler(): void
     {
-        $this->specification->setFetchExceptionHandler(
-            \Mockery::mock(FetchExceptionHandler::class)
+        $this->specification->setRecoverableExceptionHandler(
+            \Mockery::mock(RecoverableExceptionHandler::class)
                 ->shouldReceive('initialize')
                     ->once()
                 ->shouldReceive('__invoke')
@@ -266,9 +266,11 @@ final class PorterSyncTest extends PorterTest
      */
     public function testCustomProviderFetchExceptionHandler(): void
     {
-        $this->specification->setFetchExceptionHandler(new StatelessFetchExceptionHandler(static function (): void {
-            throw new \LogicException('This exception must not be thrown!');
-        }));
+        $this->specification->setRecoverableExceptionHandler(
+            new StatelessRecoverableExceptionHandler(static function (): void {
+                throw new \LogicException('This exception must not be thrown!');
+            })
+        );
 
         $this->arrangeConnectorException($connectorException =
             new RecoverableConnectorException('This exception is caught by the provider handler.'));
@@ -276,7 +278,7 @@ final class PorterSyncTest extends PorterTest
         $this->resource
             ->shouldReceive('fetch')
             ->andReturnUsing(static function (ImportConnector $connector) use ($connectorException): \Generator {
-                $connector->setExceptionHandler(new StatelessFetchExceptionHandler(
+                $connector->setRecoverableExceptionHandler(new StatelessRecoverableExceptionHandler(
                     function (\Exception $exception) use ($connectorException) {
                         self::assertSame($connectorException, $exception);
 

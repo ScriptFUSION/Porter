@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 namespace ScriptFUSIONTest\Stubs;
 
-use ScriptFUSION\Porter\Connector\FetchExceptionHandler\FetchExceptionHandler;
+use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 
-final class TestFetchExceptionHandler implements FetchExceptionHandler
+final class TestRecoverableExceptionHandler implements RecoverableExceptionHandler
 {
     /**
      * @var \Generator

@@ -9,9 +9,12 @@ use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Connector\CachingConnector;
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Connector\ConnectorWrapper;
-use ScriptFUSION\Porter\Connector\FetchExceptionHandler\FetchExceptionHandler;
 use ScriptFUSION\Porter\Connector\ImportConnector;
+use ScriptFUSION\Porter\Connector\Recoverable\RecoverableConnectorException;
+use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
+use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandler;
 use ScriptFUSIONTest\FixtureFactory;
+use ScriptFUSIONTest\Stubs\TestRecoverableExceptionHandler;
 
 /**
  * @see ImportConnector
@@ -25,7 +28,7 @@ final class ImportConnectorTest extends TestCase
      */
     public function testCallGraph(): void
     {
-        $connector = new ImportConnector(
+        $connector = FixtureFactory::buildImportConnector(
             \Mockery::mock(Connector::class)
                 ->shouldReceive('fetch')
                 ->with(
@@ -45,12 +48,11 @@ final class ImportConnectorTest extends TestCase
      */
     public function testFetchCacheDisabled(): void
     {
-        $connector = new ImportConnector(
+        $connector = FixtureFactory::buildImportConnector(
             \Mockery::mock(Connector::class)
                 ->shouldReceive('fetch')
                 ->andReturn($output = 'foo')
-                ->getMock(),
-            FixtureFactory::buildConnectionContext()
+                ->getMock()
         );
 
         self::assertSame($output, $connector->fetch('bar'));
@@ -61,7 +63,7 @@ final class ImportConnectorTest extends TestCase
      */
     public function testFetchCacheEnabled(): void
     {
-        $connector = new ImportConnector(
+        $connector = FixtureFactory::buildImportConnector(
             \Mockery::mock(CachingConnector::class, [\Mockery::mock(Connector::class)])
                 ->shouldReceive('fetch')
                 ->andReturn($output = 'foo')
@@ -79,7 +81,7 @@ final class ImportConnectorTest extends TestCase
     {
         $this->expectException(CacheUnavailableException::class);
 
-        new ImportConnector(
+        FixtureFactory::buildImportConnector(
             \Mockery::mock(Connector::class),
             FixtureFactory::buildConnectionContext(true)
         );
@@ -90,10 +92,7 @@ final class ImportConnectorTest extends TestCase
      */
     public function testGetWrappedConnector(): void
     {
-        $connector = new ImportConnector(
-            $wrappedConnector = \Mockery::mock(Connector::class),
-            FixtureFactory::buildConnectionContext()
-        );
+        $connector = FixtureFactory::buildImportConnector($wrappedConnector = \Mockery::mock(Connector::class));
 
         self::assertNotSame($wrappedConnector, $connector->getWrappedConnector());
         self::assertSame(\get_class($wrappedConnector), \get_class($connector->getWrappedConnector()));
@@ -104,15 +103,17 @@ final class ImportConnectorTest extends TestCase
      */
     public function testSetExceptionHandlerTwice(): void
     {
-        $connector = new ImportConnector(
+        $connector = FixtureFactory::buildImportConnector(
             $wrappedConnector = \Mockery::mock(Connector::class),
             FixtureFactory::buildConnectionContext()
         );
 
-        $connector->setExceptionHandler($handler = \Mockery::mock(FetchExceptionHandler::class));
+        $connector->setRecoverableExceptionHandler(
+            $handler = \Mockery::mock(RecoverableExceptionHandler::class)
+        );
 
         $this->expectException(\LogicException::class);
-        $connector->setExceptionHandler($handler);
+        $connector->setRecoverableExceptionHandler($handler);
     }
 
     /**
@@ -120,7 +121,7 @@ final class ImportConnectorTest extends TestCase
      */
     public function testFindBaseConnector(): void
     {
-        $connector = new ImportConnector(
+        $connector = FixtureFactory::buildImportConnector(
             \Mockery::mock(Connector::class, ConnectorWrapper::class)
                 ->shouldReceive('getWrappedConnector')
                     ->andReturn($baseConnector = \Mockery::mock(Connector::class))
@@ -129,5 +130,89 @@ final class ImportConnectorTest extends TestCase
         );
 
         self::assertSame($baseConnector, $connector->findBaseConnector());
+    }
+
+    /**
+     * Tests that when retry() is called multiple times, the original fetch exception handler is unmodified.
+     * This is expected because the handler must be cloned using the prototype pattern to ensure multiple concurrent
+     * fetches do not conflict.
+     *
+     * @dataProvider provideHandlerAndContext
+     */
+    public function testFetchExceptionHandlerCloned(
+        TestRecoverableExceptionHandler $handler,
+        ImportConnector $connector
+    ): void {
+        $handler->initialize();
+        $initial = $handler->getCurrent();
+
+        $connector->fetch('foo');
+
+        self::assertSame($initial, $handler->getCurrent());
+    }
+
+    public function provideHandlerAndContext(): \Generator
+    {
+        yield 'User exception handler' => [
+            $handler = new TestRecoverableExceptionHandler,
+            $connector = FixtureFactory::buildImportConnector(
+                \Mockery::mock(Connector::class)
+                    ->shouldReceive('fetch')
+                        ->andReturnUsing($this->createExceptionThrowingClosure())
+                    ->getMock(),
+                null,
+                $handler
+            ),
+        ];
+
+        // It should be OK to reuse the handler here because the whole point of the test is that it's not modified.
+        $connector->setRecoverableExceptionHandler($handler);
+        yield 'Resource exception handler' => [$handler, $connector];
+    }
+
+    /**
+     * Tests that when retry() is called, a stateless fetch exception handler is neither cloned nor reinitialized.
+     * For stateless handlers, initialization is a NOOP, so avoiding cloning is a small optimization.
+     */
+    public function testStatelessExceptionHandlerNotCloned(): void
+    {
+        $connector = FixtureFactory::buildImportConnector(
+            \Mockery::mock(Connector::class)
+                ->shouldReceive('fetch')
+                    ->twice()
+                    ->andReturnUsing($this->createExceptionThrowingClosure())
+                ->getMock(),
+            null,
+            $handler = new StatelessRecoverableExceptionHandler(static function (): void {
+                // Intentionally empty.
+            })
+        );
+
+        $connector->fetch('foo');
+
+        self::assertSame(
+            $handler,
+            \Closure::bind(
+                function (): RecoverableExceptionHandler {
+                    return $this->userReh;
+                },
+                $connector,
+                $connector
+            )()
+        );
+    }
+
+    /**
+     * Creates a closure that only throws an exception on the first invocation.
+     */
+    private static function createExceptionThrowingClosure(): \Closure
+    {
+        return static function (): void {
+            static $invocationCount;
+
+            if (!$invocationCount++) {
+                throw new RecoverableConnectorException;
+            }
+        };
     }
 }

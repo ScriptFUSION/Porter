@@ -12,16 +12,13 @@ use ScriptFUSION\Porter\Collection\CountableProviderRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
-use ScriptFUSION\Porter\Connector\ConnectionContext;
-use ScriptFUSION\Porter\Connector\ConnectionContextFactory;
 use ScriptFUSION\Porter\Connector\ConnectorOptions;
-use ScriptFUSION\Porter\Connector\ImportConnector;
+use ScriptFUSION\Porter\Connector\ImportConnectorFactory;
 use ScriptFUSION\Porter\Provider\AsyncProvider;
 use ScriptFUSION\Porter\Provider\ForeignResourceException;
 use ScriptFUSION\Porter\Provider\ObjectNotCreatedException;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\ProviderFactory;
-use ScriptFUSION\Porter\Provider\Resource\AsyncResource;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Specification\AsyncImportSpecification;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
@@ -66,11 +63,7 @@ class Porter
     {
         $specification = clone $specification;
 
-        $records = $this->fetch(
-            $specification->getResource(),
-            $specification->getProviderName(),
-            ConnectionContextFactory::create($specification)
-        );
+        $records = $this->fetch($specification);
 
         if (!$records instanceof ProviderRecords) {
             $records = $this->createProviderRecords($records, $specification->getResource());
@@ -107,9 +100,10 @@ class Porter
         return $one;
     }
 
-    private function fetch(ProviderResource $resource, ?string $providerName, ConnectionContext $context): \Iterator
+    private function fetch(ImportSpecification $specification): \Iterator
     {
-        $provider = $this->getProvider($providerName ?: $resource->getProviderClassName());
+        $resource = $specification->getResource();
+        $provider = $this->getProvider($specification->getProviderName() ?: $resource->getProviderClassName());
 
         if ($resource->getProviderClassName() !== \get_class($provider)) {
             throw new ForeignResourceException(sprintf(
@@ -128,18 +122,14 @@ class Porter
             );
         }
 
-        return $resource->fetch(new ImportConnector($connector, $context));
+        return $resource->fetch(ImportConnectorFactory::create($connector, $specification));
     }
 
     public function importAsync(AsyncImportSpecification $specification): Iterator
     {
         $specification = clone $specification;
 
-        $records = $this->fetchAsync(
-            $specification->getAsyncResource(),
-            $specification->getProviderName(),
-            ConnectionContextFactory::create($specification)
-        );
+        $records = $this->fetchAsync($specification);
 
         return $this->transformAsync($records, $specification->getTransformers(), $specification->getContext());
     }
@@ -161,9 +151,10 @@ class Porter
         });
     }
 
-    private function fetchAsync(AsyncResource $resource, ?string $providerName, ConnectionContext $context): Iterator
+    private function fetchAsync(AsyncImportSpecification $specification): Iterator
     {
-        $provider = $this->getProvider($providerName ?: $resource->getProviderClassName());
+        $resource = $specification->getAsyncResource();
+        $provider = $this->getProvider($specification->getProviderName() ?: $resource->getProviderClassName());
 
         if (!$provider instanceof AsyncProvider) {
             // TODO: Specific exception type.
@@ -187,7 +178,7 @@ class Porter
             );
         }
 
-        return $resource->fetchAsync(new ImportConnector($connector, $context));
+        return $resource->fetchAsync(ImportConnectorFactory::create($connector, $specification));
     }
 
     /**

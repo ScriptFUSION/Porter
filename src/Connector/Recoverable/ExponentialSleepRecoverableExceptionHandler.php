@@ -1,14 +1,14 @@
 <?php
 declare(strict_types=1);
 
-namespace ScriptFUSION\Porter\Connector\FetchExceptionHandler;
+namespace ScriptFUSION\Porter\Connector\Recoverable;
 
 use ScriptFUSION\Retry\ExceptionHandler\ExponentialBackoffExceptionHandler;
 
 /**
  * Sleeps for an exponentially increasing series of delays specified in microseconds.
  */
-class ExponentialSleepFetchExceptionHandler implements FetchExceptionHandler
+class ExponentialSleepRecoverableExceptionHandler implements RecoverableExceptionHandler
 {
     private $initialDelay;
 

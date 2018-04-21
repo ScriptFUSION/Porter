@@ -4,7 +4,10 @@ declare(strict_types=1);
 namespace ScriptFUSIONTest;
 
 use ScriptFUSION\Porter\Connector\ConnectionContext;
-use ScriptFUSION\Porter\Connector\FetchExceptionHandler\StatelessFetchExceptionHandler;
+use ScriptFUSION\Porter\Connector\Connector;
+use ScriptFUSION\Porter\Connector\ImportConnector;
+use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
+use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandler;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\StaticClass;
 
@@ -15,14 +18,21 @@ final class FixtureFactory
     /**
      * Builds ConnectionContexts with sane defaults for testing.
      */
-    public static function buildConnectionContext(
-        bool $cacheAdvice = false,
-        callable $fetchExceptionHandler = null,
+    public static function buildConnectionContext(bool $mustCache = false): ConnectionContext
+    {
+        return new ConnectionContext($mustCache);
+    }
+
+    public static function buildImportConnector(
+        Connector $connector,
+        ConnectionContext $context = null,
+        RecoverableExceptionHandler $recoverableExceptionHandler = null,
         int $maxFetchAttempts = ImportSpecification::DEFAULT_FETCH_ATTEMPTS
-    ): ConnectionContext {
-        return new ConnectionContext(
-            $cacheAdvice,
-            $fetchExceptionHandler ?: new StatelessFetchExceptionHandler(static function () {
+    ): ImportConnector {
+        return new ImportConnector(
+            $connector,
+            $context ?: self::buildConnectionContext(),
+            $recoverableExceptionHandler ?: new StatelessRecoverableExceptionHandler(static function (): void {
                 // Intentionally empty.
             }),
             $maxFetchAttempts

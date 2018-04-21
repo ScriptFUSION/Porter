@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace ScriptFUSION\Porter\Specification;
 
-use ScriptFUSION\Porter\Connector\FetchExceptionHandler\ExponentialSleepFetchExceptionHandler;
-use ScriptFUSION\Porter\Connector\FetchExceptionHandler\FetchExceptionHandler;
+use ScriptFUSION\Porter\Connector\Recoverable\ExponentialSleepRecoverableExceptionHandler;
+use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Transform\Transformer;
 
@@ -46,9 +46,9 @@ class ImportSpecification
     private $maxFetchAttempts = self::DEFAULT_FETCH_ATTEMPTS;
 
     /**
-     * @var FetchExceptionHandler
+     * @var RecoverableExceptionHandler
      */
-    private $fetchExceptionHandler;
+    private $recoverableExceptionHandler;
 
     public function __construct(ProviderResource $resource)
     {
@@ -63,14 +63,15 @@ class ImportSpecification
 
         $transformers = $this->transformers;
         $this->clearTransformers()->addTransformers(array_map(
-            function (Transformer $transformer) {
+            static function (Transformer $transformer): Transformer {
                 return clone $transformer;
             },
             $transformers
         ));
 
         \is_object($this->context) && $this->context = clone $this->context;
-        $this->fetchExceptionHandler && $this->fetchExceptionHandler = clone $this->fetchExceptionHandler;
+        $this->recoverableExceptionHandler &&
+            $this->recoverableExceptionHandler = clone $this->recoverableExceptionHandler;
     }
 
     /**
@@ -243,23 +244,24 @@ class ImportSpecification
     /**
      * Gets the exception handler invoked each time a fetch attempt fails.
      *
-     * @return FetchExceptionHandler Fetch exception handler.
+     * @return RecoverableExceptionHandler Fetch exception handler.
      */
-    final public function getFetchExceptionHandler(): FetchExceptionHandler
+    final public function getRecoverableExceptionHandler(): RecoverableExceptionHandler
     {
-        return $this->fetchExceptionHandler ?: $this->fetchExceptionHandler = new ExponentialSleepFetchExceptionHandler;
+        return $this->recoverableExceptionHandler ?:
+            $this->recoverableExceptionHandler = new ExponentialSleepRecoverableExceptionHandler;
     }
 
     /**
      * Sets the exception handler invoked each time a fetch attempt fails.
      *
-     * @param FetchExceptionHandler $fetchExceptionHandler Fetch exception handler.
+     * @param RecoverableExceptionHandler $recoverableExceptionHandler Fetch exception handler.
      *
      * @return $this
      */
-    final public function setFetchExceptionHandler(FetchExceptionHandler $fetchExceptionHandler): self
+    final public function setRecoverableExceptionHandler(RecoverableExceptionHandler $recoverableExceptionHandler): self
     {
-        $this->fetchExceptionHandler = $fetchExceptionHandler;
+        $this->recoverableExceptionHandler = $recoverableExceptionHandler;
 
         return $this;
     }

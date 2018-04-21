@@ -1,12 +1,12 @@
 <?php
 declare(strict_types=1);
 
-namespace ScriptFUSION\Porter\Connector\FetchExceptionHandler;
+namespace ScriptFUSION\Porter\Connector\Recoverable;
 
 /**
  * Contains a fetch exception handler that does not have private state and therefore does not require initialization.
  */
-class StatelessFetchExceptionHandler implements FetchExceptionHandler
+class StatelessRecoverableExceptionHandler implements RecoverableExceptionHandler
 {
     private $handler;
 

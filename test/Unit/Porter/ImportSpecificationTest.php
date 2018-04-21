@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace ScriptFUSIONTest\Unit\Porter;
 
 use PHPUnit\Framework\TestCase;
-use ScriptFUSION\Porter\Connector\FetchExceptionHandler\FetchExceptionHandler;
+use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Specification\DuplicateTransformerException;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
@@ -33,7 +33,7 @@ final class ImportSpecificationTest extends TestCase
         $this->specification
             ->addTransformer(\Mockery::mock(Transformer::class))
             ->setContext($context = (object)[])
-            ->setFetchExceptionHandler($handler = \Mockery::mock(FetchExceptionHandler::class))
+            ->setRecoverableExceptionHandler($handler = \Mockery::mock(RecoverableExceptionHandler::class))
         ;
 
         $specification = clone $this->specification;
@@ -51,7 +51,7 @@ final class ImportSpecificationTest extends TestCase
         self::assertCount(\count($this->specification->getTransformers()), $specification->getTransformers());
 
         self::assertNotSame($context, $specification->getContext());
-        self::assertNotSame($handler, $specification->getFetchExceptionHandler());
+        self::assertNotSame($handler, $specification->getRecoverableExceptionHandler());
     }
 
     public function testGetResource(): void
@@ -158,8 +158,8 @@ final class ImportSpecificationTest extends TestCase
     public function testExceptionHandler(): void
     {
         self::assertSame(
-            $handler = \Mockery::mock(FetchExceptionHandler::class),
-            $this->specification->setFetchExceptionHandler($handler)->getFetchExceptionHandler()
+            $handler = \Mockery::mock(RecoverableExceptionHandler::class),
+            $this->specification->setRecoverableExceptionHandler($handler)->getRecoverableExceptionHandler()
         );
     }
 }

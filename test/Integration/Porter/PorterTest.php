@@ -8,7 +8,6 @@ use Mockery\MockInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use ScriptFUSION\Porter\Connector\AsyncConnector;
-use ScriptFUSION\Porter\Connector\ConnectionContext;
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Porter;
 use ScriptFUSION\Porter\Provider\AsyncProvider;
@@ -78,13 +77,6 @@ abstract class PorterTest extends TestCase
      */
     protected function arrangeConnectorException(\Exception $exception): void
     {
-        $this->connector->shouldReceive('fetch')->with(
-            \Mockery::on(function (ConnectionContext $context) use ($exception): void {
-                $context->retry(function () use ($exception) {
-                    throw $exception;
-                });
-            }),
-            \Mockery::any()
-        );
+        $this->connector->shouldReceive('fetch')->andThrow($exception);
     }
 }

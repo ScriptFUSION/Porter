@@ -4,12 +4,12 @@ declare(strict_types=1);
 namespace ScriptFUSIONTest\Unit\Porter\Connector\FetchExceptionHandler;
 
 use PHPUnit\Framework\TestCase;
-use ScriptFUSION\Porter\Connector\FetchExceptionHandler\StatelessFetchExceptionHandler;
+use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandler;
 
 /**
- * @see StatelessFetchExceptionHandler
+ * @see StatelessRecoverableExceptionHandler
  */
-final class StatelessFetchExceptionHandlerTest extends TestCase
+final class StatelessRecoverableExceptionHandlerTest extends TestCase
 {
     /**
      * Tests that the initialize() method does not throw any exception. This test exists solely for code coverage.
@@ -18,7 +18,7 @@ final class StatelessFetchExceptionHandlerTest extends TestCase
      */
     public function testInitialize(): void
     {
-        (new StatelessFetchExceptionHandler(static function (): void {
+        (new StatelessRecoverableExceptionHandler(static function (): void {
             // Intentionally empty.
         }))->initialize();
 
