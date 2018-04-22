@@ -13,7 +13,7 @@ use ScriptFUSION\Porter\Connector\ConnectorOptions;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandler;
 use ScriptFUSION\Porter\Connector\ImportConnector;
-use ScriptFUSION\Porter\Connector\Recoverable\RecoverableConnectorException;
+use ScriptFUSION\Porter\Connector\RecoverableConnectorException;
 use ScriptFUSION\Porter\ImportException;
 use ScriptFUSION\Porter\PorterAware;
 use ScriptFUSION\Porter\Provider\ForeignResourceException;

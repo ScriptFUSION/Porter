@@ -5,7 +5,6 @@ namespace ScriptFUSION\Porter\Connector;
 
 use Amp\Promise;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
-use ScriptFUSION\Porter\Connector\Recoverable\RecoverableConnectorException;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandler;
 
