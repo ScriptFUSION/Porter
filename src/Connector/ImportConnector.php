@@ -5,6 +5,7 @@ namespace ScriptFUSION\Porter\Connector;
 
 use Amp\Promise;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
+use ScriptFUSION\Porter\Connector\Recoverable\RecoverableException;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandler;
 
@@ -27,21 +28,21 @@ final class ImportConnector implements ConnectorWrapper
      *
      * @var RecoverableExceptionHandler
      */
-    private $userReh;
+    private $userExceptionHandler;
 
     /**
      * Resource-defined exception handler called when a recoverable exception is thrown by Connector::fetch().
      *
      * @var RecoverableExceptionHandler
      */
-    private $resourceReh;
+    private $resourceExceptionHandler;
 
     private $maxFetchAttempts;
 
     /**
      * @param Connector|AsyncConnector $connector Wrapped connector.
      * @param ConnectionContext $connectionContext Connection context.
-     * @param RecoverableExceptionHandler $recoverableExceptionHandler
+     * @param RecoverableExceptionHandler $recoverableExceptionHandler User's recoverable exception handler.
      * @param int $maxFetchAttempts
      */
     public function __construct(
@@ -56,7 +57,7 @@ final class ImportConnector implements ConnectorWrapper
 
         $this->connector = clone $connector;
         $this->connectionContext = $connectionContext;
-        $this->userReh = $recoverableExceptionHandler;
+        $this->userExceptionHandler = $recoverableExceptionHandler;
         $this->maxFetchAttempts = $maxFetchAttempts;
     }
 
@@ -92,17 +93,17 @@ final class ImportConnector implements ConnectorWrapper
 
         return function (\Exception $exception) use (&$userHandlerCloned, &$resourceHandlerCloned): void {
             // Throw exception instead of retrying, if unrecoverable.
-            if (!$exception instanceof RecoverableConnectorException) {
+            if (!$exception instanceof RecoverableException) {
                 throw $exception;
             }
 
             // Call resource's exception handler, if defined.
-            if ($this->resourceReh) {
-                self::invokeHandler($this->resourceReh, $exception, $resourceHandlerCloned);
+            if ($this->resourceExceptionHandler) {
+                self::invokeHandler($this->resourceExceptionHandler, $exception, $resourceHandlerCloned);
             }
 
             // Call user's exception handler.
-            self::invokeHandler($this->userReh, $exception, $userHandlerCloned);
+            self::invokeHandler($this->userExceptionHandler, $exception, $userHandlerCloned);
         };
     }
 
@@ -163,10 +164,10 @@ final class ImportConnector implements ConnectorWrapper
      */
     public function setRecoverableExceptionHandler(RecoverableExceptionHandler $recoverableExceptionHandler): void
     {
-        if ($this->resourceReh !== null) {
+        if ($this->resourceExceptionHandler !== null) {
             throw new \LogicException('Cannot set resource\'s recoverable exception handler: already set!');
         }
 
-        $this->resourceReh = $recoverableExceptionHandler;
+        $this->resourceExceptionHandler = $recoverableExceptionHandler;
     }
 }

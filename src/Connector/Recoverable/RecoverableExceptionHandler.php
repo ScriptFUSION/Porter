@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace ScriptFUSION\Porter\Connector\Recoverable;
 
 /**
- * Provides methods for handling recoverable exceptions thrown by Connector::fetch().
+ * Provides methods for handling recoverable exceptions.
  *
  * This interface supports a prototype cloning model that guarantees the object can be cloned and reset to its
  * initial state at any time, any number of times. This is needed because a given import can spawn any number of
@@ -26,11 +26,7 @@ interface RecoverableExceptionHandler
     public function initialize(): void;
 
     /**
-     * Handles a fetch() exception.
-     *
-     * @param \Exception $exception Exception thrown by Connector::fetch().
-     *
-     * @return void
+     * Handles a recoverable exception.
      */
-    public function __invoke(\Exception $exception): void;
+    public function __invoke(RecoverableException $exception): void;
 }

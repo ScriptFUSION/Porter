@@ -10,10 +10,10 @@ use ScriptFUSION\Porter\Connector\CachingConnector;
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Connector\ConnectorWrapper;
 use ScriptFUSION\Porter\Connector\ImportConnector;
-use ScriptFUSION\Porter\Connector\RecoverableConnectorException;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandler;
 use ScriptFUSIONTest\FixtureFactory;
+use ScriptFUSIONTest\Stubs\TestRecoverableException;
 use ScriptFUSIONTest\Stubs\TestRecoverableExceptionHandler;
 
 /**
@@ -194,7 +194,7 @@ final class ImportConnectorTest extends TestCase
             $handler,
             \Closure::bind(
                 function (): RecoverableExceptionHandler {
-                    return $this->userReh;
+                    return $this->userExceptionHandler;
                 },
                 $connector,
                 $connector
@@ -211,7 +211,7 @@ final class ImportConnectorTest extends TestCase
             static $invocationCount;
 
             if (!$invocationCount++) {
-                throw new RecoverableConnectorException;
+                throw new TestRecoverableException;
             }
         };
     }

@@ -30,7 +30,7 @@ class ExponentialSleepRecoverableExceptionHandler implements RecoverableExceptio
         $this->handler = new ExponentialBackoffExceptionHandler($this->initialDelay);
     }
 
-    public function __invoke(\Exception $exception): void
+    public function __invoke(RecoverableException $exception): void
     {
         ($this->handler)($exception);
     }

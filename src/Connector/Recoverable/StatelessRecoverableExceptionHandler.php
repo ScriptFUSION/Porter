@@ -20,7 +20,7 @@ class StatelessRecoverableExceptionHandler implements RecoverableExceptionHandle
         // Intentionally empty.
     }
 
-    final public function __invoke(\Exception $exception): void
+    final public function __invoke(RecoverableException $exception): void
     {
         ($this->handler)($exception);
     }

@@ -10,10 +10,9 @@ use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Connector\ConnectorOptions;
+use ScriptFUSION\Porter\Connector\ImportConnector;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandler;
-use ScriptFUSION\Porter\Connector\ImportConnector;
-use ScriptFUSION\Porter\Connector\RecoverableConnectorException;
 use ScriptFUSION\Porter\ImportException;
 use ScriptFUSION\Porter\PorterAware;
 use ScriptFUSION\Porter\Provider\ForeignResourceException;
@@ -24,6 +23,7 @@ use ScriptFUSION\Porter\Transform\FilterTransformer;
 use ScriptFUSION\Porter\Transform\Transformer;
 use ScriptFUSION\Retry\FailingTooHardException;
 use ScriptFUSIONTest\MockFactory;
+use ScriptFUSIONTest\Stubs\TestRecoverableException;
 
 final class PorterSyncTest extends PorterTest
 {
@@ -195,7 +195,7 @@ final class PorterSyncTest extends PorterTest
      */
     public function testOneTry(): void
     {
-        $this->arrangeConnectorException(new RecoverableConnectorException);
+        $this->arrangeConnectorException(new TestRecoverableException);
 
         $this->expectException(FailingTooHardException::class);
         $this->expectExceptionMessage('1');
@@ -208,7 +208,7 @@ final class PorterSyncTest extends PorterTest
      */
     public function testDerivedRecoverableException(): void
     {
-        $this->arrangeConnectorException(new RecoverableConnectorException);
+        $this->arrangeConnectorException(new TestRecoverableException);
 
         $this->expectException(FailingTooHardException::class);
         $this->porter->import($this->specification->setMaxFetchAttempts(1));
@@ -220,7 +220,7 @@ final class PorterSyncTest extends PorterTest
      */
     public function testDefaultTries(): void
     {
-        $this->arrangeConnectorException(new RecoverableConnectorException);
+        $this->arrangeConnectorException(new TestRecoverableException);
 
         $this->expectException(FailingTooHardException::class);
         $this->expectExceptionMessage((string)ImportSpecification::DEFAULT_FETCH_ATTEMPTS);
@@ -254,7 +254,7 @@ final class PorterSyncTest extends PorterTest
                 ->getMock()
         );
 
-        $this->arrangeConnectorException(new RecoverableConnectorException);
+        $this->arrangeConnectorException(new TestRecoverableException);
 
         $this->expectException(FailingTooHardException::class);
         $this->porter->import($this->specification);
@@ -273,7 +273,7 @@ final class PorterSyncTest extends PorterTest
         );
 
         $this->arrangeConnectorException($connectorException =
-            new RecoverableConnectorException('This exception is caught by the provider handler.'));
+            new TestRecoverableException('This exception is caught by the provider handler.'));
 
         $this->resource
             ->shouldReceive('fetch')

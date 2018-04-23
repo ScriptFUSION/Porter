@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace ScriptFUSIONTest\Stubs;
 
+use ScriptFUSION\Porter\Connector\Recoverable\RecoverableException;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 
 final class TestRecoverableExceptionHandler implements RecoverableExceptionHandler
@@ -21,7 +22,7 @@ final class TestRecoverableExceptionHandler implements RecoverableExceptionHandl
         })();
     }
 
-    public function __invoke(\Exception $exception): void
+    public function __invoke(RecoverableException $exception): void
     {
         $this->series->next();
     }
