@@ -194,7 +194,7 @@ final class ImportConnectorTest extends TestCase
             $handler,
             \Closure::bind(
                 function (): RecoverableExceptionHandler {
-                    return $this->userReh;
+                    return $this->userExceptionHandler;
                 },
                 $connector,
                 $connector
