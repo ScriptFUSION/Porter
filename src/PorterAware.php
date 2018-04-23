@@ -11,5 +11,5 @@ interface PorterAware
     /**
      * Sets an instance of Porter.
      */
-    public function setPorter(Porter $porter): self;
+    public function setPorter(Porter $porter);
 }
