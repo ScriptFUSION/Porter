@@ -62,7 +62,7 @@ final class MockFactory
             ->shouldReceive('fetchAsync')
                 ->andReturnUsing(static function (ImportConnector $connector): Iterator {
                     return new Producer(static function (\Closure $emit) use ($connector): \Generator {
-                        $emit([yield $connector->fetchAsync('foo')]);
+                        yield $emit([yield $connector->fetchAsync('foo')]);
                     });
                 })
                 ->byDefault()

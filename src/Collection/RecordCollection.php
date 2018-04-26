@@ -18,6 +18,7 @@ abstract class RecordCollection implements \Iterator
         $this->previousCollection = $previousCollection;
     }
 
+    // TODO: Consider throwing our own exception type for clarity, instead of relying on PHP's TypeError.
     public function current(): array
     {
         return $this->records->current();

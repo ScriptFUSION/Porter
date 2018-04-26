@@ -4,9 +4,12 @@ declare(strict_types=1);
 namespace ScriptFUSION\Porter;
 
 use Amp\Iterator;
-use Amp\Producer;
 use Amp\Promise;
 use Psr\Container\ContainerInterface;
+use ScriptFUSION\Porter\Collection\AsyncPorterRecords;
+use ScriptFUSION\Porter\Collection\AsyncProviderRecords;
+use ScriptFUSION\Porter\Collection\AsyncRecordCollection;
+use ScriptFUSION\Porter\Collection\CountableAsyncPorterRecords;
 use ScriptFUSION\Porter\Collection\CountablePorterRecords;
 use ScriptFUSION\Porter\Collection\CountableProviderRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
@@ -125,13 +128,19 @@ class Porter
         return $resource->fetch(ImportConnectorFactory::create($connector, $specification));
     }
 
-    public function importAsync(AsyncImportSpecification $specification): Iterator
+    public function importAsync(AsyncImportSpecification $specification): AsyncRecordCollection
     {
         $specification = clone $specification;
 
         $records = $this->fetchAsync($specification);
 
-        return $this->transformAsync($records, $specification->getTransformers(), $specification->getContext());
+        if (!$records instanceof AsyncProviderRecords) {
+            $records = new AsyncProviderRecords($records, $specification->getAsyncResource());
+        }
+
+        $records = $this->transformAsync($records, $specification->getTransformers(), $specification->getContext());
+
+        return $this->createAsyncPorterRecords($records, $specification);
     }
 
     public function importOneAsync(AsyncImportSpecification $specification): Promise
@@ -201,38 +210,25 @@ class Porter
         return $records;
     }
 
-    private function transformAsync(Iterator $records, array $transformers, $context): Producer
-    {
-        return new Producer(function (\Closure $emit) use ($records, $transformers, $context) {
-            while (yield $records->advance()) {
-                $record = $records->getCurrent();
-
-                foreach ($transformers as $transformer) {
-                    if (!$transformer instanceof AsyncTransformer) {
-                        // TODO: Proper exception or separate async stack.
-                        throw new \RuntimeException('Cannot use sync transformer.');
-                    }
-                    if ($transformer instanceof PorterAware) {
-                        $transformer->setPorter($this);
-                    }
-
-                    $record = yield $transformer->transformAsync($record, $context);
-
-                    if ($record === null) {
-                        // Do not process more transformers.
-                        break;
-                    }
-                }
-
-                if ($record !== null) {
-                    if (!\is_array($record)) {
-                        throw new \RuntimeException('Unexpected type: record must be array or null.');
-                    }
-
-                    yield $emit($record);
-                }
+    private function transformAsync(
+        AsyncRecordCollection $records,
+        array $transformers,
+        $context
+    ): AsyncRecordCollection {
+        foreach ($transformers as $transformer) {
+            if (!$transformer instanceof AsyncTransformer) {
+                // TODO: Proper exception or separate async stack.
+                throw new \RuntimeException('Cannot use sync transformer.');
             }
-        });
+
+            if ($transformer instanceof PorterAware) {
+                $transformer->setPorter($this);
+            }
+
+            $records = $transformer->transformAsync($records, $context);
+        }
+
+        return $records;
     }
 
     private function createProviderRecords(\Iterator $records, ProviderResource $resource): ProviderRecords
@@ -253,6 +249,17 @@ class Porter
         return new PorterRecords($records, $specification);
     }
 
+    private function createAsyncPorterRecords(
+        AsyncRecordCollection $records,
+        AsyncImportSpecification $specification
+    ): AsyncPorterRecords {
+        if ($records instanceof \Countable) {
+            return new CountableAsyncPorterRecords($records, \count($records), $specification);
+        }
+
+        return new AsyncPorterRecords($records, $specification);
+    }
+
     /**
      * Gets the provider matching the specified name.
      *
@@ -269,7 +276,7 @@ class Porter
         }
 
         try {
-            return $this->getOrCreateProviderFactory()->createProvider("$name");
+            return $this->getOrCreateProviderFactory()->createProvider($name);
         } catch (ObjectNotCreatedException $exception) {
             throw new ProviderNotFoundException("No such provider registered: \"$name\".", $exception);
         }
