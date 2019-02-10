@@ -27,6 +27,8 @@ interface RecoverableExceptionHandler
 
     /**
      * Handles a recoverable exception.
+     *
+     * @return mixed
      */
-    public function __invoke(RecoverableException $exception): void;
+    public function __invoke(RecoverableException $exception);
 }

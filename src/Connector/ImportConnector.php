@@ -11,7 +11,7 @@ use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandl
 
 /**
  * Connector whose lifecycle is synchronised with an import operation. Ensures correct ConnectionContext is delivered
- * to the wrapped connector.
+ * to the wrapped connector and intercepts failed connections to facilitate automatic retries.
  *
  * Do not store references to this connector that would prevent it expiring when an import operation ends.
  *
@@ -111,12 +111,12 @@ final class ImportConnector implements ConnectorWrapper
      * Invokes the specified fetch exception handler, cloning it if required.
      *
      * @param RecoverableExceptionHandler $handler Fetch exception handler.
-     * @param \Exception $exception Exception to pass to the handler.
+     * @param RecoverableException $recoverableException Recoverable exception to pass to the handler.
      * @param bool $cloned False if handler requires cloning, true if handler has already been cloned.
      */
     private static function invokeHandler(
         RecoverableExceptionHandler &$handler,
-        \Exception $exception,
+        RecoverableException $recoverableException,
         bool &$cloned
     ): void {
         if (!$cloned && !$handler instanceof StatelessRecoverableExceptionHandler) {
@@ -125,7 +125,7 @@ final class ImportConnector implements ConnectorWrapper
             $cloned = true;
         }
 
-        $handler($exception);
+        $handler($recoverableException);
     }
 
     /**

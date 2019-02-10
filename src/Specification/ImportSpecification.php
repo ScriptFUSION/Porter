@@ -167,6 +167,8 @@ class ImportSpecification
 
     /**
      * @return mixed
+     *
+     * @deprecated TODO: Evaluate whether context can be removed.
      */
     final public function getContext()
     {
@@ -177,6 +179,8 @@ class ImportSpecification
      * @param mixed $context
      *
      * @return $this
+     *
+     * @deprecated TODO: Evaluate whether context can be removed.
      */
     final public function setContext($context): self
     {

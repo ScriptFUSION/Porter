@@ -11,7 +11,7 @@
   "require": {
     "php": "^7.1",
     "scriptfusion/static-class": "^1",
-    "scriptfusion/retry": "^2",
+    "scriptfusion/retry": "^2.1",
     "scriptfusion/retry-exception-handlers": "^1.1",
     "amphp/amp": "^2",
     "psr/container": "^1",
@@ -19,7 +19,7 @@
   },
   "require-dev": {
     "phpunit/phpunit": "^7.1.3",
-    "bilge/mockery": "dev-issue-871"
+    "mockery/mockery": "^1.1"
   },
   "suggest" : {
     "connectors/http": "Provides an HTTP connector for Porter providers.",

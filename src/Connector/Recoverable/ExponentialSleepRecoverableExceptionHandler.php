@@ -20,9 +20,9 @@ class ExponentialSleepRecoverableExceptionHandler implements RecoverableExceptio
      *
      * @param int $initialDelay Initial delay.
      */
-    public function __construct($initialDelay = ExponentialBackoffExceptionHandler::DEFAULT_COEFFICIENT)
+    public function __construct(int $initialDelay = ExponentialBackoffExceptionHandler::DEFAULT_COEFFICIENT)
     {
-        $this->initialDelay = $initialDelay | 0;
+        $this->initialDelay = $initialDelay;
     }
 
     public function initialize(): void

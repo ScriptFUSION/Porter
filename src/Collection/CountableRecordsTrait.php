@@ -15,6 +15,6 @@ trait CountableRecordsTrait
 
     private function setCount(int $count): void
     {
-        $this->count = $count | 0;
+        $this->count = $count;
     }
 }
