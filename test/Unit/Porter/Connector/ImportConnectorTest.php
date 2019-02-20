@@ -11,10 +11,7 @@ use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Connector\ConnectorWrapper;
 use ScriptFUSION\Porter\Connector\ImportConnector;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
-use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandler;
 use ScriptFUSIONTest\FixtureFactory;
-use ScriptFUSIONTest\Stubs\TestRecoverableException;
-use ScriptFUSIONTest\Stubs\TestRecoverableExceptionHandler;
 
 /**
  * @see ImportConnector
@@ -130,89 +127,5 @@ final class ImportConnectorTest extends TestCase
         );
 
         self::assertSame($baseConnector, $connector->findBaseConnector());
-    }
-
-    /**
-     * Tests that when retry() is called multiple times, the original fetch exception handler is unmodified.
-     * This is expected because the handler must be cloned using the prototype pattern to ensure multiple concurrent
-     * fetches do not conflict.
-     *
-     * @dataProvider provideHandlerAndContext
-     */
-    public function testFetchExceptionHandlerCloned(
-        TestRecoverableExceptionHandler $handler,
-        ImportConnector $connector
-    ): void {
-        $handler->initialize();
-        $initial = $handler->getCurrent();
-
-        $connector->fetch('foo');
-
-        self::assertSame($initial, $handler->getCurrent());
-    }
-
-    public function provideHandlerAndContext(): \Generator
-    {
-        yield 'User exception handler' => [
-            $handler = new TestRecoverableExceptionHandler,
-            $connector = FixtureFactory::buildImportConnector(
-                \Mockery::mock(Connector::class)
-                    ->shouldReceive('fetch')
-                        ->andReturnUsing($this->createExceptionThrowingClosure())
-                    ->getMock(),
-                null,
-                $handler
-            ),
-        ];
-
-        // It should be OK to reuse the handler here because the whole point of the test is that it's not modified.
-        $connector->setRecoverableExceptionHandler($handler);
-        yield 'Resource exception handler' => [$handler, $connector];
-    }
-
-    /**
-     * Tests that when retry() is called, a stateless fetch exception handler is neither cloned nor reinitialized.
-     * For stateless handlers, initialization is a NOOP, so avoiding cloning is a small optimization.
-     */
-    public function testStatelessExceptionHandlerNotCloned(): void
-    {
-        $connector = FixtureFactory::buildImportConnector(
-            \Mockery::mock(Connector::class)
-                ->shouldReceive('fetch')
-                    ->twice()
-                    ->andReturnUsing($this->createExceptionThrowingClosure())
-                ->getMock(),
-            null,
-            $handler = new StatelessRecoverableExceptionHandler(static function (): void {
-                // Intentionally empty.
-            })
-        );
-
-        $connector->fetch('foo');
-
-        self::assertSame(
-            $handler,
-            \Closure::bind(
-                function (): RecoverableExceptionHandler {
-                    return $this->userExceptionHandler;
-                },
-                $connector,
-                $connector
-            )()
-        );
-    }
-
-    /**
-     * Creates a closure that only throws an exception on the first invocation.
-     */
-    private static function createExceptionThrowingClosure(): \Closure
-    {
-        return static function (): void {
-            static $invocationCount;
-
-            if (!$invocationCount++) {
-                throw new TestRecoverableException;
-            }
-        };
     }
 }

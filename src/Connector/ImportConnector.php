@@ -91,7 +91,7 @@ final class ImportConnector implements ConnectorWrapper
     {
         $userHandlerCloned = $resourceHandlerCloned = false;
 
-        return function (\Exception $exception) use (&$userHandlerCloned, &$resourceHandlerCloned): void {
+        return function (\Exception $exception) use (&$userHandlerCloned, &$resourceHandlerCloned): ?Promise {
             // Throw exception instead of retrying, if unrecoverable.
             if (!$exception instanceof RecoverableException) {
                 throw $exception;
@@ -99,11 +99,23 @@ final class ImportConnector implements ConnectorWrapper
 
             // Call resource's exception handler, if defined.
             if ($this->resourceExceptionHandler) {
-                self::invokeHandler($this->resourceExceptionHandler, $exception, $resourceHandlerCloned);
+                $results[] = self::invokeHandler($this->resourceExceptionHandler, $exception, $resourceHandlerCloned);
             }
 
             // Call user's exception handler.
-            self::invokeHandler($this->userExceptionHandler, $exception, $userHandlerCloned);
+            $results[] = self::invokeHandler($this->userExceptionHandler, $exception, $userHandlerCloned);
+
+            /*
+             * Handlers may return a Promise, but all other return values are discarded. Although the underlying
+             * library supports returning false, Porter only allows exceptions to short-circuit. However,
+             * Porter does nothing to restrict promises that return false, although it is discouraged.
+             */
+            return ($promises = array_filter(
+                $results,
+                static function ($value): bool {
+                    return $value instanceof Promise;
+                }
+            )) ? \Amp\Promise\all($promises) : null;
         };
     }
 
@@ -113,19 +125,21 @@ final class ImportConnector implements ConnectorWrapper
      * @param RecoverableExceptionHandler $handler Fetch exception handler.
      * @param RecoverableException $recoverableException Recoverable exception to pass to the handler.
      * @param bool $cloned False if handler requires cloning, true if handler has already been cloned.
+     *
+     * @return Promise|null
      */
     private static function invokeHandler(
         RecoverableExceptionHandler &$handler,
         RecoverableException $recoverableException,
         bool &$cloned
-    ): void {
+    ): ?Promise {
         if (!$cloned && !$handler instanceof StatelessRecoverableExceptionHandler) {
             $handler = clone $handler;
             $handler->initialize();
             $cloned = true;
         }
 
-        $handler($recoverableException);
+        return $handler($recoverableException);
     }
 
     /**

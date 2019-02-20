@@ -6,6 +6,7 @@ namespace ScriptFUSIONTest;
 use Amp\Delayed;
 use Amp\Iterator;
 use Amp\Producer;
+use Amp\Promise;
 use Mockery\MockInterface;
 use ScriptFUSION\Porter\Connector\AsyncConnector;
 use ScriptFUSION\Porter\Connector\Connector;
@@ -25,7 +26,7 @@ final class MockFactory
      */
     public static function mockProvider()
     {
-        return \Mockery::namedMock(uniqid(Provider::class, false), Provider::class, AsyncProvider::class)
+        return \Mockery::namedMock(uniqid(Provider::class), Provider::class, AsyncProvider::class)
             ->shouldReceive('getConnector')
                 ->andReturn(
                     \Mockery::mock(Connector::class)
@@ -74,5 +75,19 @@ final class MockFactory
         }
 
         return $resource;
+    }
+
+    /**
+     * @return Promise|MockInterface
+     */
+    public static function mockPromise()
+    {
+        return \Mockery::mock(Promise::class)
+            ->expects('onResolve')
+                ->andReturnUsing(static function (\Closure $onResolve): void {
+                    $onResolve(null, null);
+                })
+            ->getMock()
+        ;
     }
 }

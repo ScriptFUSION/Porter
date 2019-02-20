@@ -32,9 +32,7 @@ final class FixtureFactory
         return new ImportConnector(
             $connector,
             $context ?: self::buildConnectionContext(),
-            $recoverableExceptionHandler ?: new StatelessRecoverableExceptionHandler(static function (): void {
-                // Intentionally empty.
-            }),
+            $recoverableExceptionHandler ?: \Mockery::spy(RecoverableExceptionHandler::class),
             $maxFetchAttempts
         );
     }

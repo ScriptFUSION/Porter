@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace ScriptFUSION\Porter\Connector\Recoverable;
 
+use Amp\Promise;
+
 /**
  * Contains a fetch exception handler that does not have private state and therefore does not require initialization.
  */
@@ -20,8 +22,8 @@ class StatelessRecoverableExceptionHandler implements RecoverableExceptionHandle
         // Intentionally empty.
     }
 
-    final public function __invoke(RecoverableException $exception): void
+    final public function __invoke(RecoverableException $exception): ?Promise
     {
-        ($this->handler)($exception);
+        return ($this->handler)($exception);
     }
 }
