@@ -22,7 +22,6 @@ final class ImportConnectorTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 
-
     /**
      * Tests that when retry() is called multiple times, the original fetch exception handler is unmodified.
      * This is expected because the handler must be cloned using the prototype pattern to ensure multiple concurrent

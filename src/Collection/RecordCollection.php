@@ -47,12 +47,12 @@ abstract class RecordCollection implements \Iterator
         $this->records->rewind();
     }
 
-    public function getPreviousCollection(): ?RecordCollection
+    public function getPreviousCollection(): ?self
     {
         return $this->previousCollection;
     }
 
-    public function findFirstCollection(): ?RecordCollection
+    public function findFirstCollection(): ?self
     {
         do {
             $previous = $nextPrevious ?? $this->getPreviousCollection();

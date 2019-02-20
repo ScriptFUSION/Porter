@@ -28,12 +28,12 @@ abstract class AsyncRecordCollection implements Iterator
         return $this->records->getCurrent();
     }
 
-    public function getPreviousCollection(): ?AsyncRecordCollection
+    public function getPreviousCollection(): ?self
     {
         return $this->previousCollection;
     }
 
-    public function findFirstCollection(): ?AsyncRecordCollection
+    public function findFirstCollection(): ?self
     {
         do {
             $previous = $nextPrevious ?? $this->getPreviousCollection();
