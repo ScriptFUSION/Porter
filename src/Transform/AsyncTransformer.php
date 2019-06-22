@@ -5,7 +5,7 @@ namespace ScriptFUSION\Porter\Transform;
 
 use ScriptFUSION\Porter\Collection\AsyncRecordCollection;
 
-interface AsyncTransformer
+interface AsyncTransformer extends AnysyncTransformer
 {
     public function transformAsync(AsyncRecordCollection $records, $context): AsyncRecordCollection;
 }

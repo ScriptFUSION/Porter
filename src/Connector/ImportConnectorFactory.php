@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace ScriptFUSION\Porter\Connector;
 
-use ScriptFUSION\Porter\Specification\ImportSpecification;
+use ScriptFUSION\Porter\Specification\Specification;
 use ScriptFUSION\StaticClass;
 
 final class ImportConnectorFactory
@@ -12,11 +12,11 @@ final class ImportConnectorFactory
 
     /**
      * @param Connector|AsyncConnector $connector
-     * @param ImportSpecification $specification
+     * @param Specification $specification
      *
      * @return ImportConnector
      */
-    public static function create($connector, ImportSpecification $specification): ImportConnector
+    public static function create($connector, Specification $specification): ImportConnector
     {
         return new ImportConnector(
             $connector,

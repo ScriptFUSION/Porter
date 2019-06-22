@@ -12,7 +12,7 @@
     "php": "^7.1",
     "scriptfusion/static-class": "^1",
     "scriptfusion/retry": "^2.1",
-    "scriptfusion/retry-exception-handlers": "^1.1",
+    "scriptfusion/retry-exception-handlers": "^1.2",
     "amphp/amp": "^2",
     "psr/container": "^1",
     "psr/cache": "^1"

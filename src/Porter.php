@@ -59,8 +59,6 @@ class Porter
      * @param ImportSpecification $specification Import specification.
      *
      * @return PorterRecords|CountablePorterRecords
-     *
-     * @throws ImportException Provider failed to return an iterator.
      */
     public function import(ImportSpecification $specification): PorterRecords
     {
@@ -128,6 +126,13 @@ class Porter
         return $resource->fetch(ImportConnectorFactory::create($connector, $specification));
     }
 
+    /**
+     * Imports data asynchronously according to the design of the specified asynchronous import specification.
+     *
+     * @param AsyncImportSpecification $specification Asynchronous import specification.
+     *
+     * @return AsyncPorterRecords|CountableAsyncPorterRecords
+     */
     public function importAsync(AsyncImportSpecification $specification): AsyncRecordCollection
     {
         $specification = clone $specification;
@@ -143,6 +148,13 @@ class Porter
         return $this->createAsyncPorterRecords($records, $specification);
     }
 
+    /**
+     * Imports one record according to the design of the specified asynchronous import specification.
+     *
+     * @param AsyncImportSpecification $specification Asynchronous import specification.
+     *
+     * @return Promise Promise that resolves to a record.
+     */
     public function importOneAsync(AsyncImportSpecification $specification): Promise
     {
         return \Amp\call(function () use ($specification) {
@@ -210,17 +222,19 @@ class Porter
         return $records;
     }
 
+    /**
+     * @param AsyncRecordCollection $records
+     * @param AsyncTransformer[] $transformers
+     * @param mixed $context
+     *
+     * @return AsyncRecordCollection
+     */
     private function transformAsync(
         AsyncRecordCollection $records,
         array $transformers,
         $context
     ): AsyncRecordCollection {
         foreach ($transformers as $transformer) {
-            if (!$transformer instanceof AsyncTransformer) {
-                // TODO: Proper exception or separate async stack.
-                throw new \RuntimeException('Cannot use sync transformer.');
-            }
-
             if ($transformer instanceof PorterAware) {
                 $transformer->setPorter($this);
             }
