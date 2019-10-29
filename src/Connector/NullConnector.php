@@ -5,7 +5,7 @@ namespace ScriptFUSION\Porter\Connector;
 
 final class NullConnector implements Connector
 {
-    public function fetch(string $source, ConnectionContext $context)
+    public function fetch(string $source)
     {
         // Intentionally empty.
     }

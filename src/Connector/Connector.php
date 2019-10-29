@@ -12,9 +12,8 @@ interface Connector
      * Fetches data from the specified source optionally augmented by the specified options.
      *
      * @param string $source Source.
-     * @param ConnectionContext $context Runtime connection settings and methods.
      *
      * @return mixed Data.
      */
-    public function fetch(string $source, ConnectionContext $context);
+    public function fetch(string $source);
 }

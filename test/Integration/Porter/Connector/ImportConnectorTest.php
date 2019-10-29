@@ -14,6 +14,7 @@ use ScriptFUSIONTest\FixtureFactory;
 use ScriptFUSIONTest\MockFactory;
 use ScriptFUSIONTest\Stubs\TestRecoverableException;
 use ScriptFUSIONTest\Stubs\TestRecoverableExceptionHandler;
+use function Amp\Promise\wait;
 
 /**
  * @see ImportConnector
@@ -27,7 +28,7 @@ final class ImportConnectorTest extends TestCase
      * This is expected because the handler must be cloned using the prototype pattern to ensure multiple concurrent
      * fetches do not conflict.
      *
-     * @dataProvider provideHandlerAndContext
+     * @dataProvider provideHandlerAndConnector
      */
     public function testFetchExceptionHandlerCloned(
         TestRecoverableExceptionHandler $handler,
@@ -41,7 +42,7 @@ final class ImportConnectorTest extends TestCase
         self::assertSame($initial, $handler->getCurrent());
     }
 
-    public function provideHandlerAndContext(): \Generator
+    public function provideHandlerAndConnector(): \Generator
     {
         yield 'User exception handler' => [
             $handler = new TestRecoverableExceptionHandler,
@@ -50,7 +51,6 @@ final class ImportConnectorTest extends TestCase
                     ->shouldReceive('fetch')
                     ->andReturnUsing($this->createExceptionThrowingClosure())
                     ->getMock(),
-                null,
                 $handler
             ),
         ];
@@ -72,7 +72,6 @@ final class ImportConnectorTest extends TestCase
                 ->twice()
                 ->andReturnUsing($this->createExceptionThrowingClosure())
                 ->getMock(),
-            null,
             $handler = new StatelessRecoverableExceptionHandler(static function (): void {
                 // Intentionally empty.
             })
@@ -104,7 +103,6 @@ final class ImportConnectorTest extends TestCase
                 ->shouldReceive('fetch')
                 ->andThrow(new TestRecoverableException)
                 ->getMock(),
-            null,
             new StatelessRecoverableExceptionHandler(static function () {
                 return false;
             })
@@ -119,14 +117,13 @@ final class ImportConnectorTest extends TestCase
         $connector = FixtureFactory::buildImportConnector(
             \Mockery::mock(Connector::class)
                 ->shouldReceive('fetchAsync')
-                    ->andThrow(new TestRecoverableException)
+                ->andThrow(new TestRecoverableException)
                 ->getMock(),
-            null,
             self::createAsyncRecoverableExceptionHandler()
         );
 
         try {
-            \Amp\Promise\wait($connector->fetchAsync('foo'));
+            wait($connector->fetchAsync('foo'));
         } catch (FailingTooHardException $exception) {
             // This is fine.
         }
@@ -142,14 +139,14 @@ final class ImportConnectorTest extends TestCase
         $connector = FixtureFactory::buildImportConnector(
             \Mockery::mock(Connector::class)
                 ->shouldReceive('fetchAsync')
-                    ->andThrow(new TestRecoverableException)
+                ->andThrow(new TestRecoverableException)
                 ->getMock()
         );
 
         $connector->setRecoverableExceptionHandler(self::createAsyncRecoverableExceptionHandler());
 
         try {
-            \Amp\Promise\wait($connector->fetchAsync('foo'));
+            wait($connector->fetchAsync('foo'));
         } catch (FailingTooHardException $exception) {
             // This is fine.
         }
@@ -161,21 +158,20 @@ final class ImportConnectorTest extends TestCase
      * Tests that when user and resource recoverable exception handlers both return promises, both promises are
      * resolved.
      */
-    public function testAsyncUserAndResourceRecoverablExceptionHandlers(): void
+    public function testAsyncUserAndResourceRecoverableExceptionHandlers(): void
     {
         $connector = FixtureFactory::buildImportConnector(
             \Mockery::mock(Connector::class)
                 ->shouldReceive('fetchAsync')
-                    ->andThrow(new TestRecoverableException)
+                ->andThrow(new TestRecoverableException)
                 ->getMock(),
-            null,
             self::createAsyncRecoverableExceptionHandler()
         );
 
         $connector->setRecoverableExceptionHandler(self::createAsyncRecoverableExceptionHandler());
 
         try {
-            \Amp\Promise\wait($connector->fetchAsync('foo'));
+            wait($connector->fetchAsync('foo'));
         } catch (FailingTooHardException $exception) {
             // This is fine.
         }

@@ -8,10 +8,14 @@ use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableException;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandler;
+use function Amp\call;
+use function Amp\Promise\all;
+use function ScriptFUSION\Retry\retry;
+use function ScriptFUSION\Retry\retryAsync;
 
 /**
- * Connector whose lifecycle is synchronised with an import operation. Ensures correct ConnectionContext is delivered
- * to the wrapped connector and intercepts failed connections to facilitate automatic retries.
+ * Connector whose lifecycle is synchronised with an import operation. Intercepts failed connections to facilitate
+ * automatic retries and manages caching.
  *
  * Do not store references to this connector that would prevent it expiring when an import operation ends.
  *
@@ -20,8 +24,6 @@ use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandl
 final class ImportConnector implements ConnectorWrapper
 {
     private $connector;
-
-    private $connectionContext;
 
     /**
      * User-defined exception handler called when a recoverable exception is thrown by Connector::fetch().
@@ -41,32 +43,36 @@ final class ImportConnector implements ConnectorWrapper
 
     /**
      * @param Connector|AsyncConnector $connector Wrapped connector.
-     * @param ConnectionContext $connectionContext Connection context.
      * @param RecoverableExceptionHandler $recoverableExceptionHandler User's recoverable exception handler.
      * @param int $maxFetchAttempts
+     * @param bool $mustCache True if the response must be cached, otherwise false.
      */
     public function __construct(
         $connector,
-        ConnectionContext $connectionContext,
         RecoverableExceptionHandler $recoverableExceptionHandler,
-        int $maxFetchAttempts
+        int $maxFetchAttempts,
+        bool $mustCache
     ) {
-        if ($connectionContext->mustCache() && !$connector instanceof CachingConnector) {
+        if ($mustCache && !$connector instanceof CachingConnector) {
             throw CacheUnavailableException::createUnsupported();
         }
 
-        $this->connector = clone $connector;
-        $this->connectionContext = $connectionContext;
+        $this->connector = clone (
+            $connector instanceof CachingConnector && !$mustCache
+                // Bypass cache when not required.
+                ? $connector->getWrappedConnector()
+                : $connector
+        );
         $this->userExceptionHandler = $recoverableExceptionHandler;
         $this->maxFetchAttempts = $maxFetchAttempts;
     }
 
     public function fetch(string $source)
     {
-        return \ScriptFUSION\Retry\retry(
+        return retry(
             $this->maxFetchAttempts,
             function () use ($source) {
-                return $this->connector->fetch($source, $this->connectionContext);
+                return $this->connector->fetch($source);
             },
             $this->createExceptionHandler()
         );
@@ -74,12 +80,12 @@ final class ImportConnector implements ConnectorWrapper
 
     public function fetchAsync(string $source): Promise
     {
-        return \ScriptFUSION\Retry\retryAsync(
+        return retryAsync(
             $this->maxFetchAttempts,
             function () use ($source): Promise {
-                return \Amp\call(
+                return call(
                     function () use ($source) {
-                        return $this->connector->fetchAsync($source, $this->connectionContext);
+                        return $this->connector->fetchAsync($source);
                     }
                 );
             },
@@ -108,14 +114,15 @@ final class ImportConnector implements ConnectorWrapper
             /*
              * Handlers may return a Promise, but all other return values are discarded. Although the underlying
              * library supports returning false, Porter only allows exceptions to short-circuit. However,
-             * Porter does nothing to restrict promises that return false, although it is discouraged.
+             * Porter does nothing to restrict promises that return false, although it is discouraged and may be
+             * prevented in future. TODO: Mask promise return values.
              */
             return ($promises = array_filter(
                 $results,
                 static function ($value): bool {
                     return $value instanceof Promise;
                 }
-            )) ? \Amp\Promise\all($promises) : null;
+            )) ? all($promises) : null;
         };
     }
 

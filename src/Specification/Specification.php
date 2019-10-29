@@ -147,7 +147,9 @@ abstract class Specification
     }
 
     /**
-     * @return mixed
+     * Gets the context to be passed to transformers.
+     *
+     * @return mixed Context.
      *
      * @deprecated TODO: Evaluate whether context can be removed.
      */
@@ -157,7 +159,9 @@ abstract class Specification
     }
 
     /**
-     * @param mixed $context
+     * Sets the context to be passed transformers.
+     *
+     * @param mixed $context Context.
      *
      * @return $this
      *
@@ -171,7 +175,9 @@ abstract class Specification
     }
 
     /**
-     * @return bool
+     * Gets a value indicating whether raw data caching is enabled for this import.
+     *
+     * @return bool True if caching is enabled, otherwise false.
      */
     final public function mustCache(): bool
     {
@@ -179,6 +185,8 @@ abstract class Specification
     }
 
     /**
+     * Enables raw data caching fetched for this import.
+     *
      * @return $this
      */
     final public function enableCache(): self
@@ -189,6 +197,8 @@ abstract class Specification
     }
 
     /**
+     * Disables raw data caching.
+     *
      * @return $this
      */
     final public function disableCache(): self

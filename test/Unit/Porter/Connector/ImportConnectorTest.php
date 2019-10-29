@@ -21,27 +21,23 @@ final class ImportConnectorTest extends TestCase
     use MockeryPHPUnitIntegration;
 
     /**
-     * Tests that when fetching, the specified context and source are passed verbatim to the underlying connector.
+     * Tests that when fetching, the specified source is passed verbatim to the underlying connector.
      */
     public function testCallGraph(): void
     {
         $connector = FixtureFactory::buildImportConnector(
             \Mockery::mock(Connector::class)
                 ->shouldReceive('fetch')
-                ->with(
-                    $source = 'bar',
-                    $context = FixtureFactory::buildConnectionContext()
-                )->once()
+                ->with($source = 'bar')->once()
                 ->andReturn($output = 'foo')
-                ->getMock(),
-            $context
+                ->getMock()
         );
 
         self::assertSame($output, $connector->fetch($source));
     }
 
     /**
-     * Tests that when context specifies no cache required and a normal connector is used, fetch succeeds.
+     * Tests that when no cache required and a normal connector is used, fetch succeeds.
      */
     public function testFetchCacheDisabled(): void
     {
@@ -56,7 +52,7 @@ final class ImportConnectorTest extends TestCase
     }
 
     /**
-     * Tests that when context specifies cache required and a caching connector is used, fetch succeeds.
+     * Tests that when cache required and a caching connector is used, fetch succeeds.
      */
     public function testFetchCacheEnabled(): void
     {
@@ -65,23 +61,42 @@ final class ImportConnectorTest extends TestCase
                 ->shouldReceive('fetch')
                 ->andReturn($output = 'foo')
                 ->getMock(),
-            FixtureFactory::buildConnectionContext(true)
+            null,
+            1,
+            true
         );
 
         self::assertSame($output, $connector->fetch('bar'));
     }
 
     /**
-     * Tests that when context specifies cache required but a non-caching connector is used, an exception is thrown.
+     * Tests that when cache is disabled and a caching connector is used, fetch succeeds from the wrapped connector.
+     */
+    public function testFetchCacheDisabledWithCachingConnector(): void
+    {
+        $connector = FixtureFactory::buildImportConnector(
+            \Mockery::mock(CachingConnector::class, [\Mockery::mock(Connector::class)])
+                ->shouldReceive('getWrappedConnector')
+                ->andReturn(
+                    \Mockery::mock(Connector::class)
+                        ->shouldReceive('fetch')
+                        ->andReturn($output = 'foo')
+                        ->getMock()
+                )
+                ->getMock()
+        );
+
+        self::assertSame($output, $connector->fetch('bar'));
+    }
+
+    /**
+     * Tests that when cache required but a non-caching connector is used, an exception is thrown.
      */
     public function testFetchCacheEnabledButNotAvailable(): void
     {
         $this->expectException(CacheUnavailableException::class);
 
-        FixtureFactory::buildImportConnector(
-            \Mockery::mock(Connector::class),
-            FixtureFactory::buildConnectionContext(true)
-        );
+        FixtureFactory::buildImportConnector(\Mockery::mock(Connector::class), null, 1, true);
     }
 
     /**
@@ -100,10 +115,7 @@ final class ImportConnectorTest extends TestCase
      */
     public function testSetExceptionHandlerTwice(): void
     {
-        $connector = FixtureFactory::buildImportConnector(
-            $wrappedConnector = \Mockery::mock(Connector::class),
-            FixtureFactory::buildConnectionContext()
-        );
+        $connector = FixtureFactory::buildImportConnector($wrappedConnector = \Mockery::mock(Connector::class));
 
         $connector->setRecoverableExceptionHandler(
             $handler = \Mockery::mock(RecoverableExceptionHandler::class)
@@ -121,9 +133,8 @@ final class ImportConnectorTest extends TestCase
         $connector = FixtureFactory::buildImportConnector(
             \Mockery::mock(Connector::class, ConnectorWrapper::class)
                 ->shouldReceive('getWrappedConnector')
-                    ->andReturn($baseConnector = \Mockery::mock(Connector::class))
-                ->getMock(),
-            FixtureFactory::buildConnectionContext()
+                ->andReturn($baseConnector = \Mockery::mock(Connector::class))
+                ->getMock()
         );
 
         self::assertSame($baseConnector, $connector->findBaseConnector());

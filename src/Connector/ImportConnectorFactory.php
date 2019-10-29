@@ -20,9 +20,9 @@ final class ImportConnectorFactory
     {
         return new ImportConnector(
             $connector,
-            new ConnectionContext($specification->mustCache()),
             $specification->getRecoverableExceptionHandler(),
-            $specification->getMaxFetchAttempts()
+            $specification->getMaxFetchAttempts(),
+            $specification->mustCache()
         );
     }
 }

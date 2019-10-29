@@ -11,11 +11,9 @@ use Psr\Cache\CacheItemPoolInterface;
 use ScriptFUSION\Porter\Cache\CacheKeyGenerator;
 use ScriptFUSION\Porter\Cache\InvalidCacheKeyException;
 use ScriptFUSION\Porter\Connector\CachingConnector;
-use ScriptFUSION\Porter\Connector\ConnectionContext;
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Connector\ConnectorOptions;
 use ScriptFUSION\Porter\Options\EncapsulatedOptions;
-use ScriptFUSIONTest\FixtureFactory;
 use ScriptFUSIONTest\Stubs\TestOptions;
 
 /**
@@ -34,11 +32,6 @@ final class CachingConnectorTest extends TestCase
      * @var Connector|ConnectorOptions|MockInterface
      */
     private $wrappedConnector;
-
-    /**
-     * @var ConnectionContext
-     */
-    private $context;
 
     /**
      * @var TestOptions
@@ -60,29 +53,15 @@ final class CachingConnectorTest extends TestCase
                     ->andReturn(null)
                 ->getMock()
         );
-
-        $this->context = FixtureFactory::buildConnectionContext(true);
     }
 
     /**
-     * Tests that when cache is enabled, the same result is returned because the wrapped connector is bypassed.
+     * Tests that the same result is returned because the wrapped connector is bypassed.
      */
     public function testCacheEnabled(): void
     {
-        self::assertSame('foo', $this->connector->fetch('baz', $this->context));
-        self::assertSame('foo', $this->connector->fetch('baz', $this->context));
-    }
-
-    /**
-     * Tests that when cache is disabled, different results are returned from the wrapped connector.
-     */
-    public function testCacheDisabled(): void
-    {
-        // The default connection context has caching disabled.
-        $context = FixtureFactory::buildConnectionContext();
-
-        self::assertSame('foo', $this->connector->fetch('baz', $context));
-        self::assertSame('bar', $this->connector->fetch('baz', $context));
+        self::assertSame('foo', $this->connector->fetch('baz'));
+        self::assertSame('foo', $this->connector->fetch('baz'));
     }
 
     /**
@@ -90,10 +69,10 @@ final class CachingConnectorTest extends TestCase
      */
     public function testCacheBypassedForDifferentOptions(): void
     {
-        self::assertSame('foo', $this->connector->fetch('baz', $this->context));
+        self::assertSame('foo', $this->connector->fetch('baz'));
 
         $this->options->setFoo('bar');
-        self::assertSame('bar', $this->connector->fetch('baz', $this->context));
+        self::assertSame('bar', $this->connector->fetch('baz'));
     }
 
     /**
@@ -101,15 +80,15 @@ final class CachingConnectorTest extends TestCase
      */
     public function testCacheUsedForDifferentOptionsInstance(): void
     {
-        self::assertSame('foo', $this->connector->fetch('baz', $this->context));
+        self::assertSame('foo', $this->connector->fetch('baz'));
 
         $this->wrappedConnector->shouldReceive('getOptions')->andReturn($options = clone $this->options);
         self::assertNotSame($this->options, $options);
-        self::assertSame('foo', $this->connector->fetch('baz', $this->context));
+        self::assertSame('foo', $this->connector->fetch('baz'));
 
         // Ensure new options have really taken effect by changing option. Cache should no longer be used.
         $options->setFoo('bar');
-        self::assertSame('bar', $this->connector->fetch('baz', $this->context));
+        self::assertSame('bar', $this->connector->fetch('baz'));
     }
 
     public function testNullAndEmptyOptionsAreEquivalent(): void
@@ -119,8 +98,8 @@ final class CachingConnectorTest extends TestCase
         $this->wrappedConnector->shouldReceive('getOptions')->andReturn($options);
         self::assertEmpty($this->wrappedConnector->getOptions()->copy());
 
-        self::assertSame('foo', $this->connector->fetch('baz', $this->context));
-        self::assertSame('foo', $this->connector->fetch('baz', $this->context));
+        self::assertSame('foo', $this->connector->fetch('baz'));
+        self::assertSame('foo', $this->connector->fetch('baz'));
     }
 
     /**
@@ -145,7 +124,7 @@ final class CachingConnectorTest extends TestCase
             ->shouldReceive('set')->andReturn(\Mockery::mock(CacheItemInterface::class))
         ;
 
-        $connector->fetch($reservedCharacters, $this->context);
+        $connector->fetch($reservedCharacters);
     }
 
     /**
@@ -163,12 +142,16 @@ final class CachingConnectorTest extends TestCase
                 ->getMock()
         );
 
-        self::assertSame('foo', $connector->fetch($source, $this->context));
-        self::assertSame('foo', $connector->fetch($source, $this->context));
-        self::assertSame('bar', $connector->fetch($source, $this->context));
+        self::assertSame('foo', $connector->fetch($source));
+        self::assertSame('foo', $connector->fetch($source));
+        self::assertSame('bar', $connector->fetch($source));
     }
 
-    public function testFetchThrowsInvalidCacheKeyExceptionOnNonPSR6CompliantCacheKey(): void
+    /**
+     * That that when the generated cache key contains non-compliant PSR-6 characters,
+     * InvalidCacheKeyException is thrown.
+     */
+    public function testValidateCacheKey(): void
     {
         $connector = $this->createConnector(
             null,
@@ -180,7 +163,7 @@ final class CachingConnectorTest extends TestCase
 
         $this->expectException(InvalidCacheKeyException::class);
         $this->expectExceptionMessage('contains one or more reserved characters');
-        $connector->fetch('baz', $this->context);
+        $connector->fetch('baz');
     }
 
     /**
@@ -201,6 +184,10 @@ final class CachingConnectorTest extends TestCase
         self::assertNotSame($this->wrappedConnector, $clone->getWrappedConnector());
     }
 
+    /**
+     * @param MockInterface|CacheItemPoolInterface $cache
+     * @param MockInterface|CacheKeyGenerator $cacheKeyGenerator
+     */
     private function createConnector(
         MockInterface $cache = null,
         MockInterface $cacheKeyGenerator = null
