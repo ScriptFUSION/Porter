@@ -8,7 +8,6 @@ use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableException;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandler;
-use function Amp\call;
 use function Amp\Promise\all;
 use function ScriptFUSION\Retry\retry;
 use function ScriptFUSION\Retry\retryAsync;
@@ -83,11 +82,7 @@ final class ImportConnector implements ConnectorWrapper
         return retryAsync(
             $this->maxFetchAttempts,
             function () use ($source): Promise {
-                return call(
-                    function () use ($source) {
-                        return $this->connector->fetchAsync($source);
-                    }
-                );
+                return $this->connector->fetchAsync($source);
             },
             $this->createExceptionHandler()
         );

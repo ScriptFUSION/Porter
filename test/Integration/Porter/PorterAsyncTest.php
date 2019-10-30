@@ -22,21 +22,17 @@ final class PorterAsyncTest extends PorterTest
         $this->specification = new AsyncImportSpecification($this->resource);
     }
 
-    public function testImportAsync(): void
+    public function testImportAsync(): \Generator
     {
-        Loop::run(function () {
-            $records = $this->porter->importAsync($this->specification);
+        $records = $this->porter->importAsync($this->specification);
 
-            self::assertTrue(yield $records->advance());
-            self::assertSame(['foo'], $records->getCurrent());
-        });
+        self::assertTrue(yield $records->advance());
+        self::assertSame(['foo'], $records->getCurrent());
     }
 
-    public function testImportOneAsync(): void
+    public function testImportOneAsync(): \Generator
     {
-        Loop::run(function () {
-            self::assertSame(['foo'], yield $this->porter->importOneAsync($this->specification));
-        });
+        self::assertSame(['foo'], yield $this->porter->importOneAsync($this->specification));
     }
 
     /**
