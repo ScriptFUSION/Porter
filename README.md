@@ -4,6 +4,7 @@ Porter <img src="https://github.com/ScriptFUSION/Porter/wiki/images/porter%20222
 [![Latest version][Version image]][Releases]
 [![Total downloads][Downloads image]][Downloads]
 [![Build status][Build image]][Build]
+[![Mutation score][MSI image]][Build]
 [![Test coverage][Coverage image]][Coverage]
 [![Code style][Style image]][Style]
 
@@ -580,6 +581,7 @@ Porter is published under the open source GNU Lesser General Public License v3.0
   [Downloads image]: https://poser.pugx.org/scriptfusion/porter/downloads "Total downloads"
   [Build]: http://travis-ci.org/ScriptFUSION/Porter
   [Build image]: https://travis-ci.org/ScriptFUSION/Porter.svg?branch=master "Build status"
+  [MSI image]: https://badge.stryker-mutator.io/github.com/ScriptFUSION/Porter/master
   [Coverage]: https://codecov.io/gh/ScriptFUSION/Porter
   [Coverage image]: https://codecov.io/gh/ScriptFUSION/Porter/branch/master/graphs/badge.svg "Test coverage"
   [Style]: https://styleci.io/repos/49824895

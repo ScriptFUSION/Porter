@@ -1,0 +1,20 @@
+{
+    "timeout": 10,
+    "source": {
+        "directories": [
+            "src"
+        ]
+    },
+    "phpUnit": {
+        "configDir": "test"
+    },
+    "logs": {
+        "text": "infection.log",
+        "badge": {
+            "branch": "5.0"
+        }
+    },
+    "mutators": {
+        "@default": true
+    }
+}

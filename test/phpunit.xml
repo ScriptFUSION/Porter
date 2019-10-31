@@ -1,7 +1,7 @@
 <phpunit
     beStrictAboutOutputDuringTests="true"
 >
-    <testsuite>
+    <testsuite name="all">
         <directory>.</directory>
     </testsuite>
     <filter>

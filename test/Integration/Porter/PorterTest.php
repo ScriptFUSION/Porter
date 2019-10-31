@@ -66,7 +66,7 @@ abstract class PorterTest extends AsyncTestCase
 
     protected function registerProvider(Provider $provider, string $name = null): void
     {
-        $name = $name ?: \get_class($provider);
+        $name = $name ?? \get_class($provider);
 
         $this->container
             ->shouldReceive('has')->with($name)->andReturn(true)

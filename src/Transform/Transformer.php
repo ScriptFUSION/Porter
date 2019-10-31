@@ -11,7 +11,7 @@ use ScriptFUSION\Porter\Collection\RecordCollection;
 interface Transformer extends AnysyncTransformer
 {
     /**
-     * Transforms the specified record collection decorated with the specified context data.
+     * Transforms the specified record collection, decorated with the specified context data.
      *
      * @param RecordCollection $records Record collection.
      * @param mixed $context Context data.

@@ -102,7 +102,7 @@ abstract class Specification
      *
      * @return $this
      */
-    public function addTransformer(AnysyncTransformer $transformer): self
+    protected function addTransformer(AnysyncTransformer $transformer): self
     {
         if ($this->hasTransformer($transformer)) {
             throw new DuplicateTransformerException('Transformer already added.');

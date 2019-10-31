@@ -104,7 +104,7 @@ class Porter
     private function fetch(ImportSpecification $specification): \Iterator
     {
         $resource = $specification->getResource();
-        $provider = $this->getProvider($specification->getProviderName() ?: $resource->getProviderClassName());
+        $provider = $this->getProvider($specification->getProviderName() ?? $resource->getProviderClassName());
 
         if ($resource->getProviderClassName() !== \get_class($provider)) {
             throw new ForeignResourceException(sprintf(
@@ -175,7 +175,7 @@ class Porter
     private function fetchAsync(AsyncImportSpecification $specification): Iterator
     {
         $resource = $specification->getAsyncResource();
-        $provider = $this->getProvider($specification->getProviderName() ?: $resource->getProviderClassName());
+        $provider = $this->getProvider($specification->getProviderName() ?? $resource->getProviderClassName());
 
         if (!$provider instanceof AsyncProvider) {
             // TODO: Specific exception type.

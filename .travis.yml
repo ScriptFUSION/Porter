@@ -23,12 +23,13 @@ cache:
     - vendor
 
 install:
-  - alias composer=composer\ -n && composer selfupdate
   - composer validate
-  - composer update $DEPENDENCIES
+  - composer --no-interaction update $DEPENDENCIES
 
 script:
-  - composer test -- --coverage-clover=build/logs/clover.xml
+  - composer test -- --coverage-clover=build/logs/clover.xml --coverage-xml=build/coverage/coverage-xml
+    --log-junit=build/coverage/phpunit.junit.xml
+  - vendor/bin/infection --min-msi=95 --threads=$(nproc) --coverage=build/coverage
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
