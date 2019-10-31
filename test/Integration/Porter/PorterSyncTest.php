@@ -14,8 +14,11 @@ use ScriptFUSION\Porter\Connector\ImportConnector;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandler;
 use ScriptFUSION\Porter\ImportException;
+use ScriptFUSION\Porter\IncompatibleProviderException;
 use ScriptFUSION\Porter\PorterAware;
-use ScriptFUSION\Porter\Provider\ForeignResourceException;
+use ScriptFUSION\Porter\ForeignResourceException;
+use ScriptFUSION\Porter\Provider\AsyncProvider;
+use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\ProviderNotFoundException;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\Porter\Specification\StaticDataImportSpecification;
@@ -144,6 +147,17 @@ final class PorterSyncTest extends PorterTest
         $this->expectException(ProviderNotFoundException::class);
 
         $this->porter->import($this->specification->setProviderName('foo'));
+    }
+
+    /**
+     * Tests that when importing from a provider that does not implement Provider, an exception is thrown.
+     */
+    public function testImportIncompatibleProvider(): void
+    {
+        $this->registerProvider(\Mockery::mock(AsyncProvider::class), $providerName = 'foo');
+
+        $this->expectException(IncompatibleProviderException::class);
+        $this->porter->import($this->specification->setProviderName($providerName));
     }
 
     /**

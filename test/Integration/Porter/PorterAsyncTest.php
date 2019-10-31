@@ -7,7 +7,10 @@ use Amp\Iterator;
 use Amp\Loop;
 use Amp\Producer;
 use ScriptFUSION\Porter\ImportException;
+use ScriptFUSION\Porter\IncompatibleProviderException;
 use ScriptFUSION\Porter\Porter;
+use ScriptFUSION\Porter\Provider\AsyncProvider;
+use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Specification\AsyncImportSpecification;
 use ScriptFUSION\Porter\Transform\FilterTransformer;
 
@@ -51,6 +54,17 @@ final class PorterAsyncTest extends PorterTest
 
         $this->expectException(ImportException::class);
         yield $this->porter->importOneAsync($this->specification);
+    }
+
+    /**
+     * Tests that when importing from a provider that does not implement AsyncProvider, an exception is thrown.
+     */
+    public function testImportIncompatibleProvider(): \Generator
+    {
+        $this->registerProvider(\Mockery::mock(Provider::class), $providerName = 'foo');
+
+        $this->expectException(IncompatibleProviderException::class);
+        yield $this->porter->importAsync($this->specification->setProviderName($providerName));
     }
 
     /**

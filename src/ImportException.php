@@ -6,7 +6,7 @@ namespace ScriptFUSION\Porter;
 /**
  * The exception that is thrown when an import fails.
  */
-class ImportException extends \RuntimeException
+final class ImportException extends \RuntimeException
 {
     // Intentionally empty.
 }

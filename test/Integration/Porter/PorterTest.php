@@ -64,7 +64,11 @@ abstract class PorterTest extends AsyncTestCase
         $this->specification = new ImportSpecification($this->resource);
     }
 
-    protected function registerProvider(Provider $provider, string $name = null): void
+    /**
+     * @param Provider|AsyncProvider $provider
+     * @param string|null $name
+     */
+    protected function registerProvider($provider, string $name = null): void
     {
         $name = $name ?? \get_class($provider);
 

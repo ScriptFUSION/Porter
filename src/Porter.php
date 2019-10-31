@@ -18,7 +18,6 @@ use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Connector\ConnectorOptions;
 use ScriptFUSION\Porter\Connector\ImportConnectorFactory;
 use ScriptFUSION\Porter\Provider\AsyncProvider;
-use ScriptFUSION\Porter\Provider\ForeignResourceException;
 use ScriptFUSION\Porter\Provider\ObjectNotCreatedException;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\ProviderFactory;
@@ -27,6 +26,7 @@ use ScriptFUSION\Porter\Specification\AsyncImportSpecification;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\Porter\Transform\AsyncTransformer;
 use ScriptFUSION\Porter\Transform\Transformer;
+use function Amp\call;
 
 /**
  * Imports data from a provider defined in the providers container or internal factory.
@@ -106,6 +106,10 @@ class Porter
         $resource = $specification->getResource();
         $provider = $this->getProvider($specification->getProviderName() ?? $resource->getProviderClassName());
 
+        if (!$provider instanceof Provider) {
+            throw new IncompatibleProviderException('Provider');
+        }
+
         if ($resource->getProviderClassName() !== \get_class($provider)) {
             throw new ForeignResourceException(sprintf(
                 'Cannot fetch data from foreign resource: "%s".',
@@ -143,7 +147,11 @@ class Porter
             $records = new AsyncProviderRecords($records, $specification->getAsyncResource());
         }
 
-        $records = $this->transformAsync($records, $specification->getTransformers(), $specification->getContext());
+        $records = $this->transformRecordsAsync(
+            $records,
+            $specification->getTransformers(),
+            $specification->getContext()
+        );
 
         return $this->createAsyncPorterRecords($records, $specification);
     }
@@ -157,7 +165,7 @@ class Porter
      */
     public function importOneAsync(AsyncImportSpecification $specification): Promise
     {
-        return \Amp\call(function () use ($specification) {
+        return call(function () use ($specification) {
             $results = $this->importAsync($specification);
 
             yield $results->advance();
@@ -178,8 +186,7 @@ class Porter
         $provider = $this->getProvider($specification->getProviderName() ?? $resource->getProviderClassName());
 
         if (!$provider instanceof AsyncProvider) {
-            // TODO: Specific exception type.
-            throw new \RuntimeException('Provider does not implement AsyncProvider.');
+            throw new IncompatibleProviderException('AsyncProvider');
         }
 
         if ($resource->getProviderClassName() !== \get_class($provider)) {
@@ -206,8 +213,6 @@ class Porter
      * @param RecordCollection $records
      * @param Transformer[] $transformers
      * @param mixed $context
-     *
-     * @return RecordCollection
      */
     private function transformRecords(RecordCollection $records, array $transformers, $context): RecordCollection
     {
@@ -226,10 +231,8 @@ class Porter
      * @param AsyncRecordCollection $records
      * @param AsyncTransformer[] $transformers
      * @param mixed $context
-     *
-     * @return AsyncRecordCollection
      */
-    private function transformAsync(
+    private function transformRecordsAsync(
         AsyncRecordCollection $records,
         array $transformers,
         $context
