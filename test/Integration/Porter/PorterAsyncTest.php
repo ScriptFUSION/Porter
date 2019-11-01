@@ -6,13 +6,16 @@ namespace ScriptFUSIONTest\Integration\Porter;
 use Amp\Iterator;
 use Amp\Loop;
 use Amp\Producer;
+use ScriptFUSION\Porter\Connector\AsyncConnector;
+use ScriptFUSION\Porter\Connector\ConnectorOptions;
+use ScriptFUSION\Porter\ForeignResourceException;
 use ScriptFUSION\Porter\ImportException;
 use ScriptFUSION\Porter\IncompatibleProviderException;
 use ScriptFUSION\Porter\Porter;
-use ScriptFUSION\Porter\Provider\AsyncProvider;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Specification\AsyncImportSpecification;
 use ScriptFUSION\Porter\Transform\FilterTransformer;
+use ScriptFUSIONTest\MockFactory;
 
 /**
  * @see Porter
@@ -65,6 +68,30 @@ final class PorterAsyncTest extends PorterTest
 
         $this->expectException(IncompatibleProviderException::class);
         yield $this->porter->importAsync($this->specification->setProviderName($providerName));
+    }
+
+    /**
+     * Tests that when a resource's provider class name does not match the provider an exception is thrown.
+     */
+    public function testImportForeignResource(): \Generator
+    {
+        // Replace existing provider with a different one.
+        $this->registerProvider(MockFactory::mockProvider(), \get_class($this->provider));
+
+        $this->expectException(ForeignResourceException::class);
+        yield $this->porter->importAsync($this->specification);
+    }
+
+    /**
+     * Tests that when importing using a connector that exports options, but no clone method, an exception is thrown.
+     */
+    public function testImportConnectorWithOptions(): void
+    {
+        $this->provider->shouldReceive('getAsyncConnector')
+            ->andReturn(\Mockery::mock(AsyncConnector::class, ConnectorOptions::class));
+
+        $this->expectException(\LogicException::class);
+        $this->porter->importAsync($this->specification);
     }
 
     /**

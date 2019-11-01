@@ -43,6 +43,7 @@ final class MockFactory
                         ->andReturn(new Delayed(0, 'foo'))
                         ->getMock()
                 )
+                ->byDefault()
             ->getMock()
         ;
     }

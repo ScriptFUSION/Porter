@@ -131,7 +131,7 @@ final class PorterSyncTest extends PorterTest
     }
 
     /**
-     * Tests that when a resource does not return an iterator, ImportException is thrown.
+     * Tests that when a resource does not return an iterator, an exception is thrown.
      */
     public function testImportFailure(): void
     {
