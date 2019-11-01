@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace ScriptFUSIONTest\Integration\Porter;
 
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
+use ScriptFUSION\Porter\Collection\CountablePorterRecords;
 use ScriptFUSION\Porter\Collection\FilteredRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
@@ -13,12 +14,11 @@ use ScriptFUSION\Porter\Connector\ConnectorOptions;
 use ScriptFUSION\Porter\Connector\ImportConnector;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandler;
+use ScriptFUSION\Porter\ForeignResourceException;
 use ScriptFUSION\Porter\ImportException;
 use ScriptFUSION\Porter\IncompatibleProviderException;
 use ScriptFUSION\Porter\PorterAware;
-use ScriptFUSION\Porter\ForeignResourceException;
 use ScriptFUSION\Porter\Provider\AsyncProvider;
-use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\ProviderNotFoundException;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\Porter\Specification\StaticDataImportSpecification;
@@ -46,7 +46,7 @@ final class PorterSyncTest extends PorterTest
     }
 
     /**
-     * Tests that when the resource is countable the count is propagated to the outermost collection.
+     * Tests that when the resource is countable, the count is propagated to the outermost collection.
      */
     public function testImportCountableRecords(): void
     {
@@ -59,7 +59,7 @@ final class PorterSyncTest extends PorterTest
         self::assertCount($count, $first);
 
         // Outermost collection.
-        self::assertInstanceOf(\Countable::class, $records);
+        self::assertInstanceOf(CountablePorterRecords::class, $records);
         self::assertCount($count, $records);
     }
 
@@ -102,10 +102,10 @@ final class PorterSyncTest extends PorterTest
             $this->specification->addTransformer(
                 \Mockery::mock(implode(',', [Transformer::class, PorterAware::class]))
                     ->shouldReceive('setPorter')
-                    ->with($this->porter)
-                    ->once()
+                        ->with($this->porter)
+                        ->once()
                     ->shouldReceive('transform')
-                    ->andReturn(\Mockery::mock(RecordCollection::class))
+                        ->andReturn(\Mockery::mock(RecordCollection::class))
                     ->getMock()
             )
         );

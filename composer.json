@@ -1,6 +1,6 @@
 {
   "name": "scriptfusion/porter",
-  "description": "Data import abstraction library.",
+  "description": "Scalable and efficient data import abstraction for APIs.",
   "authors": [
     {
       "name": "Bilge",

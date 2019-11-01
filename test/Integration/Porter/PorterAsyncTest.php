@@ -6,14 +6,19 @@ namespace ScriptFUSIONTest\Integration\Porter;
 use Amp\Iterator;
 use Amp\Loop;
 use Amp\Producer;
+use ScriptFUSION\Porter\Collection\AsyncRecordCollection;
+use ScriptFUSION\Porter\Collection\CountableAsyncPorterRecords;
+use ScriptFUSION\Porter\Collection\CountableAsyncProviderRecords;
 use ScriptFUSION\Porter\Connector\AsyncConnector;
 use ScriptFUSION\Porter\Connector\ConnectorOptions;
 use ScriptFUSION\Porter\ForeignResourceException;
 use ScriptFUSION\Porter\ImportException;
 use ScriptFUSION\Porter\IncompatibleProviderException;
 use ScriptFUSION\Porter\Porter;
+use ScriptFUSION\Porter\PorterAware;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Specification\AsyncImportSpecification;
+use ScriptFUSION\Porter\Transform\AsyncTransformer;
 use ScriptFUSION\Porter\Transform\FilterTransformer;
 use ScriptFUSIONTest\MockFactory;
 
@@ -49,6 +54,30 @@ final class PorterAsyncTest extends PorterTest
     }
 
     /**
+     * Tests that when the resource is countable, the count is propagated to the outermost collection and the records
+     * are intact.
+     */
+    public function testImportCountableAsyncRecords(): \Generator
+    {
+        $this->resource->shouldReceive('fetchAsync')->andReturn(
+            new CountableAsyncProviderRecords(Iterator\fromIterable([$record = ['foo']]), $count = 123, $this->resource)
+        );
+
+        $records = $this->porter->importAsync($this->specification);
+
+        // Innermost collection.
+        self::assertInstanceOf(\Countable::class, $first = $records->findFirstCollection());
+        self::assertCount($count, $first);
+
+        // Outermost collection.
+        self::assertInstanceOf(CountableAsyncPorterRecords::class, $records);
+        self::assertCount($count, $records);
+
+        self::assertTrue(yield $records->advance());
+        self::assertSame($record, $records->getCurrent());
+    }
+
+    /**
      * Tests that when importOne receives multiple records from a resource, an exception is thrown.
      */
     public function testImportOneOfManyAsync(): \Generator
@@ -62,7 +91,7 @@ final class PorterAsyncTest extends PorterTest
     /**
      * Tests that when importing from a provider that does not implement AsyncProvider, an exception is thrown.
      */
-    public function testImportIncompatibleProvider(): \Generator
+    public function testImportIncompatibleProviderAsync(): \Generator
     {
         $this->registerProvider(\Mockery::mock(Provider::class), $providerName = 'foo');
 
@@ -73,7 +102,7 @@ final class PorterAsyncTest extends PorterTest
     /**
      * Tests that when a resource's provider class name does not match the provider an exception is thrown.
      */
-    public function testImportForeignResource(): \Generator
+    public function testImportForeignResourceAsync(): \Generator
     {
         // Replace existing provider with a different one.
         $this->registerProvider(MockFactory::mockProvider(), \get_class($this->provider));
@@ -85,7 +114,7 @@ final class PorterAsyncTest extends PorterTest
     /**
      * Tests that when importing using a connector that exports options, but no clone method, an exception is thrown.
      */
-    public function testImportConnectorWithOptions(): void
+    public function testImportAsyncConnectorWithOptions(): void
     {
         $this->provider->shouldReceive('getAsyncConnector')
             ->andReturn(\Mockery::mock(AsyncConnector::class, ConnectorOptions::class));
@@ -137,5 +166,23 @@ final class PorterAsyncTest extends PorterTest
         );
 
         $importAndExpect([7, 9]);
+    }
+
+    /**
+     * Tests that when an AsyncTransformer is PorterAware it receives the Porter instance that invoked it.
+     */
+    public function testPorterAwareAsyncTransformer(): void
+    {
+        $this->porter->importAsync(
+            $this->specification->addTransformer(
+                \Mockery::mock(implode(',', [AsyncTransformer::class, PorterAware::class]))
+                    ->shouldReceive('setPorter')
+                        ->with($this->porter)
+                        ->once()
+                    ->shouldReceive('transformAsync')
+                        ->andReturn(\Mockery::mock(AsyncRecordCollection::class))
+                    ->getMock()
+            )
+        );
     }
 }

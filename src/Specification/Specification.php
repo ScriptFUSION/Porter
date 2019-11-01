@@ -50,7 +50,7 @@ abstract class Specification
     {
         $transformers = $this->transformers;
         $this->clearTransformers()->addTransformers(array_map(
-            static function (Transformer $transformer): Transformer {
+            static function (AnysyncTransformer $transformer): AnysyncTransformer {
                 return clone $transformer;
             },
             $transformers
