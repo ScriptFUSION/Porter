@@ -1,6 +1,6 @@
 {
   "name": "scriptfusion/porter",
-  "description": "Scalable and efficient data import abstraction for APIs.",
+  "description": "Scalable and durable data import abstraction for APIs.",
   "authors": [
     {
       "name": "Bilge",

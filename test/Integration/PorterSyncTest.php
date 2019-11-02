@@ -27,6 +27,7 @@ use ScriptFUSION\Porter\Transform\Transformer;
 use ScriptFUSION\Retry\FailingTooHardException;
 use ScriptFUSIONTest\MockFactory;
 use ScriptFUSIONTest\Stubs\TestRecoverableException;
+use ScriptFUSIONTest\Stubs\TestRecoverableExceptionHandler;
 
 final class PorterSyncTest extends PorterTest
 {
@@ -235,6 +236,8 @@ final class PorterSyncTest extends PorterTest
     public function testDefaultTries(): void
     {
         $this->arrangeConnectorException(new TestRecoverableException);
+        // Speed up test by circumventing exponential backoff default handler.
+        $this->specification->setRecoverableExceptionHandler(new TestRecoverableExceptionHandler);
 
         $this->expectException(FailingTooHardException::class);
         $this->expectExceptionMessage((string)ImportSpecification::DEFAULT_FETCH_ATTEMPTS);

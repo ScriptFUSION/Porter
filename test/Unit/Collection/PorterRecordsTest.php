@@ -8,9 +8,15 @@ use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 
+/**
+ * @see PorterRecords
+ */
 final class PorterRecordsTest extends TestCase
 {
-    public function test(): void
+    /**
+     * Tests that the specification passed at construction time is the same as that retrieved from the accessor method.
+     */
+    public function testGetSpecification(): void
     {
         $records = new PorterRecords(
             \Mockery::mock(RecordCollection::class),
