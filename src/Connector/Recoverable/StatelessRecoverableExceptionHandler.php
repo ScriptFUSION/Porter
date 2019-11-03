@@ -17,6 +17,9 @@ class StatelessRecoverableExceptionHandler implements RecoverableExceptionHandle
         $this->handler = $handler;
     }
 
+    /**
+     * @codeCoverageIgnore
+     */
     final public function initialize(): void
     {
         // Intentionally empty.

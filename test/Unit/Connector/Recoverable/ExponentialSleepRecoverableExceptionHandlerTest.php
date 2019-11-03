@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace ScriptFUSIONTest\Unit\Connector\Recoverable;
 
-use ScriptFUSION\Porter\Connector\Recoverable\ExponentialSleepRecoverableExceptionHandler;
 use PHPUnit\Framework\TestCase;
+use ScriptFUSION\Porter\Connector\Recoverable\ExponentialSleepRecoverableExceptionHandler;
 use ScriptFUSIONTest\Stubs\TestRecoverableException;
 
 /**
