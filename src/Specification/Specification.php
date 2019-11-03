@@ -5,7 +5,6 @@ namespace ScriptFUSION\Porter\Specification;
 
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Transform\AnysyncTransformer;
-use ScriptFUSION\Porter\Transform\Transformer;
 
 abstract class Specification
 {
@@ -58,7 +57,7 @@ abstract class Specification
 
         \is_object($this->context) && $this->context = clone $this->context;
         $this->recoverableExceptionHandler &&
-        $this->recoverableExceptionHandler = clone $this->recoverableExceptionHandler;
+            $this->recoverableExceptionHandler = clone $this->recoverableExceptionHandler;
     }
 
     /**

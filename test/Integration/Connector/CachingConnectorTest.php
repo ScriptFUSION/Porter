@@ -91,6 +91,38 @@ final class CachingConnectorTest extends TestCase
         self::assertSame('bar', $this->connector->fetch('baz'));
     }
 
+    /**
+     * Tests that when the same options are specified in a different order, the cache is reused.
+     */
+    public function testCacheUsedForOptionsInDifferentOrder(): void
+    {
+        $o1 = new class extends EncapsulatedOptions {
+            public function __construct()
+            {
+                $this->setDefaults([
+                    'Alfa' => 'Alfa',
+                    'Bravo' => 'Bravo',
+                ]);
+            }
+        };
+
+        $o2 = new class extends EncapsulatedOptions {
+            public function __construct()
+            {
+                $this->setDefaults([
+                    'Bravo' => 'Bravo',
+                    'Alfa' => 'Alfa',
+                ]);
+            }
+        };
+
+        $this->wrappedConnector->shouldReceive('getOptions')->andReturn($o1, $o2);
+
+        self::assertNotSame($o1->copy(), $o2->copy(), 'Options render differently.');
+        self::assertSame('foo', $this->connector->fetch('bar'));
+        self::assertSame('foo', $this->connector->fetch('bar'));
+    }
+
     public function testNullAndEmptyOptionsAreEquivalent(): void
     {
         /** @var EncapsulatedOptions $options */

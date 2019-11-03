@@ -122,7 +122,7 @@ class Porter
         /* __clone method cannot be specified in interface due to Mockery limitation.
            See https://github.com/mockery/mockery/issues/669 */
         if ($connector instanceof ConnectorOptions && !method_exists($connector, '__clone')) {
-            throw new \LogicException(
+            throw new CloneNotImplementedException(
                 'Connector with options must implement __clone() method to deep clone options.'
             );
         }
@@ -201,7 +201,7 @@ class Porter
         /* __clone method cannot be specified in interface due to Mockery limitation.
            See https://github.com/mockery/mockery/issues/669 */
         if ($connector instanceof ConnectorOptions && !method_exists($connector, '__clone')) {
-            throw new \LogicException(
+            throw new CloneNotImplementedException(
                 'Connector with options must implement __clone() method to deep clone options.'
             );
         }

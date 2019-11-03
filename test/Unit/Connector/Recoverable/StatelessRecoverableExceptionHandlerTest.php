@@ -18,9 +18,7 @@ final class StatelessRecoverableExceptionHandlerTest extends TestCase
      */
     public function testInitialize(): void
     {
-        (new StatelessRecoverableExceptionHandler(static function (): void {
-            // Intentionally empty.
-        }))->initialize();
+        (new StatelessRecoverableExceptionHandler([$this, __FUNCTION__]))->initialize();
 
         // PHPUnit asserts no exception is thrown.
     }

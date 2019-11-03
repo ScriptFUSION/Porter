@@ -5,6 +5,7 @@ namespace ScriptFUSIONTest\Unit;
 
 use PHPUnit\Framework\TestCase;
 use ScriptFUSION\Porter\Connector\Recoverable\ExponentialAsyncDelayRecoverableExceptionHandler;
+use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Provider\Resource\AsyncResource;
 use ScriptFUSION\Porter\Specification\AsyncImportSpecification;
 use ScriptFUSION\Porter\Specification\IncompatibleTransformerException;
@@ -19,9 +20,12 @@ final class AsyncImportSpecificationTest extends TestCase
     /** @var AsyncImportSpecification */
     private $specification;
 
+    /** @var AsyncResource */
+    private $resource;
+
     protected function setUp(): void
     {
-        $this->specification = new AsyncImportSpecification(\Mockery::mock(AsyncResource::class));
+        $this->specification = new AsyncImportSpecification($this->resource = \Mockery::mock(AsyncResource::class));
     }
 
     /**
@@ -45,5 +49,33 @@ final class AsyncImportSpecificationTest extends TestCase
             ExponentialAsyncDelayRecoverableExceptionHandler::class,
             $this->specification->getRecoverableExceptionHandler()
         );
+    }
+
+    public function testClone(): void
+    {
+        $this->specification
+            ->addTransformer(\Mockery::mock(AsyncTransformer::class))
+            ->setContext($context = new class {
+                // Intentionally empty.
+            })
+            ->setRecoverableExceptionHandler($handler = \Mockery::mock(RecoverableExceptionHandler::class))
+        ;
+
+        $specification = clone $this->specification;
+
+        self::assertNotSame($this->resource, $specification->getAsyncResource());
+
+        self::assertNotSame(
+            array_values($this->specification->getTransformers()),
+            array_values($specification->getTransformers())
+        );
+        self::assertNotSame(
+            array_keys($this->specification->getTransformers()),
+            array_keys($specification->getTransformers())
+        );
+        self::assertCount(\count($this->specification->getTransformers()), $specification->getTransformers());
+
+        self::assertNotSame($context, $specification->getContext());
+        self::assertNotSame($handler, $specification->getRecoverableExceptionHandler());
     }
 }

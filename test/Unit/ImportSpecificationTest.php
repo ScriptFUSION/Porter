@@ -107,6 +107,15 @@ final class ImportSpecificationTest extends TestCase
         $this->specification->addTransformer($transformer);
     }
 
+    public function testClearTransformers(): void
+    {
+        $this->specification->addTransformer($transformer = \Mockery::mock(Transformer::class));
+        self::assertContains($transformer, $this->specification->getTransformers());
+
+        $this->specification->clearTransformers();
+        self::assertEmpty($this->specification->getTransformers());
+    }
+
     public function testContext(): void
     {
         self::assertSame($context = 'foo', $this->specification->setContext($context)->getContext());

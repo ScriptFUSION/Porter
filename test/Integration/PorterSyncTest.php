@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace ScriptFUSIONTest\Integration;
 
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
+use ScriptFUSION\Porter\CloneNotImplementedException;
 use ScriptFUSION\Porter\Collection\CountablePorterRecords;
 use ScriptFUSION\Porter\Collection\FilteredRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
@@ -90,8 +91,26 @@ final class PorterSyncTest extends PorterTest
         $this->provider->shouldReceive('getConnector')
             ->andReturn(\Mockery::mock(Connector::class, ConnectorOptions::class));
 
-        $this->expectException(\LogicException::class);
+        $this->expectException(CloneNotImplementedException::class);
         $this->porter->import($this->specification);
+    }
+
+    /**
+     * Tests that when importing multiple records, records may be rewound when the iterator supports this.
+     */
+    public function testRewind(): void
+    {
+        $this->resource->shouldReceive('fetch')->andReturn(new \ArrayIterator([$i1 = ['foo'], $i2 = ['bar']]));
+
+        $records = $this->porter->import($this->specification);
+
+        self::assertTrue($records->valid());
+        self::assertCount(2, $records);
+        self::assertSame($i1, $records->current());
+        $records->next();
+        self::assertSame($i2, $records->current());
+        $records->rewind();
+        self::assertSame($i1, $records->current());
     }
 
     /**
@@ -146,8 +165,10 @@ final class PorterSyncTest extends PorterTest
     public function testImportUnregisteredProvider(): void
     {
         $this->expectException(ProviderNotFoundException::class);
+        $this->expectExceptionMessage($providerName = 'foo');
+        $this->expectExceptionCode(0);
 
-        $this->porter->import($this->specification->setProviderName('foo'));
+        $this->porter->import($this->specification->setProviderName("\"$providerName\""));
     }
 
     /**
@@ -158,6 +179,7 @@ final class PorterSyncTest extends PorterTest
         $this->registerProvider(\Mockery::mock(AsyncProvider::class), $providerName = 'foo');
 
         $this->expectException(IncompatibleProviderException::class);
+        $this->expectExceptionMessageRegExp('[\bProvider\b]');
         $this->porter->import($this->specification->setProviderName($providerName));
     }
 

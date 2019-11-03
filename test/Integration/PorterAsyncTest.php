@@ -6,6 +6,7 @@ namespace ScriptFUSIONTest\Integration;
 use Amp\Iterator;
 use Amp\Loop;
 use Amp\Producer;
+use ScriptFUSION\Porter\CloneNotImplementedException;
 use ScriptFUSION\Porter\Collection\AsyncRecordCollection;
 use ScriptFUSION\Porter\Collection\CountableAsyncPorterRecords;
 use ScriptFUSION\Porter\Collection\CountableAsyncProviderRecords;
@@ -96,6 +97,7 @@ final class PorterAsyncTest extends PorterTest
         $this->registerProvider(\Mockery::mock(Provider::class), $providerName = 'foo');
 
         $this->expectException(IncompatibleProviderException::class);
+        $this->expectExceptionMessageRegExp('[\bAsyncProvider\b]');
         yield $this->porter->importAsync($this->specification->setProviderName($providerName));
     }
 
@@ -119,7 +121,7 @@ final class PorterAsyncTest extends PorterTest
         $this->provider->shouldReceive('getAsyncConnector')
             ->andReturn(\Mockery::mock(AsyncConnector::class, ConnectorOptions::class));
 
-        $this->expectException(\LogicException::class);
+        $this->expectException(CloneNotImplementedException::class);
         $this->porter->importAsync($this->specification);
     }
 

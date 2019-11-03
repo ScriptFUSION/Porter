@@ -14,7 +14,11 @@ final class RecordCollectionTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 
-    public function testFindParent(): void
+    /**
+     * Tests that for each member in a stack of RecordCollections, the first collection always points to the
+     * innermost collection.
+     */
+    public function testFindFirstCollection(): void
     {
         /**
          * @var RecordCollection $collection1

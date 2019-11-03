@@ -8,7 +8,7 @@ trait PorterAwareTrait
     /** @var Porter */
     private $porter;
 
-    protected function getPorter(): Porter
+    private function getPorter(): Porter
     {
         return $this->porter;
     }
