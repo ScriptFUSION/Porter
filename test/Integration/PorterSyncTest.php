@@ -4,14 +4,12 @@ declare(strict_types=1);
 namespace ScriptFUSIONTest\Integration;
 
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
-use ScriptFUSION\Porter\CloneNotImplementedException;
 use ScriptFUSION\Porter\Collection\CountablePorterRecords;
 use ScriptFUSION\Porter\Collection\FilteredRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
-use ScriptFUSION\Porter\Connector\Connector;
-use ScriptFUSION\Porter\Connector\ConnectorOptions;
+use ScriptFUSION\Porter\Connector\DataSource;
 use ScriptFUSION\Porter\Connector\ImportConnector;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandler;
@@ -81,18 +79,6 @@ final class PorterSyncTest extends PorterTest
 
         // Outermost collection.
         self::assertNotInstanceOf(\Countable::class, $records);
-    }
-
-    /**
-     * Tests that when importing using a connector that exports options, but no clone method, an exception is thrown.
-     */
-    public function testImportConnectorWithOptions(): void
-    {
-        $this->provider->shouldReceive('getConnector')
-            ->andReturn(\Mockery::mock(Connector::class, ConnectorOptions::class));
-
-        $this->expectException(CloneNotImplementedException::class);
-        $this->porter->import($this->specification);
     }
 
     /**
@@ -325,7 +311,7 @@ final class PorterSyncTest extends PorterTest
                     }
                 ));
 
-                yield $connector->fetch('foo');
+                yield $connector->fetch(\Mockery::mock(DataSource::class));
             })
         ;
 

@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace ScriptFUSION\Porter\Provider\Resource;
 
 use ScriptFUSION\Porter\Connector\ImportConnector;
-use ScriptFUSION\Porter\Options\EncapsulatedOptions;
 use ScriptFUSION\Porter\Provider\StaticDataProvider;
 
 class StaticResource implements ProviderResource
@@ -21,7 +20,7 @@ class StaticResource implements ProviderResource
         return StaticDataProvider::class;
     }
 
-    public function fetch(ImportConnector $connector, EncapsulatedOptions $options = null): \Iterator
+    public function fetch(ImportConnector $connector): \Iterator
     {
         return $this->data;
     }

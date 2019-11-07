@@ -66,7 +66,7 @@ final class ImportConnector implements ConnectorWrapper
         $this->maxFetchAttempts = $maxFetchAttempts;
     }
 
-    public function fetch(string $source)
+    public function fetch(DataSource $source)
     {
         return retry(
             $this->maxFetchAttempts,
@@ -77,7 +77,7 @@ final class ImportConnector implements ConnectorWrapper
         );
     }
 
-    public function fetchAsync(string $source): Promise
+    public function fetchAsync(DataSource $source): Promise
     {
         return retryAsync(
             $this->maxFetchAttempts,

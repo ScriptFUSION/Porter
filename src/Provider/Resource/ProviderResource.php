@@ -18,11 +18,11 @@ interface ProviderResource
     public function getProviderClassName(): string;
 
     /**
-     * Fetches data from the provider using the the specified connector and presents its data as an enumerable series.
+     * Fetches data from the provider using the the specified connector and presents it as an iterable series.
      *
      * @param ImportConnector $connector Connector.
      *
-     * @return \Iterator Enumerable data series.
+     * @return \Iterator Iterable data series.
      */
     public function fetch(ImportConnector $connector): \Iterator;
 }

@@ -4,9 +4,7 @@ declare(strict_types=1);
 namespace ScriptFUSION\Porter\Connector;
 
 use Psr\Cache\CacheItemPoolInterface;
-use ScriptFUSION\Porter\Cache\CacheKeyGenerator;
 use ScriptFUSION\Porter\Cache\InvalidCacheKeyException;
-use ScriptFUSION\Porter\Cache\JsonCacheKeyGenerator;
 use ScriptFUSION\Porter\Cache\MemoryCache;
 
 /**
@@ -16,6 +14,8 @@ use ScriptFUSION\Porter\Cache\MemoryCache;
  */
 class CachingConnector implements Connector, ConnectorWrapper
 {
+    public const RESERVED_CHARACTERS = '{}()/\@:';
+
     /**
      * @var Connector
      */
@@ -26,19 +26,12 @@ class CachingConnector implements Connector, ConnectorWrapper
      */
     private $cache;
 
-    /**
-     * @var CacheKeyGenerator
-     */
-    private $cacheKeyGenerator;
-
     public function __construct(
         Connector $connector,
-        CacheItemPoolInterface $cache = null,
-        CacheKeyGenerator $cacheKeyGenerator = null
+        CacheItemPoolInterface $cache = null
     ) {
         $this->connector = $connector;
         $this->cache = $cache ?: new MemoryCache;
-        $this->cacheKeyGenerator = $cacheKeyGenerator ?: new JsonCacheKeyGenerator;
     }
 
     public function __clone()
@@ -50,18 +43,11 @@ class CachingConnector implements Connector, ConnectorWrapper
     }
 
     /**
-     * @param string $source
-     *
-     * @return mixed
-     *
      * @throws InvalidCacheKeyException Cache key contains invalid data.
      */
-    public function fetch(string $source)
+    public function fetch(DataSource $source)
     {
-        $options = $this->connector instanceof ConnectorOptions ? $this->connector->getOptions()->copy() : [];
-        ksort($options);
-
-        $this->validateCacheKey($key = $this->cacheKeyGenerator->generateCacheKey($source, $options));
+        $this->validateCacheKey($key = $source->computeHash());
 
         if ($this->cache->hasItem($key)) {
             return $this->cache->getItem($key)->get();
@@ -79,11 +65,11 @@ class CachingConnector implements Connector, ConnectorWrapper
      */
     private function validateCacheKey(string $key): void
     {
-        if (strpbrk($key, CacheKeyGenerator::RESERVED_CHARACTERS) !== false) {
+        if (strpbrk($key, self::RESERVED_CHARACTERS) !== false) {
             throw new InvalidCacheKeyException(sprintf(
                 'Cache key "%s" contains one or more reserved characters: "%s".',
                 $key,
-                CacheKeyGenerator::RESERVED_CHARACTERS
+                self::RESERVED_CHARACTERS
             ));
         }
     }

@@ -6,12 +6,9 @@ namespace ScriptFUSIONTest\Integration;
 use Amp\Iterator;
 use Amp\Loop;
 use Amp\Producer;
-use ScriptFUSION\Porter\CloneNotImplementedException;
 use ScriptFUSION\Porter\Collection\AsyncRecordCollection;
 use ScriptFUSION\Porter\Collection\CountableAsyncPorterRecords;
 use ScriptFUSION\Porter\Collection\CountableAsyncProviderRecords;
-use ScriptFUSION\Porter\Connector\AsyncConnector;
-use ScriptFUSION\Porter\Connector\ConnectorOptions;
 use ScriptFUSION\Porter\ForeignResourceException;
 use ScriptFUSION\Porter\ImportException;
 use ScriptFUSION\Porter\IncompatibleProviderException;
@@ -111,18 +108,6 @@ final class PorterAsyncTest extends PorterTest
 
         $this->expectException(ForeignResourceException::class);
         yield $this->porter->importAsync($this->specification);
-    }
-
-    /**
-     * Tests that when importing using a connector that exports options, but no clone method, an exception is thrown.
-     */
-    public function testImportAsyncConnectorWithOptions(): void
-    {
-        $this->provider->shouldReceive('getAsyncConnector')
-            ->andReturn(\Mockery::mock(AsyncConnector::class, ConnectorOptions::class));
-
-        $this->expectException(CloneNotImplementedException::class);
-        $this->porter->importAsync($this->specification);
     }
 
     /**

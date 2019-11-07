@@ -10,6 +10,7 @@ use Amp\Promise;
 use Mockery\MockInterface;
 use ScriptFUSION\Porter\Connector\AsyncConnector;
 use ScriptFUSION\Porter\Connector\Connector;
+use ScriptFUSION\Porter\Connector\DataSource;
 use ScriptFUSION\Porter\Connector\ImportConnector;
 use ScriptFUSION\Porter\Provider\AsyncProvider;
 use ScriptFUSION\Porter\Provider\Provider;
@@ -58,13 +59,13 @@ final class MockFactory
                 ->andReturn(\get_class($provider))
             ->shouldReceive('fetch')
                 ->andReturnUsing(static function (ImportConnector $connector): \Iterator {
-                    return new \ArrayIterator([[$connector->fetch('foo')]]);
+                    return new \ArrayIterator([[$connector->fetch(\Mockery::mock(DataSource::class))]]);
                 })
                 ->byDefault()
             ->shouldReceive('fetchAsync')
                 ->andReturnUsing(static function (ImportConnector $connector): Iterator {
                     return new Producer(static function (\Closure $emit) use ($connector): \Generator {
-                        yield $emit([yield $connector->fetchAsync('foo')]);
+                        yield $emit([yield $connector->fetchAsync(\Mockery::mock(DataSource::class))]);
                     });
                 })
                 ->byDefault()

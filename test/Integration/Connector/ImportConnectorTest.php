@@ -4,8 +4,10 @@ declare(strict_types=1);
 namespace ScriptFUSIONTest\Integration\Connector;
 
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+use Mockery\MockInterface;
 use PHPUnit\Framework\TestCase;
 use ScriptFUSION\Porter\Connector\Connector;
+use ScriptFUSION\Porter\Connector\DataSource;
 use ScriptFUSION\Porter\Connector\ImportConnector;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandler;
@@ -23,6 +25,16 @@ final class ImportConnectorTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 
+    /** @var DataSource|MockInterface */
+    private $source;
+
+    protected function setUp()
+    {
+        parent::setUp();
+
+        $this->source = \Mockery::mock(DataSource::class);
+    }
+
     /**
      * Tests that when retry() is called multiple times, the original fetch exception handler is unmodified.
      * This is expected because the handler must be cloned using the prototype pattern to ensure multiple concurrent
@@ -37,7 +49,7 @@ final class ImportConnectorTest extends TestCase
         $handler->initialize();
         $initial = $handler->getCurrent();
 
-        $connector->fetch('foo');
+        $connector->fetch($this->source);
 
         self::assertSame($initial, $handler->getCurrent());
     }
@@ -77,7 +89,7 @@ final class ImportConnectorTest extends TestCase
             })
         );
 
-        $connector->fetch('foo');
+        $connector->fetch($this->source);
 
         self::assertSame(
             $handler,
@@ -106,7 +118,7 @@ final class ImportConnectorTest extends TestCase
             new StatelessRecoverableExceptionHandler(static function () {
                 return false;
             })
-        )->fetch('foo');
+        )->fetch($this->source);
     }
 
     /**
@@ -123,7 +135,7 @@ final class ImportConnectorTest extends TestCase
         );
 
         try {
-            wait($connector->fetchAsync('foo'));
+            wait($connector->fetchAsync($this->source));
         } catch (FailingTooHardException $exception) {
             // This is fine.
         }
@@ -146,7 +158,7 @@ final class ImportConnectorTest extends TestCase
         $connector->setRecoverableExceptionHandler(self::createAsyncRecoverableExceptionHandler());
 
         try {
-            wait($connector->fetchAsync('foo'));
+            wait($connector->fetchAsync($this->source));
         } catch (FailingTooHardException $exception) {
             // This is fine.
         }
@@ -171,7 +183,7 @@ final class ImportConnectorTest extends TestCase
         $connector->setRecoverableExceptionHandler(self::createAsyncRecoverableExceptionHandler());
 
         try {
-            wait($connector->fetchAsync('foo'));
+            wait($connector->fetchAsync($this->source));
         } catch (FailingTooHardException $exception) {
             // This is fine.
         }

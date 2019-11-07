@@ -15,7 +15,6 @@ use ScriptFUSION\Porter\Collection\CountableProviderRecords;
 use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
-use ScriptFUSION\Porter\Connector\ConnectorOptions;
 use ScriptFUSION\Porter\Connector\ImportConnectorFactory;
 use ScriptFUSION\Porter\Provider\AsyncProvider;
 use ScriptFUSION\Porter\Provider\ObjectNotCreatedException;
@@ -119,14 +118,6 @@ class Porter
 
         $connector = $provider->getConnector();
 
-        /* __clone method cannot be specified in interface due to Mockery limitation.
-           See https://github.com/mockery/mockery/issues/669 */
-        if ($connector instanceof ConnectorOptions && !method_exists($connector, '__clone')) {
-            throw new CloneNotImplementedException(
-                'Connector with options must implement __clone() method to deep clone options.'
-            );
-        }
-
         return $resource->fetch(ImportConnectorFactory::create($connector, $specification));
     }
 
@@ -197,14 +188,6 @@ class Porter
         }
 
         $connector = $provider->getAsyncConnector();
-
-        /* __clone method cannot be specified in interface due to Mockery limitation.
-           See https://github.com/mockery/mockery/issues/669 */
-        if ($connector instanceof ConnectorOptions && !method_exists($connector, '__clone')) {
-            throw new CloneNotImplementedException(
-                'Connector with options must implement __clone() method to deep clone options.'
-            );
-        }
 
         return $resource->fetchAsync(ImportConnectorFactory::create($connector, $specification));
     }

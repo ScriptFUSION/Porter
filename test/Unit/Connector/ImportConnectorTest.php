@@ -4,11 +4,13 @@ declare(strict_types=1);
 namespace ScriptFUSIONTest\Unit\Connector;
 
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+use Mockery\MockInterface;
 use PHPUnit\Framework\TestCase;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Connector\CachingConnector;
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Connector\ConnectorWrapper;
+use ScriptFUSION\Porter\Connector\DataSource;
 use ScriptFUSION\Porter\Connector\ImportConnector;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSIONTest\FixtureFactory;
@@ -20,6 +22,16 @@ final class ImportConnectorTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 
+    /** @var DataSource|MockInterface */
+    private $source;
+
+    protected function setUp()
+    {
+        parent::setUp();
+
+        $this->source = \Mockery::mock(DataSource::class);
+    }
+
     /**
      * Tests that when fetching, the specified source is passed verbatim to the underlying connector.
      */
@@ -28,12 +40,12 @@ final class ImportConnectorTest extends TestCase
         $connector = FixtureFactory::buildImportConnector(
             \Mockery::mock(Connector::class)
                 ->shouldReceive('fetch')
-                ->with($source = 'bar')->once()
+                ->with($this->source)->once()
                 ->andReturn($output = 'foo')
                 ->getMock()
         );
 
-        self::assertSame($output, $connector->fetch($source));
+        self::assertSame($output, $connector->fetch($this->source));
     }
 
     /**
@@ -48,7 +60,7 @@ final class ImportConnectorTest extends TestCase
                 ->getMock()
         );
 
-        self::assertSame($output, $connector->fetch('bar'));
+        self::assertSame($output, $connector->fetch($this->source));
     }
 
     /**
@@ -66,7 +78,7 @@ final class ImportConnectorTest extends TestCase
             true
         );
 
-        self::assertSame($output, $connector->fetch('bar'));
+        self::assertSame($output, $connector->fetch($this->source));
     }
 
     /**
@@ -86,7 +98,7 @@ final class ImportConnectorTest extends TestCase
                 ->getMock()
         );
 
-        self::assertSame($output, $connector->fetch('bar'));
+        self::assertSame($output, $connector->fetch($this->source));
     }
 
     /**
