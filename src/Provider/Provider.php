@@ -11,7 +11,7 @@ use ScriptFUSION\Porter\Connector\Connector;
 interface Provider
 {
     /**
-     * Gets a connector for accessing resource data.
+     * Gets a connector compatible with this provider's resources.
      */
     public function getConnector(): Connector;
 }

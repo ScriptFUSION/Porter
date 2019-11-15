@@ -8,7 +8,6 @@ use ScriptFUSION\Porter\Connector\Recoverable\ExponentialAsyncDelayRecoverableEx
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Provider\Resource\AsyncResource;
 use ScriptFUSION\Porter\Specification\AsyncImportSpecification;
-use ScriptFUSION\Porter\Specification\IncompatibleTransformerException;
 use ScriptFUSION\Porter\Transform\AsyncTransformer;
 use ScriptFUSION\Porter\Transform\Transformer;
 
@@ -36,7 +35,7 @@ final class AsyncImportSpecificationTest extends TestCase
         $this->specification->addTransformer($transformer = \Mockery::mock(AsyncTransformer::class));
         self::assertContains($transformer, $this->specification->getTransformers());
 
-        $this->expectException(IncompatibleTransformerException::class);
+        $this->expectException(\TypeError::class);
         $this->specification->addTransformer(\Mockery::mock(Transformer::class));
     }
 

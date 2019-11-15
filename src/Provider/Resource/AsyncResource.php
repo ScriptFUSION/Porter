@@ -6,6 +6,9 @@ namespace ScriptFUSION\Porter\Provider\Resource;
 use Amp\Iterator;
 use ScriptFUSION\Porter\Connector\ImportConnector;
 
+/**
+ * Defines methods for fetching data.
+ */
 interface AsyncResource
 {
     /**
@@ -16,7 +19,7 @@ interface AsyncResource
     public function getProviderClassName(): string;
 
     /**
-     * Fetches data from the provider using the the specified connector and presents its data as an enumerable series.
+     * Fetches data using the the specified connector and presents its data as an enumerable series.
      *
      * @param ImportConnector $connector Connector.
      *

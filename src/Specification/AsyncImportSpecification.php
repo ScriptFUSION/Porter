@@ -6,16 +6,20 @@ namespace ScriptFUSION\Porter\Specification;
 use ScriptFUSION\Porter\Connector\Recoverable\ExponentialAsyncDelayRecoverableExceptionHandler;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Provider\Resource\AsyncResource;
-use ScriptFUSION\Porter\Transform\AnysyncTransformer;
 use ScriptFUSION\Porter\Transform\AsyncTransformer;
 
 /**
- * Specifies which resource to import asynchronously and how the data should be transformed.
+ * Specifies which resource to import asynchronously, how it should be imported and how the data will be transformed.
  */
 class AsyncImportSpecification extends Specification
 {
     private $asyncResource;
 
+    /**
+     * Initializes this instance with the specified asynchronous resource.
+     *
+     * @param AsyncResource $resource Asynchronous resource.
+     */
     public function __construct(AsyncResource $resource)
     {
         $this->asyncResource = $resource;
@@ -30,20 +34,19 @@ class AsyncImportSpecification extends Specification
         parent::__clone();
     }
 
+    /**
+     * Gets the asynchronous resource to import.
+     *
+     * @return AsyncResource Asynchronous resource.
+     */
     final public function getAsyncResource(): AsyncResource
     {
         return $this->asyncResource;
     }
 
-    final public function addTransformer(AnysyncTransformer $transformer): Specification
+    final public function addTransformer(AsyncTransformer $transformer): self
     {
-        if (!$transformer instanceof AsyncTransformer) {
-            throw new IncompatibleTransformerException(
-                'Transformer does not implement interface: ' . AsyncTransformer::class . '.'
-            );
-        }
-
-        return parent::addTransformer($transformer);
+        return parent::addAnyTransformer($transformer);
     }
 
     protected static function createDefaultRecoverableExceptionHandler(): RecoverableExceptionHandler

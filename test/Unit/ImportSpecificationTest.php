@@ -8,7 +8,6 @@ use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Specification\DuplicateTransformerException;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
-use ScriptFUSION\Porter\Specification\IncompatibleTransformerException;
 use ScriptFUSION\Porter\Transform\AsyncTransformer;
 use ScriptFUSION\Porter\Transform\Transformer;
 
@@ -81,7 +80,7 @@ final class ImportSpecificationTest extends TestCase
         self::assertContains($transformer1, $this->specification->getTransformers());
         self::assertContains($transformer2, $this->specification->getTransformers());
 
-        $this->expectException(IncompatibleTransformerException::class);
+        $this->expectException(\TypeError::class);
         $this->specification->addTransformer(\Mockery::mock(AsyncTransformer::class));
     }
 

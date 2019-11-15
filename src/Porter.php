@@ -28,7 +28,7 @@ use ScriptFUSION\Porter\Transform\Transformer;
 use function Amp\call;
 
 /**
- * Imports data from a provider defined in the providers container or internal factory.
+ * Imports data from a provider defined in the container of providers or the internal factory.
  */
 class Porter
 {
@@ -53,11 +53,12 @@ class Porter
     }
 
     /**
-     * Imports data according to the design of the specified import specification.
+     * Imports a one or more records from the resource contained in the specified import specification.
      *
      * @param ImportSpecification $specification Import specification.
      *
-     * @return PorterRecords|CountablePorterRecords
+     * @return PorterRecords|CountablePorterRecords Collection of records. If the total size of the collection is known,
+     *     the collection may implement Countable, otherwise PorterRecords is returned.
      */
     public function import(ImportSpecification $specification): PorterRecords
     {
@@ -75,7 +76,7 @@ class Porter
     }
 
     /**
-     * Imports one record according to the design of the specified import specification.
+     * Imports one record from the resource contained in the specified import specification.
      *
      * @param ImportSpecification $specification Import specification.
      *
@@ -122,11 +123,13 @@ class Porter
     }
 
     /**
-     * Imports data asynchronously according to the design of the specified asynchronous import specification.
+     * Imports one or more records asynchronously from the resource contained in the specified asynchronous import
+     * specification.
      *
      * @param AsyncImportSpecification $specification Asynchronous import specification.
      *
-     * @return AsyncPorterRecords|CountableAsyncPorterRecords
+     * @return AsyncPorterRecords|CountableAsyncPorterRecords Collection of records. If the total size of the
+     *     collection is known, the collection may implement Countable, otherwise AsyncPorterRecords is returned.
      */
     public function importAsync(AsyncImportSpecification $specification): AsyncRecordCollection
     {
@@ -148,11 +151,11 @@ class Porter
     }
 
     /**
-     * Imports one record according to the design of the specified asynchronous import specification.
+     * Imports one record from the resource contained in the specified asynchronous import specification.
      *
      * @param AsyncImportSpecification $specification Asynchronous import specification.
      *
-     * @return Promise Promise that resolves to a record.
+     * @return Promise<array|null> Record.
      */
     public function importOneAsync(AsyncImportSpecification $specification): Promise
     {
@@ -265,7 +268,7 @@ class Porter
      *
      * @param string $name Provider name.
      *
-     * @return Provider|AsyncProvider
+     * @return Provider|AsyncProvider Provider.
      *
      * @throws ProviderNotFoundException The specified provider was not found.
      */

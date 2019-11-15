@@ -6,7 +6,7 @@ namespace ScriptFUSION\Porter\Provider\Resource;
 use ScriptFUSION\Porter\Connector\ImportConnector;
 
 /**
- * Defines methods for fetching data from a specific provider resource.
+ * Defines methods for fetching data.
  */
 interface ProviderResource
 {
@@ -18,7 +18,7 @@ interface ProviderResource
     public function getProviderClassName(): string;
 
     /**
-     * Fetches data from the provider using the the specified connector and presents it as an iterable series.
+     * Fetches data using the the specified connector and presents it as an iterable series.
      *
      * @param ImportConnector $connector Connector.
      *

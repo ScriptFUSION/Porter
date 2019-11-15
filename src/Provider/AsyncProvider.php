@@ -11,7 +11,7 @@ use ScriptFUSION\Porter\Connector\AsyncConnector;
 interface AsyncProvider
 {
     /**
-     * Gets a connector for accessing resource data.
+     * Gets an asynchronous connector compatible with this provider's resources.
      */
     public function getAsyncConnector(): AsyncConnector;
 }

@@ -10,29 +10,17 @@ abstract class Specification
 {
     public const DEFAULT_FETCH_ATTEMPTS = 5;
 
-    /**
-     * @var string|null
-     */
+    /** @var string|null */
     private $providerName;
 
-    /**
-     * @var AnysyncTransformer[]
-     */
+    /** @var AnysyncTransformer[] */
     private $transformers;
 
-    /**
-     * @var mixed
-     */
+    /** @var mixed */
     private $context;
 
-    /**
-     * @var bool
-     */
     private $mustCache = false;
 
-    /**
-     * @var int
-     */
     private $maxFetchAttempts = self::DEFAULT_FETCH_ATTEMPTS;
 
     /**
@@ -95,13 +83,13 @@ abstract class Specification
     }
 
     /**
-     * Adds the specified transformer.
+     * Adds the specified transformer of any sync type.
      *
      * @param AnysyncTransformer $transformer Transformer.
      *
      * @return $this
      */
-    protected function addTransformer(AnysyncTransformer $transformer): self
+    final protected function addAnyTransformer(AnysyncTransformer $transformer): self
     {
         if ($this->hasTransformer($transformer)) {
             throw new DuplicateTransformerException('Transformer already added.');
@@ -122,7 +110,7 @@ abstract class Specification
     final public function addTransformers(array $transformers): self
     {
         foreach ($transformers as $transformer) {
-            $this->addTransformer($transformer);
+            $this->addAnyTransformer($transformer);
         }
 
         return $this;

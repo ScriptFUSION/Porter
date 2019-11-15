@@ -66,6 +66,13 @@ final class ImportConnector implements ConnectorWrapper
         $this->maxFetchAttempts = $maxFetchAttempts;
     }
 
+    /**
+     * Fetches data from the specified data source.
+     *
+     * @param DataSource $source Data source.
+     *
+     * @return mixed Data.
+     */
     public function fetch(DataSource $source)
     {
         return retry(
@@ -77,6 +84,13 @@ final class ImportConnector implements ConnectorWrapper
         );
     }
 
+    /**
+     * Fetches data asynchronously from the specified data source.
+     *
+     * @param DataSource $source Data source.
+     *
+     * @return Promise<mixed> Data.
+     */
     public function fetchAsync(DataSource $source): Promise
     {
         return retryAsync(
@@ -145,7 +159,7 @@ final class ImportConnector implements ConnectorWrapper
     }
 
     /**
-     * Gets the wrapped connector. Useful for resources to reconfigure connector options during this import.
+     * Gets the wrapped connector.
      *
      * @return Connector|AsyncConnector Wrapped connector.
      */
