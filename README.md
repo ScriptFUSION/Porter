@@ -8,15 +8,17 @@ Porter <img src="https://github.com/ScriptFUSION/Porter/wiki/images/porter%20222
 [![Test coverage][Coverage image]][Coverage]
 [![Code style][Style image]][Style]
 
-[![][Porter icon]][Provider]
-[![][Porter transformers icon]][Porter transformers]
-[![][Porter connectors icon]][Porter connectors]
-
 Porter is the PHP data importer. She fetches data from anywhere, from the local file system to third party online services, and returns an [iterator](#record-collections). Porter is a fully pluggable import framework that can be extended with [connectors](#connectors) for any protocol and [transformers](#transformers) to manipulate data immediately after import.
 
 Ready-to-use data [providers][Provider] include all the necessary connectors and other dependencies to access popular online services such as [Stripe][Stripe provider] for online payments, the [European Central Bank][ECB provider] for foreign exchange rates or [Steam][Steam provider] for its complete PC games library and more. Porter's provider library is limited right now, and some implementations are incomplete, but we hope the PHP community will rally around Porter's abstractions and become the de facto framework for publishing online services, APIs, web scrapers and data dumps. Porter's interfaces have undergone intensive scrutiny and several iterations during years of production use to ensure they are efficient, robust, flexible, testable and easy to implement.
 
 Porter's key [durability](#durability) feature ensures recoverable connection failures are transparently retried up to five times by default, with increasing delays between each attempt until the fetch is successful. This helps ensure intermittent network failures will not disrupt the entire import operation. Special care has been taken to ensure Porter's features are safe for concurrency, such that multiple imports can be paused and resumed simultaneously, which is especially important for iterators implemented with generators (which can be paused) as well as the upcoming asynchronous imports in v5.
+
+###### Quick links
+
+[![][Porter icon]][Provider]
+[![][Porter transformers icon]][Porter transformers]
+[![][Porter connectors icon]][Porter connectors]
 
 Contents
 --------
@@ -568,7 +570,9 @@ Everyone is welcome to contribute anything, from [ideas and issues][Issues] to [
 License
 -------
 
-Porter is published under the open source GNU Lesser General Public License v3.0. However, the original Porter character and artwork is copyright &copy; 2018 [Bilge](https://github.com/Bilge) and may not be reproduced or modified without express written permission.
+Porter is published under the open source GNU Lesser General Public License v3.0. However, the original Porter character and artwork is copyright &copy; 2019 [Bilge](https://github.com/Bilge) and may not be reproduced or modified without express written permission.
+
+###### Quick links
 
 [![][Porter icon]][Provider]
 [![][Porter transformers icon]][Porter transformers]
