@@ -53,7 +53,7 @@ class Porter
     }
 
     /**
-     * Imports a one or more records from the resource contained in the specified import specification.
+     * Imports one or more records from the resource contained in the specified import specification.
      *
      * @param ImportSpecification $specification Import specification.
      *
@@ -156,6 +156,8 @@ class Porter
      * @param AsyncImportSpecification $specification Asynchronous import specification.
      *
      * @return Promise<array|null> Record.
+     *
+     * @throws ImportException More than one record was imported.
      */
     public function importOneAsync(AsyncImportSpecification $specification): Promise
     {

@@ -58,12 +58,12 @@ Benefits
 Quick start
 -----------
 
-To get started quickly, try our [quick start guide][Quickstart].
+To get started quickly, try our [quick start guide][Quickstart]. For a more thorough introduction, continue reading this document.
 
 Understanding this manual
 -------------------------
 
-The first half of this manual covers Porter's main features and how to use them. The second half covers architecture, interface and implementation details for Porter developers. There's an intermission inbetween so you'll know where the cut-off is!
+The first half of this manual covers Porter's main features and how to use them. The second half covers architecture, interface and implementation details for Porter developers. There's an intermission inbetween so you'll know where the division is!
 
 Text marked as `inline code` denotes literal code, as it would appear in a PHP file. For example, `Porter` refers specifically to the class of the same name within this library, whereas *Porter* refers to this entire project as a whole.
 
@@ -105,15 +105,20 @@ Porter's API
 
 `Porter`'s simple API comprises data import methods that must always be used to begin imports, instead of calling methods directly on providers or resources, in order to take advantage of Porter's features correctly.
 
-`Porter` provides just two public methods. These are the methods to be most familiar with, where the life of a data import operation begins.
+`Porter` provides just two public methods for synchronous data import. These are the methods to be most familiar with, where the life of a data import operation begins.
 
-* `import(ImportSpecification) : PorterRecords|CountablePorterRecords` &ndash; Imports data according to the design of the specified import specification.
-* `importOne(ImportSpecification) : ?array` &ndash; Imports one record according to the design of the specified import specification. If more than one record is imported, `ImportException` is thrown. Use this when you're sure a provider just returns a single record.
+* `import(ImportSpecification): PorterRecords|CountablePorterRecords` &ndash; Imports one or more records from the resource contained in the specified import specification. If the total size of the collection is known, the record collection may implement `Countable`.
+* `importOne(ImportSpecification): ?array` &ndash; Imports one record from the resource contained in the specified import specification. If more than one record is imported, `ImportException` is thrown. Use this when a provider just returns a single record.
+
+Porter's asynchronous API mirrors the synchronous one with similar method names but different signatures.
+
+* `importAsync(AsyncImportSpecification): AsyncPorterRecords|CountableAsyncPorterRecords` &ndash; Imports one or more records asynchronously from the resource contained in the specified asynchronous import specification.
+* `importOneAsync(importOneAsync): Promise` &ndash; Imports one record from the resource contained in the specified asynchronous import specification.
 
 Overview
 --------
 
-The following data flow diagram gives a high level overview of Porter's main interfaces and the data flows between them when importing data. Note that we use the term *resource* for brevity, but the actual interface is called `ProviderResource`, because *resource* is a reserved word in PHP. Also note, I don't know how to draw data flow diagrams, so just go with it.
+The following data flow diagram gives a high level overview of Porter's main interfaces and the data flows between them when importing data. Note that we use the term *resource* for brevity, but the actual interface is called `ProviderResource`, because *resource* is a reserved word in PHP.
 
 <div align="center">
 
@@ -121,7 +126,7 @@ The following data flow diagram gives a high level overview of Porter's main int
 
 </div>
 
-Our application calls `Porter::import()` with an `ImportSpecification` and receives `PorterRecords` in return. Everything else happens internally and we don't need to worry about it unless writing custom providers and resources.
+Our application calls `Porter::import()` with an `ImportSpecification` and receives `PorterRecords` in return. Everything else happens internally so we don't need to worry about it unless writing custom providers, resources or connectors.
 
 Import specifications
 ---------------------
@@ -555,7 +560,7 @@ Porter is published under the open source GNU Lesser General Public License v3.0
   [Porter transformers icon]: https://avatars2.githubusercontent.com/u/24607042?v=3&s=35 "Porter transformers"
   [Porter connectors icon]: https://avatars3.githubusercontent.com/u/25672142?v=3&s=35 "Porter connectors"
   [Class diagram]: https://github.com/ScriptFUSION/Porter/blob/master/docs/images/diagrams/Porter%20UML%20class%20diagram%204.0.png?raw=true
-  [Data flow diagram]: https://github.com/ScriptFUSION/Porter/blob/master/docs/images/diagrams/Porter%20data%20flow%20diagram%204.0.png?raw=true
+  [Data flow diagram]: https://github.com/ScriptFUSION/Porter/blob/master/docs/images/diagrams/Porter%20data%20flow%20diagram%205.0.png?raw=true
   [ECB]: https://github.com/Provider/European-Central-Bank
   [CurrencyRecords]: https://github.com/Provider/European-Central-Bank/blob/master/src/Records/CurrencyRecords.php
   [ECB test]: https://github.com/Provider/European-Central-Bank/blob/master/test/DailyForexRatesTest.php
