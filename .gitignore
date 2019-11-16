@@ -1,4 +1,5 @@
 /vendor/
 /.*/
+!/.github/
 /composer.lock
 /*.log
