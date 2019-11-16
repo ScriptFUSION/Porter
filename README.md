@@ -1,4 +1,4 @@
-Porter <img src="https://github.com/ScriptFUSION/Porter/wiki/images/porter%20222x.png" align="right">
+Porter <img src="https://github.com/ScriptFUSION/Porter/blob/master/docs/images/porter%20222x.png?raw=true" align="right">
 ======
 
 [![Latest version][Version image]][Releases]
@@ -548,14 +548,13 @@ public function fetch(ConnectionContext $context, $source)
 Requirements
 ------------
 
- - [PHP 5.5](http://php.net/)
+ - [PHP 7.1](http://php.net/)
  - [Composer](https://getcomposer.org/)
 
 Limitations
 -----------
 
- - Imports must complete synchronously. That is, calls to `import()` are blocking. This will be addressed in v5 and is tracked by #15.
- - [Sub-imports][Sub-imports] must complete synchronously. That is, the previous sub-import must finish before the next starts.
+ - No end-to-end data steaming interface yet.
 
 Testing
 -------
@@ -608,8 +607,8 @@ Porter is published under the open source GNU Lesser General Public License v3.0
   [Porter icon]: https://avatars3.githubusercontent.com/u/16755913?v=3&s=35 "Porter providers"
   [Porter transformers icon]: https://avatars2.githubusercontent.com/u/24607042?v=3&s=35 "Porter transformers"
   [Porter connectors icon]: https://avatars3.githubusercontent.com/u/25672142?v=3&s=35 "Porter connectors"
-  [Class diagram]: https://github.com/ScriptFUSION/Porter/wiki/images/diagrams/Porter%20UML%20class%20diagram%204.0.png
-  [Data flow diagram]: https://github.com/ScriptFUSION/Porter/wiki/images/diagrams/Porter%20data%20flow%20diagram%204.0.png
+  [Class diagram]: https://github.com/ScriptFUSION/Porter/blob/master/docs/images/diagrams/Porter%20UML%20class%20diagram%204.0.png?raw=true
+  [Data flow diagram]: https://github.com/ScriptFUSION/Porter/blob/master/docs/images/diagrams/Porter%20data%20flow%20diagram%204.0.png?raw=true
   [ECB]: https://github.com/Provider/European-Central-Bank
   [CurrencyRecords]: https://github.com/Provider/European-Central-Bank/blob/master/src/Records/CurrencyRecords.php
   [ECB test]: https://github.com/Provider/European-Central-Bank/blob/master/test/DailyForexRatesTest.php
