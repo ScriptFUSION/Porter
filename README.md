@@ -8,13 +8,15 @@ Porter <img src="https://github.com/ScriptFUSION/Porter/blob/master/docs/images/
 [![Test coverage][Coverage image]][Coverage]
 [![Code style][Style image]][Style]
 
-Porter is the PHP data importer. She fetches data from anywhere, from the local file system to third party online services, and returns an [iterator](#record-collections). Porter is a fully pluggable import framework that can be extended with [connectors](#connectors) for any protocol and [transformers](#transformers) to manipulate data immediately after import.
+### Scalable and durable data imports for publishing and consuming APIs
 
-Ready-to-use data [providers][Provider] include all the necessary connectors and other dependencies to access popular online services such as [Stripe][Stripe provider] for online payments, the [European Central Bank][ECB provider] for foreign exchange rates or [Steam][Steam provider] for its complete PC games library and more. Porter's provider library is limited right now, and some implementations are incomplete, but we hope the PHP community will rally around Porter's abstractions and become the de facto framework for publishing online services, APIs, web scrapers and data dumps. Porter's interfaces have undergone intensive scrutiny and several iterations during years of production use to ensure they are efficient, robust, flexible, testable and easy to implement.
+Porter is the all-purpose PHP data importer. She fetches data from anywhere and serves it as a [record collection](#record-collections) for iterable data sets, to encourage processing one record at a time instead of loading entire data sets into memory at once. Her [durability](#durability) feature provides automatic and transparent recovery from intermittent network connectivity problems by default.
 
-Porter's key [durability](#durability) feature ensures recoverable connection failures are transparently retried up to five times by default, with increasing delays between each attempt until the fetch is successful. This helps ensure intermittent network failures will not disrupt the entire import operation. Special care has been taken to ensure Porter's features are safe for concurrency, such that multiple imports can be paused and resumed simultaneously, which is especially important for iterators implemented with generators (which can be paused) as well as the upcoming asynchronous imports in v5.
+Porter's interface trichotomy of [providers](#providers), [resources](#resources) and [connectors](#connectors) maps well to APIs. A typical API, for example GitHub, would define the Provider as GitHub, a resource as `GetUser` or `ListRepositories` and the Connector could be `HttpConnector`.
 
-###### Quick links
+Porter provides a dual API for synchronous and [asynchronous](#asynchronous) imports, both of which are concurrency safe, so multiple imports can be paused and resumed simultaneously. Asynchronous mode allows large scale imports across multiple connections to work at maximum efficiency without waiting for each network call to complete.
+
+###### Porter network quick links
 
 [![][Porter icon]][Provider]
 [![][Porter transformers icon]][Porter transformers]
@@ -31,6 +33,7 @@ Contents
   1. [Overview](#overview)
   1. [Import specifications](#import-specifications)
   1. [Record collections](#record-collections)
+  1. [Asynchronous](#asynchronous)
   1. [Transformers](#transformers)
   1. [Filtering](#filtering)
   1. [Durability](#durability)
@@ -48,22 +51,23 @@ Contents
 Benefits
 --------
 
- * Formally defines a structured data import framework with the following concepts: [providers](#providers) represent one or more [resources](#resources) that fetch data from [connectors](#connectors).
- * Provides efficient in-memory data processing interfaces to handle large data sets one record at a time, via iterators, which can be implemented using generators.
- * Offers post-import [transformations](#transformers), such as [filtering](#filtering) and [mapping][MappingTransformer], to transform third-party into data useful for first-party applications.
+ * Defines a formal structure for data import APIs: [providers](#providers) represent one or more [resources](#resources) that fetch data from [connectors](#connectors).
+ * Provides efficient data processing interfaces to handle large data sets one record at a time, via iterators, which can be implemented using generators.
+ * [Asynchronous](#asynchronous) imports offer highly efficient CPU-bound data processing for large scale imports across multiple connections concurrently.
  * Protects against intermittent network failures with [durability](#durability) features.
+ * Offers post-import [transformations](#transformers), such as [filtering](#filtering) and [mapping][MappingTransformer], to transform third-party into data useful for first-party applications.
  * Supports PSR-6 [caching](#caching), at the connector level, for each fetch operation.
  * Joins two or more linked data sets together using [sub-imports][Sub-imports] automatically.
 
 Quick start
 -----------
 
-To get started quickly, try our [quick start guide][Quickstart]. For a more thorough introduction, continue reading this document.
+To get started quickly, try our [quick start guide][Quickstart]. For a more thorough introduction continue reading.
 
 Understanding this manual
 -------------------------
 
-The first half of this manual covers Porter's main features and how to use them. The second half covers architecture, interface and implementation details for Porter developers. There's an intermission inbetween so you'll know where the division is!
+The first half of this manual covers Porter's main API for consuming data services. The second half covers architecture, interface and implementation details for publishing data services. There's an intermission in-between so you'll know where the separation is!
 
 Text marked as `inline code` denotes literal code, as it would appear in a PHP file. For example, `Porter` refers specifically to the class of the same name within this library, whereas *Porter* refers to this entire project as a whole.
 
@@ -74,7 +78,7 @@ Usage
 
 Create a `new Porter` instance—we'll usually only need one per application. Porter's constructor requires a [PSR-11][PSR-11] compatible `ContainerInterface` that acts as a repository of [providers](#providers).
 
-When integrating Porter into a typical MVC framework application, we'll usually have a service locator or DI container implementing this interface already. We can simply inject the entire container into Porter. Although it's probably safer to create a separate container just for Porter's providers, it usually doesn't matter.
+When integrating Porter into a typical MVC framework application, we'll usually have a service locator or DI container implementing this interface already. We can simply inject the entire container into Porter, although it's best practice to create a separate container just for Porter's providers.
 
 Without a framework, pick any [PSR-11 compatible library][PSR-11 search] and inject an instance of its container class. We could even write our own container since the interface is easy to implement, but using an existing library is beneficial, particularly since most support lazy-loading of services. If you're not sure which to use, [Joomla DI](https://github.com/joomla-framework/di) is fairly lightweight and straightforward.
 
@@ -126,7 +130,7 @@ The following data flow diagram gives a high level overview of Porter's main int
 
 </div>
 
-Our application calls `Porter::import()` with an `ImportSpecification` and receives `PorterRecords` in return. Everything else happens internally so we don't need to worry about it unless writing custom providers, resources or connectors.
+Our application calls `Porter::import()` with an `ImportSpecification` and receives `PorterRecords` back. Everything else happens internally so we don't need to worry about it unless writing custom providers, resources or connectors.
 
 Import specifications
 ---------------------
@@ -150,7 +154,7 @@ Record collections are `Iterator`s, guaranteeing imported data is enumerable usi
 
 ### Details
 
-Record collections may be `Countable`, depending on whether the imported data was countable and whether any destructive operations were performed after import. Filtering is a destructive operation since it may remove records and therefore the count reported by a `ProviderResource` would no longer be accurate. It is the responsibility of the resource to supply the number of records in its collection by returning an iterator that implements `Countable`, such as `ArrayIterator` or `CountableProviderRecords`. When a countable iterator is detected, Porter returns `CountablePorterRecords` provided no destructive operations were performed.
+Record collections may be `Countable`, depending on whether the imported data was countable and whether any destructive operations were performed after import. Filtering is a destructive operation since it may remove records and therefore the count reported by a `ProviderResource` would no longer be accurate. It is the responsibility of the resource to supply the total number of records in its collection by returning an iterator that implements `Countable`, such as `ArrayIterator`, or more commonly, `CountableProviderRecords`. When a countable iterator is used, Porter returns `CountablePorterRecords`, provided no destructive operations were performed.
 
 Record collections are composed by Porter using the decorator pattern. If provider data is not modified, `PorterRecords` will decorate the `ProviderRecords` returned from a `ProviderResource`. That is, `PorterRecords` has a pointer back to the previous collection, which could be written as: `PorterRecords` → `ProviderRecords`. If a [filter](#filtering) was applied, the collection stack would be `PorterRecords` → `FilteredRecords` → `ProviderRecords`. Normally this is an unimportant detail but can sometimes be useful for debugging.
 
@@ -161,6 +165,26 @@ The stack of record collection types informs us of the transformations a collect
 Since record collections are just objects, it is possible to define derived types that implement custom fields to expose additional *metadata* in addition to the iterated data. Collections are very good at representing a repeating series of data but some APIs send additional non-repeating data which we can expose as metadata. However, if the data is not repeating at all, it should be treated as a single record rather than metadata.
 
 The result of a successful `Porter::import` call is always an instance of `PorterRecords` or `CountablePorterRecords`, depending on whether the number of records is known. If we need to access methods of the original collection, returned by the provider, we can call `findFirstCollection()` on the collection. For an example, see [CurrencyRecords][CurrencyRecords] of the [European Central Bank Provider][ECB] and its associated [test case][ECB test].
+
+Asynchronous
+------------
+
+The new asynchronous API, introduced in version 5, is built on top of the fully programmable asynchronous framework, [Amp]. The synchronous API is not compatible with the asynchronous API so one must decide which to use. In general, the asynchronous API should be preferred for new projects because async can do everything sync can do, including emulating synchronous behaviour, but sync code cannot behave asynchronously without significant refactoring.
+
+We must be inside the async event loop to begin programming asynchronously. Let's illustrate how to rewrite the [earlier example](#importing-data) asynchronously.
+
+```php
+\Amp\Loop::run(function (): \Generator {
+    $records = $porter->importAsync(new AsyncImportSpecification(new DailyForexRates));
+
+    while (yield $records->advance()) {
+        $record = $records->current();
+        // Insert breakpoint or var_dump($record) here to examine each record.
+    }
+});
+```
+
+Programming asynchronously requires an understanding of Amp, the async framework. Further details can be found in the official Amp documentation.
 
 Transformers
 ------------
@@ -527,7 +551,7 @@ Porter is published under the open source GNU Lesser General Public License v3.0
   [Mapper]: https://github.com/ScriptFUSION/Mapper
   [PSR-6]: https://www.php-fig.org/psr/psr-6
   [PSR-11]: https://www.php-fig.org/psr/psr-11
-  [PSR-11 search]: https://packagist.org/explore/?dFR[tags][0]=psr-11&hFR[type][0]=library
+  [PSR-11 search]: https://packagist.org/explore/?type=library&tags=psr-11
   [Porter icon]: https://avatars3.githubusercontent.com/u/16755913?v=3&s=35 "Porter providers"
   [Porter transformers icon]: https://avatars2.githubusercontent.com/u/24607042?v=3&s=35 "Porter transformers"
   [Porter connectors icon]: https://avatars3.githubusercontent.com/u/25672142?v=3&s=35 "Porter connectors"

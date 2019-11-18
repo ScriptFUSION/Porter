@@ -1,6 +1,6 @@
 {
   "name": "scriptfusion/porter",
-  "description": "Scalable and durable data import abstraction for APIs.",
+  "description": "Scalable and durable data import for publishing and consuming APIs.",
   "authors": [
     {
       "name": "Bilge",
@@ -25,7 +25,8 @@
   },
   "suggest" : {
     "connectors/http": "Provides an HTTP connector for Porter providers.",
-    "transformers/mapping-transformer": "Transforms records using Mappings."
+    "transformers/mapping-transformer": "Transforms records using Mappings.",
+    "async/throttle": "Limits throughput of asynchronous imports."
   },
   "autoload": {
     "psr-4": {
