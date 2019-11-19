@@ -21,6 +21,7 @@ use ScriptFUSION\Porter\Provider\ObjectNotCreatedException;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\ProviderFactory;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
+use ScriptFUSION\Porter\Provider\Resource\SingleRecordResource;
 use ScriptFUSION\Porter\Specification\AsyncImportSpecification;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\Porter\Transform\AsyncTransformer;
@@ -86,6 +87,10 @@ class Porter
      */
     public function importOne(ImportSpecification $specification): ?array
     {
+        if (!$specification->getResource() instanceof SingleRecordResource) {
+            throw new IncompatibleResourceException;
+        }
+
         $results = $this->import($specification);
 
         if (!$results->valid()) {
@@ -162,6 +167,10 @@ class Porter
     public function importOneAsync(AsyncImportSpecification $specification): Promise
     {
         return call(function () use ($specification) {
+            if (!$specification->getAsyncResource() instanceof SingleRecordResource) {
+                throw new IncompatibleResourceException;
+            }
+
             $results = $this->importAsync($specification);
 
             yield $results->advance();

@@ -12,9 +12,12 @@ use ScriptFUSION\Porter\Collection\CountableAsyncProviderRecords;
 use ScriptFUSION\Porter\ForeignResourceException;
 use ScriptFUSION\Porter\ImportException;
 use ScriptFUSION\Porter\IncompatibleProviderException;
+use ScriptFUSION\Porter\IncompatibleResourceException;
 use ScriptFUSION\Porter\Porter;
 use ScriptFUSION\Porter\PorterAware;
 use ScriptFUSION\Porter\Provider\Provider;
+use ScriptFUSION\Porter\Provider\Resource\AsyncResource;
+use ScriptFUSION\Porter\Provider\Resource\SingleRecordResource;
 use ScriptFUSION\Porter\Specification\AsyncImportSpecification;
 use ScriptFUSION\Porter\Transform\AsyncTransformer;
 use ScriptFUSION\Porter\Transform\FilterTransformer;
@@ -49,6 +52,17 @@ final class PorterAsyncTest extends PorterTest
     public function testImportOneAsync(): \Generator
     {
         self::assertSame(['foo'], yield $this->porter->importOneAsync($this->specification));
+    }
+
+    /**
+     * Tests that when importing one from a resource not marked with SingleRecordResource, an exception is thrown.
+     */
+    public function testImportOneNonSingleAsync(): \Generator
+    {
+        $this->expectException(IncompatibleResourceException::class);
+        $this->expectExceptionMessage(SingleRecordResource::class);
+
+        yield $this->porter->importOneAsync(new AsyncImportSpecification(\Mockery::mock(AsyncResource::class)));
     }
 
     /**

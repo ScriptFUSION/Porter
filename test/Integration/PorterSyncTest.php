@@ -16,8 +16,11 @@ use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandl
 use ScriptFUSION\Porter\ForeignResourceException;
 use ScriptFUSION\Porter\ImportException;
 use ScriptFUSION\Porter\IncompatibleProviderException;
+use ScriptFUSION\Porter\IncompatibleResourceException;
 use ScriptFUSION\Porter\PorterAware;
 use ScriptFUSION\Porter\Provider\AsyncProvider;
+use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
+use ScriptFUSION\Porter\Provider\Resource\SingleRecordResource;
 use ScriptFUSION\Porter\ProviderNotFoundException;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\Porter\Specification\StaticDataImportSpecification;
@@ -207,6 +210,17 @@ final class PorterSyncTest extends PorterTest
 
         $this->expectException(ImportException::class);
         $this->porter->importOne($this->specification);
+    }
+
+    /**
+     * Tests that when importing one from a resource not marked with SingleRecordResource, an exception is thrown.
+     */
+    public function testImportOneNonSingleAsync(): \Generator
+    {
+        $this->expectException(IncompatibleResourceException::class);
+        $this->expectExceptionMessage(SingleRecordResource::class);
+
+        yield $this->porter->importOne(new ImportSpecification(\Mockery::mock(ProviderResource::class)));
     }
 
     #endregion

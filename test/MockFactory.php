@@ -16,6 +16,7 @@ use ScriptFUSION\Porter\Provider\AsyncProvider;
 use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\Resource\AsyncResource;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
+use ScriptFUSION\Porter\Provider\Resource\SingleRecordResource;
 use ScriptFUSION\StaticClass;
 
 final class MockFactory
@@ -54,7 +55,7 @@ final class MockFactory
      */
     public static function mockResource(Provider $provider, \Iterator $return = null)
     {
-        $resource = \Mockery::mock(ProviderResource::class, AsyncResource::class)
+        $resource = \Mockery::mock(ProviderResource::class, AsyncResource::class, SingleRecordResource::class)
             ->shouldReceive('getProviderClassName')
                 ->andReturn(\get_class($provider))
             ->shouldReceive('fetch')
