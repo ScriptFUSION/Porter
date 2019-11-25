@@ -38,6 +38,11 @@ abstract class PorterTest extends AsyncTestCase
     protected $resource;
 
     /**
+     * @var ProviderResource|AsyncResource|MockInterface
+     */
+    protected $singleResource;
+
+    /**
      * @var Connector|AsyncConnector|MockInterface
      */
     protected $connector;
@@ -46,6 +51,11 @@ abstract class PorterTest extends AsyncTestCase
      * @var ImportSpecification|AsyncImportSpecification
      */
     protected $specification;
+
+    /**
+     * @var ImportSpecification|AsyncImportSpecification
+     */
+    protected $singleSpecification;
 
     /**
      * @var ContainerInterface|MockInterface
@@ -62,6 +72,8 @@ abstract class PorterTest extends AsyncTestCase
         $this->connector = $this->provider->getConnector();
         $this->resource = MockFactory::mockResource($this->provider);
         $this->specification = new ImportSpecification($this->resource);
+        $this->singleResource = MockFactory::mockSingleRecordResource($this->provider);
+        $this->singleSpecification = new ImportSpecification($this->singleResource);
     }
 
     /**

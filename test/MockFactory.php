@@ -53,9 +53,15 @@ final class MockFactory
     /**
      * @return ProviderResource|AsyncResource|MockInterface
      */
-    public static function mockResource(Provider $provider, \Iterator $return = null)
+    public static function mockResource(Provider $provider, \Iterator $return = null, bool $single = false)
     {
-        $resource = \Mockery::mock(ProviderResource::class, AsyncResource::class, SingleRecordResource::class)
+        /** @var ProviderResource|AsyncResource|MockInterface $resource */
+        $resource = \Mockery::mock(
+            ...array_merge(
+                [ProviderResource::class, AsyncResource::class],
+                $single ? [SingleRecordResource::class] : []
+            )
+        )
             ->shouldReceive('getProviderClassName')
                 ->andReturn(\get_class($provider))
             ->shouldReceive('fetch')
@@ -78,6 +84,14 @@ final class MockFactory
         }
 
         return $resource;
+    }
+
+    /**
+     * @return ProviderResource|AsyncResource|MockInterface
+     */
+    public static function mockSingleRecordResource(Provider $provider)
+    {
+        return self::mockResource($provider, null, true);
     }
 
     /**

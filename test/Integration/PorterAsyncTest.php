@@ -33,6 +33,7 @@ final class PorterAsyncTest extends PorterTest
         parent::setUp();
 
         $this->specification = new AsyncImportSpecification($this->resource);
+        $this->singleSpecification = new AsyncImportSpecification($this->singleResource);
     }
 
     /**
@@ -47,11 +48,22 @@ final class PorterAsyncTest extends PorterTest
     }
 
     /**
+     * Tests that when importing a single record resource, an exception is thrown.
+     */
+    public function testImportSingle(): void
+    {
+        $this->expectException(IncompatibleResourceException::class);
+        $this->expectExceptionMessage('importOneAsync()');
+
+        $this->porter->importAsync($this->singleSpecification);
+    }
+
+    /**
      * Tests that the full async import path, via connector, resource and provider, fetches one record correctly.
      */
     public function testImportOneAsync(): \Generator
     {
-        self::assertSame(['foo'], yield $this->porter->importOneAsync($this->specification));
+        self::assertSame(['foo'], yield $this->porter->importOneAsync($this->singleSpecification));
     }
 
     /**
@@ -94,10 +106,10 @@ final class PorterAsyncTest extends PorterTest
      */
     public function testImportOneOfManyAsync(): \Generator
     {
-        $this->resource->shouldReceive('fetchAsync')->andReturn(Iterator\fromIterable([['foo'], ['bar']]));
+        $this->singleResource->shouldReceive('fetchAsync')->andReturn(Iterator\fromIterable([['foo'], ['bar']]));
 
         $this->expectException(ImportException::class);
-        yield $this->porter->importOneAsync($this->specification);
+        yield $this->porter->importOneAsync($this->singleSpecification);
     }
 
     /**

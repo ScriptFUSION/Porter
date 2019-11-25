@@ -184,38 +184,49 @@ final class PorterSyncTest extends PorterTest
         $this->porter->import($this->specification);
     }
 
+    /**
+     * Tests that when importing a single record resource, an exception is thrown.
+     */
+    public function testImportSingle(): void
+    {
+        $this->expectException(IncompatibleResourceException::class);
+        $this->expectExceptionMessage('importOne()');
+
+        $this->porter->import($this->singleSpecification);
+    }
+
     #endregion
 
     #region Import one
 
     public function testImportOne(): void
     {
-        $result = $this->porter->importOne($this->specification);
+        $result = $this->porter->importOne($this->singleSpecification);
 
         self::assertSame(['foo'], $result);
     }
 
     public function testImportOneOfNone(): void
     {
-        $this->resource->shouldReceive('fetch')->andReturn(new \EmptyIterator);
+        $this->singleResource->shouldReceive('fetch')->andReturn(new \EmptyIterator);
 
-        $result = $this->porter->importOne($this->specification);
+        $result = $this->porter->importOne($this->singleSpecification);
 
         self::assertNull($result);
     }
 
     public function testImportOneOfMany(): void
     {
-        $this->resource->shouldReceive('fetch')->andReturn(new \ArrayIterator([['foo'], ['bar']]));
+        $this->singleResource->shouldReceive('fetch')->andReturn(new \ArrayIterator([['foo'], ['bar']]));
 
         $this->expectException(ImportException::class);
-        $this->porter->importOne($this->specification);
+        $this->porter->importOne($this->singleSpecification);
     }
 
     /**
      * Tests that when importing one from a resource not marked with SingleRecordResource, an exception is thrown.
      */
-    public function testImportOneNonSingleAsync(): \Generator
+    public function testImportOneNonSingle(): \Generator
     {
         $this->expectException(IncompatibleResourceException::class);
         $this->expectExceptionMessage(SingleRecordResource::class);
@@ -318,7 +329,7 @@ final class PorterSyncTest extends PorterTest
             ->shouldReceive('fetch')
             ->andReturnUsing(static function (ImportConnector $connector) use ($connectorException): \Generator {
                 $connector->setRecoverableExceptionHandler(new StatelessRecoverableExceptionHandler(
-                    function (\Exception $exception) use ($connectorException) {
+                    static function (\Exception $exception) use ($connectorException) {
                         self::assertSame($connectorException, $exception);
 
                         throw new \RuntimeException('This exception is thrown by the provider handler.');
@@ -330,7 +341,7 @@ final class PorterSyncTest extends PorterTest
         ;
 
         $this->expectException(\RuntimeException::class);
-        $this->porter->importOne($this->specification);
+        $this->porter->importOne($this->singleSpecification);
     }
 
     #endregion

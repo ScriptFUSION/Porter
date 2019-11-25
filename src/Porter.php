@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace ScriptFUSION\Porter;
 
-use Amp\Iterator;
 use Amp\Promise;
 use Psr\Container\ContainerInterface;
 use ScriptFUSION\Porter\Collection\AsyncPorterRecords;
@@ -60,20 +59,17 @@ class Porter
      *
      * @return PorterRecords|CountablePorterRecords Collection of records. If the total size of the collection is known,
      *     the collection may implement Countable, otherwise PorterRecords is returned.
+     *
+     * @throws IncompatibleResourceException Resource emits a single record and must be imported with
+     *     importOne() instead.
      */
     public function import(ImportSpecification $specification): PorterRecords
     {
-        $specification = clone $specification;
-
-        $records = $this->fetch($specification);
-
-        if (!$records instanceof ProviderRecords) {
-            $records = $this->createProviderRecords($records, $specification->getResource());
+        if ($specification->getResource() instanceof SingleRecordResource) {
+            throw IncompatibleResourceException::createMustNotImplementInterface();
         }
 
-        $records = $this->transformRecords($records, $specification->getTransformers(), $specification->getContext());
-
-        return $this->createPorterRecords($records, $specification);
+        return $this->fetch($specification);
     }
 
     /**
@@ -83,15 +79,16 @@ class Porter
      *
      * @return array|null Record.
      *
+     * @throws IncompatibleResourceException Resource does not implement required interface.
      * @throws ImportException More than one record was imported.
      */
     public function importOne(ImportSpecification $specification): ?array
     {
         if (!$specification->getResource() instanceof SingleRecordResource) {
-            throw new IncompatibleResourceException;
+            throw IncompatibleResourceException::createMustImplementInterface();
         }
 
-        $results = $this->import($specification);
+        $results = $this->fetch($specification);
 
         if (!$results->valid()) {
             return null;
@@ -106,8 +103,9 @@ class Porter
         return $one;
     }
 
-    private function fetch(ImportSpecification $specification): \Iterator
+    private function fetch(ImportSpecification $specification): PorterRecords
     {
+        $specification = clone $specification;
         $resource = $specification->getResource();
         $provider = $this->getProvider($specification->getProviderName() ?? $resource->getProviderClassName());
 
@@ -122,9 +120,15 @@ class Porter
             ));
         }
 
-        $connector = $provider->getConnector();
+        $records = $resource->fetch(ImportConnectorFactory::create($provider->getConnector(), $specification));
 
-        return $resource->fetch(ImportConnectorFactory::create($connector, $specification));
+        if (!$records instanceof ProviderRecords) {
+            $records = $this->createProviderRecords($records, $specification->getResource());
+        }
+
+        $records = $this->transformRecords($records, $specification->getTransformers(), $specification->getContext());
+
+        return $this->createPorterRecords($records, $specification);
     }
 
     /**
@@ -135,24 +139,17 @@ class Porter
      *
      * @return AsyncPorterRecords|CountableAsyncPorterRecords Collection of records. If the total size of the
      *     collection is known, the collection may implement Countable, otherwise AsyncPorterRecords is returned.
+     *
+     * @throws IncompatibleResourceException Resource emits a single record and must be imported with
+     *     importOneAsync() instead.
      */
     public function importAsync(AsyncImportSpecification $specification): AsyncRecordCollection
     {
-        $specification = clone $specification;
-
-        $records = $this->fetchAsync($specification);
-
-        if (!$records instanceof AsyncProviderRecords) {
-            $records = new AsyncProviderRecords($records, $specification->getAsyncResource());
+        if ($specification->getAsyncResource() instanceof SingleRecordResource) {
+            throw IncompatibleResourceException::createMustNotImplementInterfaceAsync();
         }
 
-        $records = $this->transformRecordsAsync(
-            $records,
-            $specification->getTransformers(),
-            $specification->getContext()
-        );
-
-        return $this->createAsyncPorterRecords($records, $specification);
+        return $this->fetchAsync($specification);
     }
 
     /**
@@ -162,16 +159,17 @@ class Porter
      *
      * @return Promise<array|null> Record.
      *
+     * @throws IncompatibleResourceException Resource does not implement required interface.
      * @throws ImportException More than one record was imported.
      */
     public function importOneAsync(AsyncImportSpecification $specification): Promise
     {
         return call(function () use ($specification) {
             if (!$specification->getAsyncResource() instanceof SingleRecordResource) {
-                throw new IncompatibleResourceException;
+                throw IncompatibleResourceException::createMustImplementInterface();
             }
 
-            $results = $this->importAsync($specification);
+            $results = $this->fetchAsync($specification);
 
             yield $results->advance();
 
@@ -185,8 +183,9 @@ class Porter
         });
     }
 
-    private function fetchAsync(AsyncImportSpecification $specification): Iterator
+    private function fetchAsync(AsyncImportSpecification $specification): AsyncRecordCollection
     {
+        $specification = clone $specification;
         $resource = $specification->getAsyncResource();
         $provider = $this->getProvider($specification->getProviderName() ?? $resource->getProviderClassName());
 
@@ -201,9 +200,21 @@ class Porter
             ));
         }
 
-        $connector = $provider->getAsyncConnector();
+        $records = $resource->fetchAsync(
+            ImportConnectorFactory::create($provider->getAsyncConnector(), $specification)
+        );
 
-        return $resource->fetchAsync(ImportConnectorFactory::create($connector, $specification));
+        if (!$records instanceof AsyncProviderRecords) {
+            $records = new AsyncProviderRecords($records, $specification->getAsyncResource());
+        }
+
+        $records = $this->transformRecordsAsync(
+            $records,
+            $specification->getTransformers(),
+            $specification->getContext()
+        );
+
+        return $this->createAsyncPorterRecords($records, $specification);
     }
 
     /**
