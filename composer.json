@@ -39,7 +39,8 @@
     }
   },
   "scripts": {
-    "test": "phpunit -c test"
+    "test": "phpunit -c test",
+    "mutation": "infection --configuration=test/infection.json"
   },
   "config": {
     "sort-packages": true

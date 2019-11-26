@@ -30,4 +30,4 @@ script:
   - composer test -- --coverage-clover=build/logs/clover.xml --coverage-xml=build/coverage/coverage-xml
     --log-junit=build/coverage/phpunit.junit.xml
   - travis_retry bash <(curl -s https://codecov.io/bash) || true
-  - vendor/bin/infection --min-msi=95 --threads=$(nproc) --coverage=build/coverage
+  - composer mutation -- --min-msi=100 --threads=$(nproc) --show-mutations --coverage=build/coverage
