@@ -31,7 +31,7 @@ class FilterTransformer implements Transformer, AsyncTransformer
 
     public function transform(RecordCollection $records, $context): RecordCollection
     {
-        $filter = static function ($predicate) use ($records, $context) {
+        $filter = static function ($predicate) use ($records, $context): \Generator {
             foreach ($records as $record) {
                 if ($predicate($record, $context)) {
                     yield $record;
@@ -45,7 +45,7 @@ class FilterTransformer implements Transformer, AsyncTransformer
     public function transformAsync(AsyncRecordCollection $records, $context): AsyncRecordCollection
     {
         return new AsyncFilteredRecords(
-            new Producer(function (\Closure $emit) use ($records) {
+            new Producer(function (\Closure $emit) use ($records): \Generator {
                 while (yield $records->advance()) {
                     if (($this->filter)($record = $records->getCurrent())) {
                         yield $emit($record);

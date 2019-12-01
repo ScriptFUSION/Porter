@@ -6,13 +6,12 @@ Porter <img src="https://github.com/ScriptFUSION/Porter/blob/master/docs/images/
 [![Build status][Build image]][Build]
 [![Mutation score][MSI image]][Build]
 [![Test coverage][Coverage image]][Coverage]
-[![Code style][Style image]][Style]
 
 ### Scalable and durable data imports for publishing and consuming APIs
 
-Porter is the all-purpose PHP data importer. She fetches data from anywhere and serves it as a [record collection](#record-collections) for iterable data sets, to encourage processing one record at a time instead of loading entire data sets into memory at once. Her [durability](#durability) feature provides automatic and transparent recovery from intermittent network connectivity problems by default.
+Porter is the all-purpose PHP data importer. She fetches data from anywhere and serves it as a single record or an iterable [record collection](#record-collections), encouraging processing one record at a time instead of loading full data sets into memory at once. Her [durability](#durability) feature provides automatic, transparent recovery from intermittent network connectivity errors by default.
 
-Porter's interface trichotomy of [providers](#providers), [resources](#resources) and [connectors](#connectors) maps well to APIs. A typical API, for example GitHub, would define the Provider as GitHub, a resource as `GetUser` or `ListRepositories` and the Connector could be `HttpConnector`.
+Porter's interface trichotomy of [providers](#providers), [resources](#resources) and [connectors](#connectors) maps well to APIs. For example, a typical API such as GitHub would define the provider as GitHub, a resource as `GetUser` or `ListRepositories` and the connector could be [HttpConnector][].
 
 Porter provides a dual API for synchronous and [asynchronous](#asynchronous) imports, both of which are concurrency safe, so multiple imports can be paused and resumed simultaneously. Asynchronous mode allows large scale imports across multiple connections to work at maximum efficiency without waiting for each network call to complete.
 
@@ -27,7 +26,7 @@ Contents
 
   1. [Benefits](#benefits)
   1. [Quick start](#quick-start)
-  1. [Understanding this manual](#understanding-this-manual)
+  1. [About this manual](#about-this-manual)
   1. [Usage](#usage)
   1. [Porter's API](#porters-api)
   1. [Overview](#overview)
@@ -64,19 +63,21 @@ Quick start
 
 To get started quickly, try our [quick start guide][Quickstart]. For a more thorough introduction continue reading.
 
-Understanding this manual
--------------------------
+About this manual
+-----------------
 
 The first half of this manual covers Porter's main API for consuming data services. The second half covers architecture, interface and implementation details for publishing data services. There's an intermission in-between so you'll know where the separation is!
 
-Text marked as `inline code` denotes literal code, as it would appear in a PHP file. For example, `Porter` refers specifically to the class of the same name within this library, whereas *Porter* refers to this entire project as a whole.
+Text marked as `inline code` denotes literal code, as it would appear in a PHP file. For example, `Porter` refers specifically to the class of the same name within this library, whereas *Porter* refers to this project as a whole.
+
+Porter has a dual API for the synchronous and asynchronous workflow dichotomy. Almost every Porter feature has an asynchronous equivalent. You will need to choose which you prefer to use. Most examples in this manual are for the synchronous API, for brevity and simplicity, but the asynchronous version will invariably be similar. Working synchronously may be easier when getting started but you are encouraged to use the async API if you are able, to reap its benefits.
 
 Usage
 -----
 
 ### Creating the container
 
-Create a `new Porter` instance—we'll usually only need one per application. Porter's constructor requires a [PSR-11][PSR-11] compatible `ContainerInterface` that acts as a repository of [providers](#providers).
+Create a `new Porter` instance—we'll usually only need one per application. Porter's constructor requires a [PSR-11][] compatible `ContainerInterface` that acts as a repository of [providers](#providers).
 
 When integrating Porter into a typical MVC framework application, we'll usually have a service locator or DI container implementing this interface already. We can simply inject the entire container into Porter, although it's best practice to create a separate container just for Porter's providers.
 
@@ -84,7 +85,7 @@ Without a framework, pick any [PSR-11 compatible library][PSR-11 search] and inj
 
 ### Registering providers
 
-Configure the container by registering one or more Porter [providers][Provider]. In this example we'll add the [ECB provider][ECB provider] for foreign exchange rates. Most provider libraries will export just one provider class; in this case it's `EuropeanCentralBankProvider`. We could add the provider to the container by writing something similar to `$container->set(EuropeanCentralBankProvider::class, new EuropeanCentralBankProvider)`, but consult the manual for your particular container implementation for the exact syntax.
+Configure the container by registering one or more Porter [providers][Provider]. In this example we'll add the [ECB provider][] for foreign exchange rates. Most provider libraries will export just one provider class; in this case it's `EuropeanCentralBankProvider`. We could add the provider to the container by writing something similar to `$container->set(EuropeanCentralBankProvider::class, new EuropeanCentralBankProvider)`, but consult the manual for your particular container implementation for the exact syntax.
 
 It is recommended to use the provider's class name as the container service name, as in the example in the previous paragraph. Porter will retrieve the service matching the provider's class name by default, so this reduces friction when getting started. If we use a different service name, it will need to be configured later in the `ImportSpecification` by calling `setProviderName()`.
 
@@ -117,16 +118,16 @@ Porter's API
 Porter's asynchronous API mirrors the synchronous one with similar method names but different signatures.
 
 * `importAsync(AsyncImportSpecification): AsyncPorterRecords|CountableAsyncPorterRecords` &ndash; Imports one or more records asynchronously from the resource contained in the specified asynchronous import specification.
-* `importOneAsync(importOneAsync): Promise` &ndash; Imports one record from the resource contained in the specified asynchronous import specification.
+* `importOneAsync(AsyncImportSpecification): Promise` &ndash; Imports one record from the resource contained in the specified asynchronous import specification.
 
 Overview
 --------
 
-The following data flow diagram gives a high level overview of Porter's main interfaces and the data flows between them when importing data. Note that we use the term *resource* for brevity, but the actual interface is called `ProviderResource`, because *resource* is a reserved word in PHP.
+The following data flow diagram gives a high level overview of Porter's main interfaces and the data flows between them when importing data. Note that we use the term *resource* for brevity, but the interface is actually called `ProviderResource`, because *resource* is a reserved word in PHP.
 
 <div align="center">
 
-![Data flow diagram][Data flow diagram]
+![Data flow diagram][]
 
 </div>
 
@@ -135,22 +136,24 @@ Our application calls `Porter::import()` with an `ImportSpecification` and recei
 Import specifications
 ---------------------
 
-Import specifications specify *what* to import, *how* it should be [transformed](#transformers) and whether to use [caching](#caching). The only required parameter, passed to the constructor, is a `ProviderResource` that specifies the resource we want to import.
+Import specifications specify *what* to import, *how* it should be [transformed](#transformers) and whether to use [caching](#caching). In synchronous code, create an new instance of `ImportSpecification` and pass a `ProviderResource` that specifies the resource we want to import. In Asynchronous code, create `AsyncImportSpecification` instead.
 
-Options may be configured by some of the methods listed below.
+Options may be configured using the methods below.
 
  - `setProviderName(string)` &ndash; Sets the provider service name.
- - `addTransformer(Transformer)` &ndash; Adds a transformer to the end of the transformation queue.
+ - `addTransformer(Transformer)` &ndash; Adds a transformer to the end of the transformation queue. In async code, pass `AsyncTransformer` instead.
  - `addTransformers(Transformer[])` &ndash; Adds one or more transformers to the end of the transformation queue.
  - `setContext(mixed)` &ndash; Specifies user-defined data to be passed to transformers.
  - `enableCache()` &ndash; Enables caching. Requires a `CachingConnector`.
  - `setMaxFetchAttempts(int)` &ndash; Sets the maximum number of fetch attempts per connection before failure is considered permanent.
  - `setFetchExceptionHandler(FetchExceptionHandler)` &ndash; Sets the exception handler invoked each time a fetch attempt fails.
 
+In synchronous code, import specifications are an instance of `ImportSpecification`
+
 Record collections
 ------------------
 
-Record collections are `Iterator`s, guaranteeing imported data is enumerable using `foreach`. Each *record* of the collection is the familiar and flexible `array` type, allowing us to represent any flat or structured data hierarchy, like CSV or JSON, as an array.
+Record collections are `Iterator`s, guaranteeing imported data is enumerable using `foreach`. Each *record* of the collection is the familiar and flexible `array` type, allowing us to present structured or flat data, such as JSON, XML or CSV, as an array.
 
 ### Details
 
@@ -164,12 +167,12 @@ The stack of record collection types informs us of the transformations a collect
 
 Since record collections are just objects, it is possible to define derived types that implement custom fields to expose additional *metadata* in addition to the iterated data. Collections are very good at representing a repeating series of data but some APIs send additional non-repeating data which we can expose as metadata. However, if the data is not repeating at all, it should be treated as a single record rather than metadata.
 
-The result of a successful `Porter::import` call is always an instance of `PorterRecords` or `CountablePorterRecords`, depending on whether the number of records is known. If we need to access methods of the original collection, returned by the provider, we can call `findFirstCollection()` on the collection. For an example, see [CurrencyRecords][CurrencyRecords] of the [European Central Bank Provider][ECB] and its associated [test case][ECB test].
+The result of a successful `Porter::import` call is always an instance of `PorterRecords` or `CountablePorterRecords`, depending on whether the number of records is known. If we need to access methods of the original collection, returned by the provider, we can call `findFirstCollection()` on the collection. For an example, see [CurrencyRecords][] of the [European Central Bank Provider][ECB] and its associated [test case][ECB test].
 
 Asynchronous
 ------------
 
-The new asynchronous API, introduced in version 5, is built on top of the fully programmable asynchronous framework, [Amp]. The synchronous API is not compatible with the asynchronous API so one must decide which to use. In general, the asynchronous API should be preferred for new projects because async can do everything sync can do, including emulating synchronous behaviour, but sync code cannot behave asynchronously without significant refactoring.
+The asynchronous API, introduced in version 5, is built on top of the fully programmable asynchronous framework, [Amp][]. The synchronous API is not compatible with the asynchronous API so one must decide which to use. In general, the asynchronous API should be preferred for new projects because async can do everything sync can do, including emulating synchronous behaviour, but sync code cannot behave asynchronously without significant refactoring.
 
 We must be inside the async event loop to begin programming asynchronously. Let's illustrate how to rewrite the [earlier example](#importing-data) asynchronously.
 
@@ -184,24 +187,26 @@ We must be inside the async event loop to begin programming asynchronously. Let'
 });
 ```
 
-Programming asynchronously requires an understanding of Amp, the async framework. Further details can be found in the official Amp documentation.
+Programming asynchronously requires an understanding of Amp, the async framework. Further details can be found in the official [Amp documentation][].
 
 Transformers
 ------------
 
 Transformers manipulate imported data. Transforming data is useful because third-party data seldom arrives in a format that looks exactly as we want. Transformers are added to the transformation queue of an `ImportSpecification` by calling its `addTransformer` method and are executed in the order they are added.
 
-Porter includes one transformer, `FilterTransformer`, that removes records from the collection based on a predicate. For more information, see [filtering](#filtering). More powerful data transformations can be designed with [MappingTransformer][MappingTransformer]. More transformers may be available from [Porter transformers][Porter transformers].
+Porter includes one transformer, `FilterTransformer`, that removes records from the collection based on a predicate. For more information, see [filtering](#filtering). More powerful data transformations can be designed with [MappingTransformer][]. More transformers may be available from [Porter transformers][].
 
 ### Writing a transformer
 
-Transformers implement the `Transformer` interface that defines one method with the following signature.
+Transformers implement the `Transformer` and/or `AsyncTransformer` interfaces that define one or more of the following methods.
 
 ```php
-public function transform(RecordCollection $records, $context): RecordCollection;
+public function transform(RecordCollection $records, mixed $context): RecordCollection;
+
+public function transformAsync(AsyncRecordCollection $records, mixed $context): AsyncRecordCollection;
 ```
 
-When `transform()` is called the transformer may iterate each record and change it in any way, including removing or inserting additional records. The record collection must be returned by the method, whether or not changes were made.
+When `transform()` or `transformAsync()` is called the transformer may iterate each record and change it in any way, including removing or inserting additional records. The record collection must be returned by the method, whether or not changes were made.
 
 Transformers should also implement the `__clone` magic method if the they store any object state, in order to facilitate deep copy when Porter clones the owning `ImportSpecification` during import.
 
@@ -245,7 +250,7 @@ Durability only applies when connectors throw a recoverable exception type deriv
 Caching
 -------
 
-Any connector can be wrapped in a `CachingConnector` to provide [PSR-6][PSR-6] caching facilities to the base connector. Porter ships with one cache implementation, `MemoryCache`, which caches fetched data in memory, but this can be substituted for any other PSR-6 cache implementation. The `CachingConnector` caches raw responses for each unique [cache key](#cache-keys).
+Any connector can be wrapped in a `CachingConnector` to provide [PSR-6][] caching facilities to the base connector. Porter ships with one cache implementation, `MemoryCache`, which caches fetched data in memory, but this can be substituted for any other PSR-6 cache implementation. The `CachingConnector` caches raw responses for each unique [cache key](#cache-keys).
 
 Remember that whilst using a `CachingConnector` enables caching, caching must also be enabled on a per-import basis by calling `ImportSpecification::enableCache()`.
 
@@ -264,12 +269,12 @@ $records = $porter->import(
 
 <div align="center">
 
-INTERMISSION
-------------
+INTERMISSION ☕️
+--------------
 
 Congratulations! We have covered everything needed to use Porter.
 
-The rest of this readme is for those wishing to go deeper. Continue when you're ready to learn how to write [providers](#providers), [resources](#resources) and [connectors](#connectors). ☕️
+The rest of this readme is for those wishing to go deeper. Continue when you're ready to learn how to write [providers](#providers), [resources](#resources) and [connectors](#connectors).
 
 </div>
 
@@ -280,7 +285,7 @@ Architecture
 
 The following UML class diagram shows a partial architectural overview illustrating Porter's main components and how they are related. [[enlarge][Class diagram]]
 
-[![Class diagram][Class diagram]][Class diagram]
+[![Class diagram][]][Class diagram]
 
 Providers
 ---------
@@ -306,14 +311,14 @@ final class MyProvider implements Provider
 {
     private $connector;
 
-    public function __construct(HttpConnector $connector = null)
+    public function __construct(Connector $connector = null)
     {
         $this->connector = $connector ?: new HttpConnector;
     }
 
-    public function getConnector()  
-    {  
-        return $this->connector;  
+    public function getConnector(): Connector
+    {
+        return $this->connector;
     }
 }
 ```
@@ -360,7 +365,7 @@ public function fetch(ImportConnector $connector)
 }
 ```
 
-Since the total number of records is known, the iterator can be wrapped in `CountableProviderRecords` to enrch the caller with this information.
+Since the total number of records is known, the iterator can be wrapped in `CountableProviderRecords` to enrich the caller with this information.
 
 ```php
 public function fetch(ImportConnector $connector)
@@ -369,7 +374,7 @@ public function fetch(ImportConnector $connector)
         foreach (range(1, $limit) as $number) {
             yield [$number];
         }
-    }
+    };
 
     return new CountableProviderRecords($series($count = 3), $count, $this);
 }
@@ -380,16 +385,16 @@ public function fetch(ImportConnector $connector)
 In the following example we create a resource that receives a connector from `MyProvider` and uses it to retrieve data from a hard-coded URL. We expect the data to be JSON encoded so we decode it into an array and use `yield` to return it as a single-item iterator.
 
 ```php
-class MyResource extends AbstractResource
+class MyResource implements ProviderResource, SingleRecordResource
 {
     private const URL = 'https://example.com';
 
-    public function getProviderClassName()
+    public function getProviderClassName(): string
     {
         return MyProvider::class;
     }
 
-    public function fetch(ImportConnector $connector)
+    public function fetch(ImportConnector $connector): \Iterator
     {
         $data = $connector->fetch(self::URL);
 
@@ -398,34 +403,16 @@ class MyResource extends AbstractResource
 }
 ```
 
-If the data represents a repeating series, yield each record separately instead, as in the following example.
+If the data represents a repeating series, yield each record separately instead, as in the following example and remove the `SingleRecordResource` marker interface.
 
 ```php
-public function fetch(ImportConnector $connector)
+public function fetch(ImportConnector $connector): \Iterator
 {
     $data = $connector->fetch(self::URL);
 
     foreach (json_decode($data, true) as $datum) {
         yield $datum;
     }
-}
-```
-
-If we need to make any changes to the connector before calling fetch, such as attaching a POST body to an HTTP request, we can call `$connector->findBaseConnector()` to access the underlying connector and modify it as normal. Don't forget to check the underlying connector is of the expected type before trying to modify it.
-
-```php
-public function fetch(ImportConnector $connector)
-{
-    $baseConnector = $connector->findBaseConnector();
-
-    if ($baseConnector instanceof HttpConnector) {
-        $baseConnector->getOptions()
-            ->setMethod('POST')
-            ->setContent(http_build_query(['foo' => 'bar']))
-        ;
-    }
-
-    // ...
 }
 ```
 
@@ -436,61 +423,35 @@ Unrecoverable exceptions will be thrown and can be caught as normal, but good co
 Connectors
 ----------
 
-Connectors fetch remote data from a source specified at fetch time. Connectors for popular protocols are available from [Porter connectors][Porter connectors]. It might be necessary to write a new connector if dealing with uncommon or currently unsupported protocols.
+Connectors fetch remote data from a source specified at fetch time. Connectors for popular protocols are available from [Porter connectors][Porter connectors]. It might be necessary to write a new connector if dealing with uncommon or currently unsupported protocols. Writing providers and resources is a common task that should be fairly easy but writing a connector is less common.
 
 ### Writing a connector
 
-Writing providers and resources is a common task that should be fairly easy but writing a connector is slightly less common and has some specific technical considerations that must be carefully considered. A connector implements the `Connector` interface that defines one method with the following signature.
+A connector implements the `Connector` interface that defines one method with the following signature.
 
 ```php
-public function fetch(ConnectionContext $context, $source): mixed;
+public function fetch(DataSource $source): mixed;
 ```
 
-When `fetch()` is called the connector fetches data from the specified source. Connectors may return data in any format that's convenient for resources to consume, but in general, such data should be as raw as possible and without modification. If multiple pieces of information are returned it is recommended to use a specialized response class, like the HTTP connector that returns the response body and headers together in an `HttpResponse`.
+When `fetch()` is called the connector fetches data from the specified data source. Connectors may return data in any format that's convenient for resources to consume, but in general, such data should be as raw as possible and without modification. If multiple pieces of information are returned it is recommended to use a specialized object, like the `HttpResponse` returned by the HTTP connector that contains the response headers and body together.
 
-#### Options
+#### Data sources
 
-If a connector has configurable options it must implement `ConnectorOptions` so that other parts of Porter, such as `CachingConnector`, are aware and work correctly. Any connector implementing `ConnectorOptions` must also implement a `__clone()` method to ensure all of its objects are cloned, including the `EncapsulatedOptions` instance. A minimal implementation follows.
+The `DataSource` interface must be implemented to supply the necessary parameters for a connector to locate a data source. For an HTTP connector, this might include URL, method, body and headers. For a database connector, this might be a SQL query.
+
+`DataSource` specifies one method with the following signature.
 
 ```php
-class MyConnector implements Connector, ConnectorOptions
-{
-    private $options;
-
-    public function getOptions()
-    {
-        return $this->options;
-    }
-
-    public function __clone()
-    {
-        $this->options = clone $this->options;
-    }
-
-    // ...
-}
+public function computeHash(): string;
 ```
+
+Data sources are required to return a unique hash for their state. If the state changes, the hash must change. If states are effectively equivalent, the hash must be the same. This is used by the cache system to determine whether the fetch operation has been seen before and thus can be served from the cache rather than fetching fresh data again.
+
+It is important to define a canonical order for hashed inputs such that identical state presented in different orders does not create different hash values. For example, we might sort HTTP headers alphabetically before hashing because header order is not significant and reordering headers should not produce different output.
 
 #### Durability
 
-To support Porter's durability features a connector may throw a subclass of `RecoverableConnectorException` to signal that the fetch operation can be retried. Execution will halt as normal if any other exception type is thrown. It is recommended to always throw a recoverable exception type unless it is certain that any number of subsequent attempts will always fail.
-
-Recoverable exceptions must be wrapped in a `ConnectionContext::retry()` closure, wherever thrown, to ensure the connection is retried up to the number of times the user requested, calling any exception handlers set by the user or resource. If the underlying client or driver does not throw exceptions, ensure error conditions are trapped and converted to exceptions.
-
-To promote ordinary exceptions to recoverable exceptions, wrap the fetch code in a try-catch block and pass the original exception into `RecoverableConnectorException` as its inner exception, as shown in the following example.
-
-```php
-public function fetch(ConnectionContext $context, $source)
-{
-    return $context->retry(function () use ($source) {
-        try {
-            return $this->client->fetch($source);
-        } catch (Exception $e) {
-            throw new RecoverableConnectorException($e->getMessage(), $e->getCode(), $e);
-        }
-    }
-}
-```
+To support Porter's durability features a connector may throw a subclass of `RecoverableConnectorException` to signal that the fetch operation can be retried. Execution will halt as normal if any other exception type is thrown. It is recommended to throw a recoverable exception type when the fetch operation is idempotent.
 
 Requirements
 ------------
@@ -506,12 +467,12 @@ Limitations
 Testing
 -------
 
-Porter is fully unit tested. Run the tests with the `composer test` command.
+Porter is fully unit tested. Run the tests with the `composer test` command. Run mutation tests with the `composer mutation` command.
 
 Contributing
 ------------
 
-Everyone is welcome to contribute anything, from [ideas and issues][Issues] to [documentation and code][PRs]! For inspiration, consider the list of open [issues][Issues].
+Everyone is welcome to contribute anything, from [ideas and issues][Issues] to [documentation and code][PRs]! For inspiration, consider the list of open [issues][].
 
 License
 -------
@@ -534,8 +495,6 @@ Porter is published under the open source GNU Lesser General Public License v3.0
   [MSI image]: https://badge.stryker-mutator.io/github.com/ScriptFUSION/Porter/master
   [Coverage]: https://codecov.io/gh/ScriptFUSION/Porter
   [Coverage image]: https://codecov.io/gh/ScriptFUSION/Porter/branch/master/graphs/badge.svg "Test coverage"
-  [Style]: https://styleci.io/repos/49824895
-  [Style image]: https://styleci.io/repos/49824895/shield?style=flat "Code style"
   
   [Issues]: https://github.com/ScriptFUSION/Porter/issues
   [PRs]: https://github.com/ScriptFUSION/Porter/pulls
@@ -546,6 +505,7 @@ Porter is published under the open source GNU Lesser General Public License v3.0
   [Stripe provider]: https://github.com/Provider/Stripe
   [ECB provider]: https://github.com/Provider/European-Central-Bank
   [Steam provider]: https://github.com/Provider/Steam
+  [HttpConnector]: https://github.com/Porter-connectors/HttpConnector
   [MappingTransformer]: https://github.com/Porter-transformers/MappingTransformer
   [Sub-imports]: https://github.com/Porter-transformers/MappingTransformer#sub-imports
   [Mapper]: https://github.com/ScriptFUSION/Mapper
@@ -560,3 +520,5 @@ Porter is published under the open source GNU Lesser General Public License v3.0
   [ECB]: https://github.com/Provider/European-Central-Bank
   [CurrencyRecords]: https://github.com/Provider/European-Central-Bank/blob/master/src/Records/CurrencyRecords.php
   [ECB test]: https://github.com/Provider/European-Central-Bank/blob/master/test/DailyForexRatesTest.php
+  [Amp]: https://amphp.org
+  [Amp documentation]: https://amphp.org/amp/
