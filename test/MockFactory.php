@@ -9,6 +9,7 @@ use Amp\Producer;
 use Amp\Promise;
 use Mockery\MockInterface;
 use ScriptFUSION\Porter\Connector\AsyncConnector;
+use ScriptFUSION\Porter\Connector\AsyncDataSource;
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Connector\DataSource;
 use ScriptFUSION\Porter\Connector\ImportConnector;
@@ -72,7 +73,7 @@ final class MockFactory
             ->shouldReceive('fetchAsync')
                 ->andReturnUsing(static function (ImportConnector $connector): Iterator {
                     return new Producer(static function (\Closure $emit) use ($connector): \Generator {
-                        yield $emit([yield $connector->fetchAsync(\Mockery::mock(DataSource::class))]);
+                        yield $emit([yield $connector->fetchAsync(\Mockery::mock(AsyncDataSource::class))]);
                     });
                 })
                 ->byDefault()

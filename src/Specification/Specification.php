@@ -23,9 +23,7 @@ abstract class Specification
 
     private $maxFetchAttempts = self::DEFAULT_FETCH_ATTEMPTS;
 
-    /**
-     * @var RecoverableExceptionHandler
-     */
+    /** @var RecoverableExceptionHandler */
     private $recoverableExceptionHandler;
 
     public function __construct()

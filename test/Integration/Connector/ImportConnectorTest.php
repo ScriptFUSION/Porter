@@ -6,6 +6,7 @@ namespace ScriptFUSIONTest\Integration\Connector;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
 use PHPUnit\Framework\TestCase;
+use ScriptFUSION\Porter\Connector\AsyncDataSource;
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Connector\DataSource;
 use ScriptFUSION\Porter\Connector\ImportConnector;
@@ -28,11 +29,15 @@ final class ImportConnectorTest extends TestCase
     /** @var DataSource|MockInterface */
     private $source;
 
+    /** @var AsyncDataSource|MockInterface */
+    private $asyncSource;
+
     protected function setUp()
     {
         parent::setUp();
 
         $this->source = \Mockery::mock(DataSource::class);
+        $this->asyncSource = \Mockery::mock(AsyncDataSource::class);
     }
 
     /**
@@ -135,7 +140,7 @@ final class ImportConnectorTest extends TestCase
         );
 
         try {
-            wait($connector->fetchAsync($this->source));
+            wait($connector->fetchAsync($this->asyncSource));
         } catch (FailingTooHardException $exception) {
             // This is fine.
         }
@@ -158,7 +163,7 @@ final class ImportConnectorTest extends TestCase
         $connector->setRecoverableExceptionHandler(self::createAsyncRecoverableExceptionHandler());
 
         try {
-            wait($connector->fetchAsync($this->source));
+            wait($connector->fetchAsync($this->asyncSource));
         } catch (FailingTooHardException $exception) {
             // This is fine.
         }
@@ -183,7 +188,7 @@ final class ImportConnectorTest extends TestCase
         $connector->setRecoverableExceptionHandler(self::createAsyncRecoverableExceptionHandler());
 
         try {
-            wait($connector->fetchAsync($this->source));
+            wait($connector->fetchAsync($this->asyncSource));
         } catch (FailingTooHardException $exception) {
             // This is fine.
         }

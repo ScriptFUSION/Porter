@@ -87,11 +87,11 @@ final class ImportConnector implements ConnectorWrapper
     /**
      * Fetches data asynchronously from the specified data source.
      *
-     * @param DataSource $source Data source.
+     * @param AsyncDataSource $source Data source.
      *
      * @return Promise<mixed> Data.
      */
-    public function fetchAsync(DataSource $source): Promise
+    public function fetchAsync(AsyncDataSource $source): Promise
     {
         return retryAsync(
             $this->maxFetchAttempts,
