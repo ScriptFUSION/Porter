@@ -61,10 +61,12 @@ Benefits
 Quick start
 -----------
 
-To get started quickly, try our [quick start guide][Quickstart]. For a more thorough introduction continue reading.
+To get started quickly consuming an existing Porter provider, try our [quick start guide][Quickstart]. For a more thorough introduction continue reading.
 
 About this manual
 -----------------
+
+Those wishing to consume a Porter provider create one instance of `Porter` for their application and an instance of `ImportSpecification` for each data import they wish to perform. Those publishing providers must implement `Provider` and `ProviderResource`.
 
 The first half of this manual covers Porter's main API for consuming data services. The second half covers architecture, interface and implementation details for publishing data services. There's an intermission in-between so you'll know where the separation is!
 
@@ -464,17 +466,24 @@ Requirements
 Limitations
 -----------
 
+Current limitations that may affect some users and should be addressed in the near future.
+
  - No end-to-end data steaming interface yet.
+ - Caching does not support asynchronous imports yet.
+ - [Sub-imports][] do not support async yet.
 
 Testing
 -------
 
-Porter is fully unit tested. Run the tests with the `composer test` command. Run mutation tests with the `composer mutation` command.
+Porter is fully unit and mutation tested.
+
+* Run unit tests with the `composer test` command.
+* Run mutation tests with the `composer mutation` command.
 
 Contributing
 ------------
 
-Everyone is welcome to contribute anything, from [ideas and issues][Issues] to [documentation and code][PRs]! For inspiration, consider the list of open [issues][].
+Everyone is welcome to contribute anything, from [ideas and issues][Issues] to [code and documentation][PRs]!
 
 License
 -------
