@@ -143,7 +143,7 @@ class Porter
      * @throws IncompatibleResourceException Resource emits a single record and must be imported with
      *     importOneAsync() instead.
      */
-    public function importAsync(AsyncImportSpecification $specification): AsyncRecordCollection
+    public function importAsync(AsyncImportSpecification $specification): AsyncPorterRecords
     {
         if ($specification->getAsyncResource() instanceof SingleRecordResource) {
             throw IncompatibleResourceException::createMustNotImplementInterfaceAsync();
@@ -183,7 +183,7 @@ class Porter
         });
     }
 
-    private function fetchAsync(AsyncImportSpecification $specification): AsyncRecordCollection
+    private function fetchAsync(AsyncImportSpecification $specification): AsyncPorterRecords
     {
         $specification = clone $specification;
         $resource = $specification->getAsyncResource();

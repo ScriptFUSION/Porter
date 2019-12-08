@@ -118,7 +118,7 @@ Porter's API
 Porter's asynchronous API mirrors the synchronous one with similar method names but different signatures.
 
 * `importAsync(AsyncImportSpecification): AsyncPorterRecords|CountableAsyncPorterRecords` &ndash; Imports one or more records asynchronously from the resource contained in the specified asynchronous import specification.
-* `importOneAsync(AsyncImportSpecification): Promise` &ndash; Imports one record from the resource contained in the specified asynchronous import specification.
+* `importOneAsync(AsyncImportSpecification): Promise<array>` &ndash; Imports one record from the resource contained in the specified asynchronous import specification.
 
 Overview
 --------
@@ -250,9 +250,11 @@ Durability only applies when connectors throw a recoverable exception type deriv
 Caching
 -------
 
-Any connector can be wrapped in a `CachingConnector` to provide [PSR-6][] caching facilities to the base connector. Porter ships with one cache implementation, `MemoryCache`, which caches fetched data in memory, but this can be substituted for any other PSR-6 cache implementation. The `CachingConnector` caches raw responses for each unique [cache key](#cache-keys).
+Any connector can be wrapped in a `CachingConnector` to provide [PSR-6][] caching facilities to the base connector. Porter ships with one cache implementation, `MemoryCache`, which caches fetched data in memory, but this can be substituted for any other PSR-6 cache implementation. The `CachingConnector` caches raw responses for each unique request, where uniqueness is determined by `DataSource::computeHash`.
 
 Remember that whilst using a `CachingConnector` enables caching, caching must also be enabled on a per-import basis by calling `ImportSpecification::enableCache()`.
+
+Note that Caching is not yet supported for asynchronous imports.
 
 ### Example
 
@@ -283,7 +285,7 @@ The rest of this readme is for those wishing to go deeper. Continue when you're 
 Architecture
 ------------
 
-The following UML class diagram shows a partial architectural overview illustrating Porter's main components and how they are related. [[enlarge][Class diagram]]
+The following UML class diagram shows a partial architectural overview illustrating Porter's main components and how they are related. Asynchronous implementation details are mostly omitted since they mirror the synchronous system. [[enlarge][Class diagram]]
 
 [![Class diagram][]][Class diagram]
 
@@ -330,7 +332,7 @@ Resources fetch data using the supplied connector and format it as a collection 
 
 ```php
 public function getProviderClassName(): string;
-public function fetch(ImportConnector $connector): Iterator;
+public function fetch(ImportConnector $connector): \Iterator;
 ```
 
 A resource supplies the class name of the provider it expects a connector from when `getProviderClassName()` is called.
@@ -348,7 +350,7 @@ Resources must implement the `ProviderResource` interface. `getProviderClassName
 In this contrived example that uses dummy data and ignores the connector, suppose we want to return the numeric series one to three: the following implementation would be invalid because it returns an iterator of integer values instead of an iterator of array values.
 
 ```php
-public function fetch(ImportConnector $connector)
+public function fetch(ImportConnector $connector): \Iterator
 {
     return new ArrayIterator(range(1, 3)); // Invalid return type.
 }
@@ -357,7 +359,7 @@ public function fetch(ImportConnector $connector)
 Either of the following `fetch()` implementations would be valid.
 
 ```php
-public function fetch(ImportConnector $connector)
+public function fetch(ImportConnector $connector): \Iterator
 {
     foreach (range(1, 3) as $number) {
         yield [$number];
@@ -368,7 +370,7 @@ public function fetch(ImportConnector $connector)
 Since the total number of records is known, the iterator can be wrapped in `CountableProviderRecords` to enrich the caller with this information.
 
 ```php
-public function fetch(ImportConnector $connector)
+public function fetch(ImportConnector $connector): \Iterator
 {
     $series = function ($limit) {
         foreach (range(1, $limit) as $number) {
@@ -515,7 +517,7 @@ Porter is published under the open source GNU Lesser General Public License v3.0
   [Porter icon]: https://avatars3.githubusercontent.com/u/16755913?v=3&s=35 "Porter providers"
   [Porter transformers icon]: https://avatars2.githubusercontent.com/u/24607042?v=3&s=35 "Porter transformers"
   [Porter connectors icon]: https://avatars3.githubusercontent.com/u/25672142?v=3&s=35 "Porter connectors"
-  [Class diagram]: https://github.com/ScriptFUSION/Porter/blob/master/docs/images/diagrams/Porter%20UML%20class%20diagram%204.0.png?raw=true
+  [Class diagram]: https://github.com/ScriptFUSION/Porter/blob/master/docs/images/diagrams/Porter%20UML%20class%20diagram%205.0.png?raw=true
   [Data flow diagram]: https://github.com/ScriptFUSION/Porter/blob/master/docs/images/diagrams/Porter%20data%20flow%20diagram%205.0.png?raw=true
   [ECB]: https://github.com/Provider/European-Central-Bank
   [CurrencyRecords]: https://github.com/Provider/European-Central-Bank/blob/master/src/Records/CurrencyRecords.php
