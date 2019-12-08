@@ -25,7 +25,7 @@
   },
   "suggest" : {
     "connectors/http": "Provides an HTTP connector for Porter providers.",
-    "transformers/mapping-transformer": "Transforms records using Mappings.",
+    "transformers/mapping-transformer": "Transforms records using Mappings and provides sub-imports.",
     "async/throttle": "Limits throughput of asynchronous imports."
   },
   "autoload": {

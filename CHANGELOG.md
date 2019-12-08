@@ -1,5 +1,22 @@
 # Porter change log
 
+## 5.0.0 – Async
+
+Porter v5 introduces asynchronous imports and complete strict type safety (excluding union types and generics).
+
+### Breaking changes
+
+* Removed support for PHP 5.5, 5.6 and 7.0.
+* Every interface has been updated to include return types which means all consuming projects must also add the same return type.
+* Replaced `Connector::fetch` string source parameter with new `DataSource` interface.
+* Removed `ConnectionContext` from `Connector` interface.
+* Added `SingleRecordResource` interface that resources must implement to be used with `Porter::importOne()`.
+* Prevented single record resources being imported with multi-record import methods.
+* Replaced `RecoverableConnectorException` with `RecoverableException` interface.
+* Removed failed abstractions: `ConnectorOptions` and `EncapsulatedOptions`.
+* Removed abstraction: `CacheKeyGenerator`.
+* Moved `ForeignResourceException` to Porter's namespace.
+
 ## 4.0.0 – Rewrite
 
 Porter v4 fixes all known design flaws (#31, #43) and critically re-evaluates every part of Porter's design. All base classes have been discarded (`AbstractProvider`, `AbstractResource`), moving their code within Porter, relying solely on interfaces instead. This frees up the inheritance chain for applications to use as they wish, making it much easier to integrate Porter into existing projects.

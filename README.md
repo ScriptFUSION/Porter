@@ -189,7 +189,17 @@ We must be inside the async event loop to begin programming asynchronously. Let'
 });
 ```
 
+We would not usually code directly inside the event loop in a real application, however we always need to create the event loop somewhere, even if it just calls a service method in our application which delegates to other objects. To pass asynchronous data through layers of abstraction, our application's methods must return `Promise`s that wrap the data they would normally return directly in a synchronous application. For example, a method returning `string` would instead return `Promise<string>`, that is, a promise that returns a string.
+
 Programming asynchronously requires an understanding of Amp, the async framework. Further details can be found in the official [Amp documentation][].
+
+### Throttling
+
+The asynchronous import model is very powerful because it changes our application's performance from being I/O-bound to being CPU-bound. That is, in the traditional synchronous model, each import operation must wait for the previous to complete before the next begins, meaning the total import time depends how long it takes each import's network I/O to complete. In the async model, since we send many requests concurrently without waiting for the previous to complete, on average each import operation will only take as long as our CPU takes to process it, since we are busy processing another import during network latency.
+
+High volume synchronous imports are, in a way, self-throttling and it is rare to trip protection measures in this mode, however the naïve approach to asynchronous imports is often fraught with perils. For example, when we import 10,000 HTTP resources at once, one of two things usually happens: either we run out of PHP memory and the process is killed or the HTTP server blocks us for sending too many requests in a short period. The solution is throttling.
+
+We provide [Async Throttle][] to throttle asynchronous imports. The Async Throttle is a separate project that does not have any direct integration with Porter because that is not needed. The throttle operates on any Amp promises, such as those returned by Porter. The throttle works by preventing additional operations starting when too many are concurrently executing, based on user-defined limits.
 
 Transformers
 ------------
@@ -468,9 +478,10 @@ Limitations
 
 Current limitations that may affect some users and should be addressed in the near future.
 
- - No end-to-end data steaming interface yet.
- - Caching does not support asynchronous imports yet.
- - [Sub-imports][] do not support async yet.
+ - No end-to-end data steaming interface.
+ - Caching does not support asynchronous imports.
+ - [Sub-imports][] do not support async.
+ - No import rate throttle for synchronous imports.
 
 Testing
 -------
@@ -533,3 +544,4 @@ Porter is published under the open source GNU Lesser General Public License v3.0
   [ECB test]: https://github.com/Provider/European-Central-Bank/blob/master/test/DailyForexRatesTest.php
   [Amp]: https://amphp.org
   [Amp documentation]: https://amphp.org/amp/
+  [Async Throttle]: https://github.com/ScriptFUSION/Async-Throttle
