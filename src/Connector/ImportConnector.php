@@ -4,10 +4,12 @@ declare(strict_types=1);
 namespace ScriptFUSION\Porter\Connector;
 
 use Amp\Promise;
+use ScriptFUSION\Async\Throttle\Throttle;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableException;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandler;
+use function Amp\call;
 use function Amp\Promise\all;
 use function ScriptFUSION\Retry\retry;
 use function ScriptFUSION\Retry\retryAsync;
@@ -40,6 +42,8 @@ final class ImportConnector implements ConnectorWrapper
 
     private $maxFetchAttempts;
 
+    private $throttle;
+
     /**
      * @param Connector|AsyncConnector $connector Wrapped connector.
      * @param RecoverableExceptionHandler $recoverableExceptionHandler User's recoverable exception handler.
@@ -50,7 +54,8 @@ final class ImportConnector implements ConnectorWrapper
         $connector,
         RecoverableExceptionHandler $recoverableExceptionHandler,
         int $maxFetchAttempts,
-        bool $mustCache
+        bool $mustCache,
+        ?Throttle $throttle
     ) {
         if ($mustCache && !$connector instanceof CachingConnector) {
             throw CacheUnavailableException::createUnsupported();
@@ -64,6 +69,7 @@ final class ImportConnector implements ConnectorWrapper
         );
         $this->userExceptionHandler = $recoverableExceptionHandler;
         $this->maxFetchAttempts = $maxFetchAttempts;
+        $this->throttle = $throttle;
     }
 
     /**
@@ -96,7 +102,11 @@ final class ImportConnector implements ConnectorWrapper
         return retryAsync(
             $this->maxFetchAttempts,
             function () use ($source): Promise {
-                return $this->connector->fetchAsync($source);
+                return call(function () use ($source): \Generator {
+                    yield $this->throttle->await($response = $this->connector->fetchAsync($source));
+
+                    return yield $response;
+                });
             },
             $this->createExceptionHandler()
         );

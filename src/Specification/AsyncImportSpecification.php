@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace ScriptFUSION\Porter\Specification;
 
+use ScriptFUSION\Async\Throttle\Throttle;
 use ScriptFUSION\Porter\Connector\Recoverable\ExponentialAsyncDelayRecoverableExceptionHandler;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Provider\Resource\AsyncResource;
@@ -14,6 +15,9 @@ use ScriptFUSION\Porter\Transform\AsyncTransformer;
 class AsyncImportSpecification extends Specification
 {
     private $asyncResource;
+
+    /** @var Throttle */
+    private $throttle;
 
     /**
      * Initializes this instance with the specified asynchronous resource.
@@ -52,5 +56,17 @@ class AsyncImportSpecification extends Specification
     protected static function createDefaultRecoverableExceptionHandler(): RecoverableExceptionHandler
     {
         return new ExponentialAsyncDelayRecoverableExceptionHandler;
+    }
+
+    final public function getThrottle(): Throttle
+    {
+        return $this->throttle ?? $this->throttle = new Throttle();
+    }
+
+    final public function setThrottle(Throttle $throttle): self
+    {
+        $this->throttle = $throttle;
+
+        return $this;
     }
 }

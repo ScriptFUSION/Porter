@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace ScriptFUSION\Porter\Connector;
 
+use ScriptFUSION\Porter\Specification\AsyncImportSpecification;
 use ScriptFUSION\Porter\Specification\Specification;
 use ScriptFUSION\StaticClass;
 
@@ -22,7 +23,8 @@ final class ImportConnectorFactory
             $connector,
             $specification->getRecoverableExceptionHandler(),
             $specification->getMaxFetchAttempts(),
-            $specification->mustCache()
+            $specification->mustCache(),
+            $specification instanceof AsyncImportSpecification ? $specification->getThrottle() : null
         );
     }
 }

@@ -10,12 +10,13 @@
   "license": "LGPL-3.0",
   "require": {
     "php": "^7.1",
-    "scriptfusion/static-class": "^1",
+    "amphp/amp": "^2",
+    "async/throttle": "^2",
+    "psr/cache": "^1",
+    "psr/container": "^1",
     "scriptfusion/retry": "^2.1",
     "scriptfusion/retry-exception-handlers": "^1.2",
-    "amphp/amp": "^2",
-    "psr/container": "^1",
-    "psr/cache": "^1"
+    "scriptfusion/static-class": "^1"
   },
   "require-dev": {
     "amphp/phpunit-util": "^1.1",
