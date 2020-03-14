@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace ScriptFUSIONTest\Unit;
 
 use PHPUnit\Framework\TestCase;
+use ScriptFUSION\Async\Throttle\Throttle;
 use ScriptFUSION\Porter\Connector\Recoverable\ExponentialAsyncDelayRecoverableExceptionHandler;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Provider\Resource\AsyncResource;
@@ -76,5 +77,24 @@ final class AsyncImportSpecificationTest extends TestCase
 
         self::assertNotSame($context, $specification->getContext());
         self::assertNotSame($handler, $specification->getRecoverableExceptionHandler());
+    }
+
+    /**
+     * Tests that a custom throttle can be set.
+     */
+    public function testThrottle(): void
+    {
+        self::assertSame(
+            $throttle = \Mockery::mock(Throttle::class),
+            $this->specification->setThrottle($throttle)->getThrottle()
+        );
+    }
+
+    /**
+     * Tests that when no throttle is set, a default throttle is produced.
+     */
+    public function testDefaultThrottle(): void
+    {
+        self::assertInstanceOf(Throttle::class, $this->specification->getThrottle());
     }
 }
