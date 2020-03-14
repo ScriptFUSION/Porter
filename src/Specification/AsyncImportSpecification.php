@@ -34,6 +34,7 @@ class AsyncImportSpecification extends Specification
     public function __clone()
     {
         $this->asyncResource = clone $this->asyncResource;
+        // Throttle is not cloned because it most likely wants to be shared between imports.
 
         parent::__clone();
     }

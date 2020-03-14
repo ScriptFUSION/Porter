@@ -198,4 +198,22 @@ final class PorterAsyncTest extends PorterTest
             )
         );
     }
+
+    /**
+     * Tests that the throttle is invoked during fetch operations.
+     */
+    public function testThrottle(): \Generator
+    {
+        $throttle = $this->specification->getThrottle();
+        $throttle->setMaxPerSecond(1);
+
+        $start = microtime(true);
+
+        $records = $this->porter->importAsync($this->specification);
+        self::assertTrue($throttle->isThrottling());
+
+        yield $records->advance();
+        self::assertFalse($throttle->isThrottling());
+        self::assertGreaterThan(1, microtime(true) - $start);
+    }
 }
