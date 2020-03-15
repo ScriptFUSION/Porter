@@ -103,6 +103,10 @@ final class ImportConnector implements ConnectorWrapper
             $this->maxFetchAttempts,
             function () use ($source): Promise {
                 return call(function () use ($source): \Generator {
+                    while (!yield $this->throttle->join()) {
+                        // Throttle is choked. Wait for free slot.
+                    }
+
                     yield $this->throttle->await($response = $this->connector->fetchAsync($source));
 
                     return yield $response;

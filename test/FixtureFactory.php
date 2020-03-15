@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace ScriptFUSIONTest;
 
+use Amp\Success;
 use ScriptFUSION\Async\Throttle\Throttle;
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Connector\ImportConnector;
@@ -26,6 +27,9 @@ final class FixtureFactory
             $maxFetchAttempts,
             $mustCache,
             \Mockery::mock(Throttle::class)
+                ->shouldReceive('join')
+                    ->andReturn(new Success(true))
+                ->getMock()
         );
     }
 }

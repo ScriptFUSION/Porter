@@ -11,7 +11,7 @@
   "require": {
     "php": "^7.1",
     "amphp/amp": "^2",
-    "async/throttle": "^2",
+    "async/throttle": "dev-join",
     "psr/cache": "^1",
     "psr/container": "^1",
     "scriptfusion/retry": "^2.1",
