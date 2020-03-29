@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace ScriptFUSION\Porter\Specification;
 
+use ScriptFUSION\Async\Throttle\NullThrottle;
 use ScriptFUSION\Async\Throttle\Throttle;
 use ScriptFUSION\Porter\Connector\Recoverable\ExponentialAsyncDelayRecoverableExceptionHandler;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
@@ -61,7 +62,7 @@ class AsyncImportSpecification extends Specification
 
     final public function getThrottle(): Throttle
     {
-        return $this->throttle ?? $this->throttle = new Throttle();
+        return $this->throttle ?? $this->throttle = new NullThrottle;
     }
 
     final public function setThrottle(Throttle $throttle): self

@@ -6,6 +6,8 @@ namespace ScriptFUSIONTest\Integration;
 use Amp\Iterator;
 use Amp\Loop;
 use Amp\Producer;
+use Amp\Promise;
+use ScriptFUSION\Async\Throttle\DualThrottle;
 use ScriptFUSION\Porter\Collection\AsyncRecordCollection;
 use ScriptFUSION\Porter\Collection\CountableAsyncPorterRecords;
 use ScriptFUSION\Porter\Collection\CountableAsyncProviderRecords;
@@ -22,6 +24,7 @@ use ScriptFUSION\Porter\Specification\AsyncImportSpecification;
 use ScriptFUSION\Porter\Transform\AsyncTransformer;
 use ScriptFUSION\Porter\Transform\FilterTransformer;
 use ScriptFUSIONTest\MockFactory;
+use function Amp\call;
 
 /**
  * @see Porter
@@ -200,20 +203,44 @@ final class PorterAsyncTest extends PorterTest
     }
 
     /**
-     * Tests that the throttle is invoked during fetch operations.
+     * Tests that a working throttle implementation is invoked during fetch operations.
      */
     public function testThrottle(): \Generator
     {
-        $throttle = $this->specification->getThrottle();
-        $throttle->setMaxPerSecond(1);
-
-        $start = microtime(true);
+        $this->specification->setThrottle($throttle = new DualThrottle);
+        $throttle->setMaxConcurrency(1);
 
         $records = $this->porter->importAsync($this->specification);
         self::assertTrue($throttle->isThrottling());
 
         yield $records->advance();
         self::assertFalse($throttle->isThrottling());
-        self::assertGreaterThan(1, microtime(true) - $start);
+    }
+
+    /**
+     * Tests that a working throttle implementation can be called from multiple fibers queueing excess objects.
+     */
+    public function testThrottleConcurrentFibers(): \Generator
+    {
+        $this->specification->setThrottle($throttle = new DualThrottle);
+        $throttle->setMaxPerSecond(1);
+
+        $import = function (): Promise {
+            return call(
+                function (): \Generator {
+                    $records = $this->porter->importAsync($this->specification);
+
+                    while (yield $records->advance()) {
+                        // Do nothing.
+                    }
+                }
+            );
+        };
+
+        $start = microtime(true);
+
+        yield [$import(), $import(), $import()];
+
+        self::assertGreaterThan(3, microtime(true) - $start);
     }
 }
