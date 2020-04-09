@@ -11,7 +11,7 @@ Porter <img src="https://github.com/ScriptFUSION/Porter/blob/master/docs/images/
 
 Porter is the all-purpose PHP data importer. She fetches data from anywhere and serves it as a single record or an iterable [record collection](#record-collections), encouraging processing one record at a time instead of loading full data sets into memory at once. Her [durability](#durability) feature provides automatic, transparent recovery from intermittent network connectivity errors by default.
 
-Porter's interface trichotomy of [providers](#providers), [resources](#resources) and [connectors](#connectors) maps well to APIs. For example, a typical API such as GitHub would define the provider as GitHub, a resource as `GetUser` or `ListRepositories` and the connector could be [HttpConnector][].
+Porter's [interface trichotomy](#overview) of [providers](#providers), [resources](#resources) and [connectors](#connectors) maps well to APIs. For example, a typical API such as GitHub would define the provider as GitHub, a resource as `GetUser` or `ListRepositories` and the connector could be [HttpConnector][].
 
 Porter provides a dual API for synchronous and [asynchronous](#asynchronous) imports, both of which are concurrency safe, so multiple imports can be paused and resumed simultaneously. Asynchronous mode allows large scale imports across multiple connections to work at maximum efficiency without waiting for each network call to complete.
 
@@ -149,8 +149,7 @@ Options may be configured using the methods below.
  - `enableCache()` &ndash; Enables caching. Requires a `CachingConnector`.
  - `setMaxFetchAttempts(int)` &ndash; Sets the maximum number of fetch attempts per connection before failure is considered permanent.
  - `setFetchExceptionHandler(FetchExceptionHandler)` &ndash; Sets the exception handler invoked each time a fetch attempt fails.
-
-In synchronous code, import specifications are an instance of `ImportSpecification`
+ - `setThrottle(Throttle)` &ndash; Sets the asynchronous connection throttle, invoked each time a connector fetches data. Applies to `AsyncImportSpecification` only.
 
 Record collections
 ------------------
@@ -195,11 +194,15 @@ Programming asynchronously requires an understanding of Amp, the async framework
 
 ### Throttling
 
-The asynchronous import model is very powerful because it changes our application's performance from being I/O-bound to being CPU-bound. That is, in the traditional synchronous model, each import operation must wait for the previous to complete before the next begins, meaning the total import time depends how long it takes each import's network I/O to complete. In the async model, since we send many requests concurrently without waiting for the previous to complete, on average each import operation will only take as long as our CPU takes to process it, since we are busy processing another import during network latency.
+The asynchronous import model is very powerful because it changes our application's performance model from I/O-bound, limited by the speed of the network, to CPU-bound, limited by the speed of the CPU. In the traditional synchronous model, each import operation must wait for the previous to complete before the next begins, meaning the total import time depends on how long it takes each import's network I/O to finish. In the async model, since we send many requests concurrently without waiting for the previous to complete, on average each import operation only takes as long as our CPU takes to process it, since we are busy processing another import during network latency (except during the initial "spin-up").
 
-High volume synchronous imports are, in a way, self-throttling and it is rare to trip protection measures in this mode, however the naïve approach to asynchronous imports is often fraught with perils. For example, when we import 10,000 HTTP resources at once, one of two things usually happens: either we run out of PHP memory and the process is killed or the HTTP server blocks us for sending too many requests in a short period. The solution is throttling.
+Synchronously, we seldom trip protection measures even for high volume imports, however the naïve approach to asynchronous imports is often fraught with perils. If we import 10,000 HTTP resources at once, one of two things usually happens: either we run out of PHP memory and the process terminates prematurely or the HTTP server rejects us after sending too many requests in a short period. The solution is throttling.
 
-We provide [Async Throttle][] to throttle asynchronous imports. The Async Throttle is a separate project that does not have any direct integration with Porter because that is not needed. The throttle operates on any Amp promises, such as those returned by Porter. The throttle works by preventing additional operations starting when too many are concurrently executing, based on user-defined limits.
+[Async Throttle][] is a library included with Porter to throttle asynchronous imports. The throttle works by preventing additional operations starting when too many are executing concurrently, based on user-defined limits. By default, `NullThrottle` is assigned, which does not throttle connections. `DualThrottle` can be used to set two independent connection rate limits: the maximum number of connections per second and the maximum number of concurrent connections. A  `DualThrottle` can be assigned by modifying the import specification as follows.
+
+```php
+(new AsyncImportSpecification)->setThrottle(new DualThrottle)
+```
 
 Transformers
 ------------

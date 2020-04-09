@@ -60,11 +60,23 @@ class AsyncImportSpecification extends Specification
         return new ExponentialAsyncDelayRecoverableExceptionHandler;
     }
 
+    /**
+     * Gets the asynchronous connection throttle, invoked each time a connector fetches data.
+     *
+     * @return Throttle Asynchronous connection throttle.
+     */
     final public function getThrottle(): Throttle
     {
         return $this->throttle ?? $this->throttle = new NullThrottle;
     }
 
+    /**
+     * Sets the asynchronous connection throttle, invoked each time a connector fetches data.
+     *
+     * @param Throttle $throttle Asynchronous connection throttle.
+     *
+     * @return $this
+     */
     final public function setThrottle(Throttle $throttle): self
     {
         $this->throttle = $throttle;
