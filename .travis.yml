@@ -4,10 +4,9 @@ notifications:
 language: php
 
 php:
-  - 7.1
-  - 7.2
   - 7.3
   - 7.4
+  - 8.0
 
 env:
   matrix:
@@ -22,12 +21,12 @@ cache:
     - vendor
 
 install:
-  - composer self-update --1
   - composer validate
   - composer --no-interaction update $DEPENDENCIES
 
 script:
-  - composer test -- --coverage-clover=build/logs/clover.xml --coverage-xml=build/coverage/coverage-xml
-    --log-junit=build/coverage/phpunit.junit.xml
+  - XDEBUG_MODE=coverage composer test -- --coverage-clover=build/logs/clover.xml
+    --coverage-xml=build/coverage/coverage-xml --log-junit=build/coverage/junit.xml
   - travis_retry bash <(curl -s https://codecov.io/bash) || true
-  - composer mutation -- --min-msi=100 --threads=$(nproc) --show-mutations --coverage=build/coverage
+  - ln -sfv ../build test
+  - composer mutation -- --min-msi=99 --threads=$(nproc) --show-mutations --coverage=build/coverage

@@ -4,9 +4,9 @@
     <testsuite name="all">
         <directory>.</directory>
     </testsuite>
-    <filter>
-        <whitelist processUncoveredFilesFromWhitelist="true">
+    <coverage processUncoveredFiles="true">
+        <include>
             <directory>../src</directory>
-        </whitelist>
-    </filter>
+        </include>
+    </coverage>
 </phpunit>

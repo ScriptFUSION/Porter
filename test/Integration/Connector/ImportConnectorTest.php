@@ -32,7 +32,7 @@ final class ImportConnectorTest extends TestCase
     /** @var AsyncDataSource|MockInterface */
     private $asyncSource;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 

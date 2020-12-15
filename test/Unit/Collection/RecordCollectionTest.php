@@ -56,7 +56,7 @@ final class RecordCollectionTest extends TestCase
         )->makePartial();
 
         $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('must be of the type array');
+        $this->expectExceptionMessageMatches('[must be of( the)? type array]');
         $collection->current();
     }
 }

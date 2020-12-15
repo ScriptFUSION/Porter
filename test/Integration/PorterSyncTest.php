@@ -168,7 +168,7 @@ final class PorterSyncTest extends PorterTest
         $this->registerProvider(\Mockery::mock(AsyncProvider::class), $providerName = 'foo');
 
         $this->expectException(IncompatibleProviderException::class);
-        $this->expectExceptionMessageRegExp('[\bProvider\b]');
+        $this->expectExceptionMessageMatches('[\bProvider\b]');
         $this->porter->import($this->specification->setProviderName($providerName));
     }
 

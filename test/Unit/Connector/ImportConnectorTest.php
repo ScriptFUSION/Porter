@@ -25,7 +25,7 @@ final class ImportConnectorTest extends TestCase
     /** @var DataSource|MockInterface */
     private $source;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
