@@ -1,3 +1,4 @@
+
 Porter <img src="https://github.com/ScriptFUSION/Porter/blob/master/docs/images/porter%20222x.png?raw=true" align="right">
 ======
 
@@ -198,11 +199,19 @@ The asynchronous import model is very powerful because it changes our applicatio
 
 Synchronously, we seldom trip protection measures even for high volume imports, however the naïve approach to asynchronous imports is often fraught with perils. If we import 10,000 HTTP resources at once, one of two things usually happens: either we run out of PHP memory and the process terminates prematurely or the HTTP server rejects us after sending too many requests in a short period. The solution is throttling.
 
-[Async Throttle][] is a library included with Porter to throttle asynchronous imports. The throttle works by preventing additional operations starting when too many are executing concurrently, based on user-defined limits. By default, `NullThrottle` is assigned, which does not throttle connections. `DualThrottle` can be used to set two independent connection rate limits: the maximum number of connections per second and the maximum number of concurrent connections. A  `DualThrottle` can be assigned by modifying the import specification as follows.
+[Async Throttle][] is included with Porter to throttle asynchronous imports. The throttle works by preventing additional operations starting when too many are executing concurrently, based on user-defined limits. By default, `NullThrottle` is assigned, which does not throttle connections. `DualThrottle` can be used to set two independent connection rate limits: the maximum number of connections per second and the maximum number of concurrent connections.
+
+A  `DualThrottle` can be assigned by modifying the import specification as follows.
 
 ```php
 (new AsyncImportSpecification)->setThrottle(new DualThrottle)
 ```
+
+#### ThrottledConnector
+
+A throttle can be assigned to a connector implementing the `ThrottledConnector` interface. This allows a provider to apply a throttle to all its resources by default. When a throttle is assigned to both a connector and an import specification, the specification's throttle takes priority. If the connector we want to use does not implement `ThrottledConnector`, simply extend the connector and implement the interface.
+
+Implementing `ThrottledConnector` is likely to be preferable when we want many resources to share the same throttle or when we want to inject the throttle using dependency injection, since specifications are typically instantiated inline whereas connectors are not. That is, we would usually declare connectors in our application framework's service configuration.
 
 Transformers
 ------------
