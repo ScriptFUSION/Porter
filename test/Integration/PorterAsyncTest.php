@@ -8,9 +8,11 @@ use Amp\Loop;
 use Amp\Producer;
 use Amp\Promise;
 use ScriptFUSION\Async\Throttle\DualThrottle;
+use ScriptFUSION\Porter\Collection\AsyncPorterRecords;
 use ScriptFUSION\Porter\Collection\AsyncRecordCollection;
 use ScriptFUSION\Porter\Collection\CountableAsyncPorterRecords;
 use ScriptFUSION\Porter\Collection\CountableAsyncProviderRecords;
+use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\ForeignResourceException;
 use ScriptFUSION\Porter\ImportException;
 use ScriptFUSION\Porter\IncompatibleProviderException;
@@ -46,6 +48,8 @@ final class PorterAsyncTest extends PorterTest
     {
         $records = $this->porter->importAsync($this->specification);
 
+        self::assertInstanceOf(AsyncPorterRecords::class, $records);
+        self::assertNotSame($this->specification, $records->getSpecification(), 'Specification was not cloned.');
         self::assertTrue(yield $records->advance());
         self::assertSame(['foo'], $records->getCurrent());
     }

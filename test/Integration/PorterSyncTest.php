@@ -195,6 +195,20 @@ final class PorterSyncTest extends PorterTest
         $this->porter->import($this->singleSpecification);
     }
 
+    /**
+     * Tests that when a resource returns ProviderRecords, Porter does not wrap the collection again.
+     */
+    public function testProviderRecordsNotDoubleWrapped(): void
+    {
+        $this->resource->shouldReceive('fetch')
+            ->andReturn($records = new ProviderRecords(new \ArrayIterator([]), $this->resource));
+
+        $imported = $this->porter->import($this->specification);
+
+        self::assertInstanceOf(PorterRecords::class, $imported);
+        self::assertSame($records, $imported->getPreviousCollection());
+    }
+
     #endregion
 
     #region Import one
