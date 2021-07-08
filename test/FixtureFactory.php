@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace ScriptFUSIONTest;
 
-use Amp\Success;
-use ScriptFUSION\Async\Throttle\Throttle;
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Connector\ImportConnector;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
@@ -26,10 +24,7 @@ final class FixtureFactory
             $recoverableExceptionHandler ?: \Mockery::spy(RecoverableExceptionHandler::class),
             $maxFetchAttempts,
             $mustCache,
-            \Mockery::mock(Throttle::class)
-                ->shouldReceive('join')
-                    ->andReturn(new Success(true))
-                ->getMock()
+            MockFactory::mockThrottle()
         );
     }
 }

@@ -47,8 +47,10 @@ final class ImportConnector implements ConnectorWrapper
     /**
      * @param Connector|AsyncConnector $connector Wrapped connector.
      * @param RecoverableExceptionHandler $recoverableExceptionHandler User's recoverable exception handler.
-     * @param int $maxFetchAttempts
+     * @param int $maxFetchAttempts Maximum fetch attempts.
      * @param bool $mustCache True if the response must be cached, otherwise false.
+     * @param Throttle|null $throttle Connection throttle invoked each time the connector fetches data. May be null
+     *     for synchronous imports only.
      */
     public function __construct(
         $connector,

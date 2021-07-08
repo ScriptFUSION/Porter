@@ -52,7 +52,7 @@ class AsyncImportSpecification extends Specification
 
     final public function addTransformer(AsyncTransformer $transformer): self
     {
-        return parent::addAnyTransformer($transformer);
+        return $this->addAnyTransformer($transformer);
     }
 
     protected static function createDefaultRecoverableExceptionHandler(): RecoverableExceptionHandler

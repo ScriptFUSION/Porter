@@ -53,7 +53,7 @@ class ImportSpecification extends Specification
      */
     final public function addTransformer(Transformer $transformer): self
     {
-        return parent::addAnyTransformer($transformer);
+        return $this->addAnyTransformer($transformer);
     }
 
     protected static function createDefaultRecoverableExceptionHandler(): RecoverableExceptionHandler

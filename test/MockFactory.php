@@ -7,7 +7,9 @@ use Amp\Delayed;
 use Amp\Iterator;
 use Amp\Producer;
 use Amp\Promise;
+use Amp\Success;
 use Mockery\MockInterface;
+use ScriptFUSION\Async\Throttle\Throttle;
 use ScriptFUSION\Porter\Connector\AsyncConnector;
 use ScriptFUSION\Porter\Connector\AsyncDataSource;
 use ScriptFUSION\Porter\Connector\Connector;
@@ -93,6 +95,18 @@ final class MockFactory
     public static function mockSingleRecordResource(Provider $provider)
     {
         return self::mockResource($provider, null, true);
+    }
+
+    /**
+     * @return Throttle|MockInterface
+     */
+    public static function mockThrottle()
+    {
+        return \Mockery::mock(Throttle::class)
+            ->shouldReceive('join')
+                ->andReturn(new Success(true))
+            ->getMock()
+        ;
     }
 
     /**
