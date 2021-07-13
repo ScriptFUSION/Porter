@@ -51,11 +51,11 @@ Contents
 Benefits
 --------
 
- * Defines a formal structure for data import APIs: [providers](#providers) represent one or more [resources](#resources) that fetch data from [connectors](#connectors).
- * Provides efficient data processing interfaces to handle large data sets one record at a time, via iterators, which can be implemented using generators.
- * [Asynchronous](#asynchronous) imports offer highly efficient CPU-bound data processing for large scale imports across multiple connections concurrently.
- * Protects against intermittent network failures with [durability](#durability) features.
- * Offers post-import [transformations](#transformers), such as [filtering](#filtering) and [mapping][MappingTransformer], to transform third-party into data useful for first-party applications.
+ * Defines an **interface trichotomy** for data imports: [providers](#providers) represent one or more [resources](#resources) that fetch data from [connectors](#connectors). These interfaces make it very easy to **test and mock** specific parts of the import lifecycle using industry standard tools, whether we want to mock at the connector level and feed in raw responses or mock at the resource level and feed in hydrated objects.
+ * Provides **memory-efficient data processing** interfaces that handle large data sets one record at a time, via iterators, which can be implemented using deferred execution with generators.
+ * [Asynchronous](#asynchronous) imports offer highly efficient **CPU-bound data processing** for large scale imports across multiple connections concurrently, eliminating network latency performance bottlenecks. Concurrency can be **rate-limited** using [throttling](#throttling).
+ * Protects against intermittent network failures with [durability](#durability) features that transparently and **automatically retry failed data fetches**.
+ * Offers post-import [transformations](#transformers), such as [filtering](#filtering) and [mapping][MappingTransformer], to transform third-party data into useful data for our applications.
  * Supports PSR-6 [caching](#caching), at the connector level, for each fetch operation.
  * Joins two or more linked data sets together using [sub-imports][Sub-imports] automatically.
 
@@ -195,7 +195,7 @@ Programming asynchronously requires an understanding of Amp, the async framework
 
 ### Throttling
 
-The asynchronous import model is very powerful because it changes our application's performance model from I/O-bound, limited by the speed of the network, to CPU-bound, limited by the speed of the CPU. In the traditional synchronous model, each import operation must wait for the previous to complete before the next begins, meaning the total import time depends on how long it takes each import's network I/O to finish. In the async model, since we send many requests concurrently without waiting for the previous to complete, on average each import operation only takes as long as our CPU takes to process it, since we are busy processing another import during network latency (except during the initial "spin-up").
+The asynchronous import model is very powerful because it changes our application's performance model from I/O-bound, limited by the speed of the network, to CPU-bound, limited by the speed of the CPU. In the traditional synchronous model, each import operation must wait for the previous to complete before the next begins, meaning the total import time depends on how long it takes each import's network I/O to finish. In the async model, since we send many requests concurrently without waiting for the previous to complete. On average, each import operation only takes as long as our CPU takes to process it, since we are busy processing another import during network latency (except during the initial "spin-up").
 
 Synchronously, we seldom trip protection measures even for high volume imports, however the naïve approach to asynchronous imports is often fraught with perils. If we import 10,000 HTTP resources at once, one of two things usually happens: either we run out of PHP memory and the process terminates prematurely or the HTTP server rejects us after sending too many requests in a short period. The solution is throttling.
 
