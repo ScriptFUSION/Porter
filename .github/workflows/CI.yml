@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  Test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php:
+          - 7.3
+          - 7.4
+          - 8.0
+        dependencies:
+          - hi
+          - lo
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: xdebug
+
+      - name: Validate composer.json
+        run: composer validate
+
+      - name: Cache dependencies
+        id: composer-cache
+        uses: actions/cache@v2
+        with:
+          path: vendor
+          key: php-${{ matrix.php }}-${{ matrix.dependencies }}-${{ hashFiles('composer.json') }}
+
+      - name: Install dependencies ${{ matrix.dependencies == 'lo' && '(lowest)' || '' }}
+        run: composer update --no-interaction --no-progress
+          ${{ matrix.dependencies == 'lo' && '--prefer-lowest' || '' }}
+
+      - name: Run test suite with coverage
+        run: composer test -- --coverage-clover=build/logs/clover.xml --coverage-xml=build/coverage/coverage-xml
+          --log-junit=build/coverage/junit.xml
+
+      - name: Upload test coverage
+        run: |
+          curl -Os https://uploader.codecov.io/latest/linux/codecov
+          chmod +x codecov
+          ./codecov -t $CODECOV_TOKEN
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Run mutation tests
+        run: |
+          ln -sfv ../build test
+          composer mutation -- --min-msi=99 --threads=$(nproc) --show-mutations --coverage=build/coverage
+        env:
+          INFECTION_BADGE_API_KEY: ${{ secrets.INFECTION_BADGE_API_KEY }}
