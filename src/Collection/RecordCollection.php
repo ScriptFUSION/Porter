@@ -29,6 +29,7 @@ abstract class RecordCollection implements \Iterator
         $this->records->next();
     }
 
+    #[\ReturnTypeWillChange]
     /**
      * @return mixed
      */
