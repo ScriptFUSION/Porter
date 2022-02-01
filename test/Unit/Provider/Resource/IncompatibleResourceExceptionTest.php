@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace ScriptFUSIONTest\Unit\Provider\Resource;
 
-use ScriptFUSION\Porter\IncompatibleResourceException;
 use PHPUnit\Framework\TestCase;
+use ScriptFUSION\Porter\IncompatibleResourceException;
 use ScriptFUSION\Porter\Provider\Resource\SingleRecordResource;
 
 /**

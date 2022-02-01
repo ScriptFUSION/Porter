@@ -9,11 +9,13 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
         php:
           - 7.3
           - 7.4
           - 8.0
+          - 8.1
         dependencies:
           - hi
           - lo

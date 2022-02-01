@@ -120,7 +120,9 @@ class Porter
             ));
         }
 
-        $records = $resource->fetch(ImportConnectorFactory::create($provider->getConnector(), $specification));
+        $records = $resource->fetch(
+            ImportConnectorFactory::create($provider, $provider->getConnector(), $specification)
+        );
 
         if (!$records instanceof ProviderRecords) {
             $records = $this->createProviderRecords($records, $specification->getResource());
@@ -201,7 +203,7 @@ class Porter
         }
 
         $records = $resource->fetchAsync(
-            ImportConnectorFactory::create($provider->getAsyncConnector(), $specification)
+            ImportConnectorFactory::create($provider, $provider->getAsyncConnector(), $specification)
         );
 
         if (!$records instanceof AsyncProviderRecords) {

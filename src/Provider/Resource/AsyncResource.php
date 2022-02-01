@@ -19,7 +19,7 @@ interface AsyncResource
     public function getProviderClassName(): string;
 
     /**
-     * Fetches data using the the specified connector and presents its data as an enumerable series.
+     * Fetches data using the specified connector and presents its data as an enumerable series.
      *
      * @param ImportConnector $connector Connector.
      *

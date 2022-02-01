@@ -50,7 +50,11 @@ final class ThrottlePrecedenceHierarchyTest extends AsyncTestCase
         $this->specificationThrottle->expects('await')->once()->andReturn(new Success());
         $this->connectorThrottle->expects('await')->never();
 
-        $connector = ImportConnectorFactory::create($this->provider->getAsyncConnector(), $this->specification);
+        $connector = ImportConnectorFactory::create(
+            $this->provider,
+            $this->provider->getAsyncConnector(),
+            $this->specification
+        );
 
         yield $connector->fetchAsync(\Mockery::mock(AsyncDataSource::class));
     }
@@ -64,7 +68,11 @@ final class ThrottlePrecedenceHierarchyTest extends AsyncTestCase
         $this->specificationThrottle->expects('await')->never();
         $this->connectorThrottle->expects('await')->once()->andReturn(new Success());
 
-        $connector = ImportConnectorFactory::create($this->mockThrottledConnector(), $this->specification);
+        $connector = ImportConnectorFactory::create(
+            $this->provider,
+            $this->mockThrottledConnector(),
+            $this->specification
+        );
 
         yield $connector->fetchAsync(\Mockery::mock(AsyncDataSource::class));
     }
@@ -79,7 +87,11 @@ final class ThrottlePrecedenceHierarchyTest extends AsyncTestCase
         $this->specificationThrottle->expects('await')->once()->andReturn(new Success());
         $this->connectorThrottle->expects('await')->never();
 
-        $connector = ImportConnectorFactory::create($this->mockThrottledConnector(), $this->specification);
+        $connector = ImportConnectorFactory::create(
+            $this->provider,
+            $this->mockThrottledConnector(),
+            $this->specification
+        );
 
         yield $connector->fetchAsync(\Mockery::mock(AsyncDataSource::class));
     }

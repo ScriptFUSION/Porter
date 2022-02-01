@@ -18,7 +18,7 @@ interface ProviderResource
     public function getProviderClassName(): string;
 
     /**
-     * Fetches data using the the specified connector and presents it as an iterable series.
+     * Fetches data using the specified connector and presents it as an iterable series.
      *
      * @param ImportConnector $connector Connector.
      *

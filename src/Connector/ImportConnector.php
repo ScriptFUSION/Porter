@@ -9,6 +9,8 @@ use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableException;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandler;
+use ScriptFUSION\Porter\Provider\AsyncProvider;
+use ScriptFUSION\Porter\Provider\Provider;
 use function Amp\call;
 use function Amp\Promise\all;
 use function ScriptFUSION\Retry\retry;
@@ -24,6 +26,8 @@ use function ScriptFUSION\Retry\retryAsync;
  */
 final class ImportConnector implements ConnectorWrapper
 {
+    private $provider;
+
     private $connector;
 
     /**
@@ -45,6 +49,7 @@ final class ImportConnector implements ConnectorWrapper
     private $throttle;
 
     /**
+     * @param Provider|AsyncProvider $provider Provider.
      * @param Connector|AsyncConnector $connector Wrapped connector.
      * @param RecoverableExceptionHandler $recoverableExceptionHandler User's recoverable exception handler.
      * @param int $maxFetchAttempts Maximum fetch attempts.
@@ -53,6 +58,7 @@ final class ImportConnector implements ConnectorWrapper
      *     for synchronous imports only.
      */
     public function __construct(
+        $provider,
         $connector,
         RecoverableExceptionHandler $recoverableExceptionHandler,
         int $maxFetchAttempts,
@@ -63,6 +69,7 @@ final class ImportConnector implements ConnectorWrapper
             throw CacheUnavailableException::createUnsupported();
         }
 
+        $this->provider = $provider;
         $this->connector = clone (
             $connector instanceof CachingConnector && !$mustCache
                 // Bypass cache when not required.
@@ -172,6 +179,16 @@ final class ImportConnector implements ConnectorWrapper
         }
 
         return $handler($recoverableException);
+    }
+
+    /**
+     * Gets the provider owning the resource being imported.
+     *
+     * @return AsyncProvider|Provider
+     */
+    public function getProvider()
+    {
+        return $this->provider;
     }
 
     /**

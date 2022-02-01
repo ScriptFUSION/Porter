@@ -12,7 +12,6 @@ use ScriptFUSION\Porter\Collection\AsyncPorterRecords;
 use ScriptFUSION\Porter\Collection\AsyncRecordCollection;
 use ScriptFUSION\Porter\Collection\CountableAsyncPorterRecords;
 use ScriptFUSION\Porter\Collection\CountableAsyncProviderRecords;
-use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\ForeignResourceException;
 use ScriptFUSION\Porter\ImportException;
 use ScriptFUSION\Porter\IncompatibleProviderException;
