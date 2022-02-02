@@ -13,6 +13,7 @@ use ScriptFUSION\Porter\Connector\ConnectorWrapper;
 use ScriptFUSION\Porter\Connector\DataSource;
 use ScriptFUSION\Porter\Connector\ImportConnector;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
+use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSIONTest\FixtureFactory;
 
 /**
@@ -74,6 +75,7 @@ final class ImportConnectorTest extends TestCase
                 ->andReturn($output = 'foo')
                 ->getMock(),
             null,
+            null,
             1,
             true
         );
@@ -108,7 +110,7 @@ final class ImportConnectorTest extends TestCase
     {
         $this->expectException(CacheUnavailableException::class);
 
-        FixtureFactory::buildImportConnector(\Mockery::mock(Connector::class), null, 1, true);
+        FixtureFactory::buildImportConnector(\Mockery::mock(Connector::class), null, null, 1, true);
     }
 
     /**
@@ -150,5 +152,19 @@ final class ImportConnectorTest extends TestCase
         );
 
         self::assertSame($baseConnector, $connector->findBaseConnector());
+    }
+
+    /**
+     * Tests that the provider passed to the constructor can be retrieved via a getter.
+     */
+    public function testGetProvider(): void
+    {
+        $connector = FixtureFactory::buildImportConnector(
+            \Mockery::mock(Connector::class),
+            null,
+            $provider = \Mockery::mock(Provider::class)
+        );
+
+        self::assertSame($provider, $connector->getProvider());
     }
 }

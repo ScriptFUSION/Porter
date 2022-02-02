@@ -25,8 +25,11 @@ final class ThrottlePrecedenceHierarchyTest extends AsyncTestCase
     use MockeryPHPUnitIntegration;
 
     private $specificationThrottle;
+
     private $connectorThrottle;
+
     private $specification;
+
     private $provider;
 
     protected function setUp(): void

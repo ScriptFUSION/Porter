@@ -17,9 +17,9 @@ final class FixtureFactory
     public static function buildImportConnector(
         Connector $connector,
         RecoverableExceptionHandler $recoverableExceptionHandler = null,
+        Provider $provider = null,
         int $maxFetchAttempts = ImportSpecification::DEFAULT_FETCH_ATTEMPTS,
-        bool $mustCache = false,
-        Provider $provider = null
+        bool $mustCache = false
     ): ImportConnector {
         return new ImportConnector(
             $provider ?? \Mockery::mock(Provider::class),
