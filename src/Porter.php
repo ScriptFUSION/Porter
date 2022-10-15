@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace ScriptFUSION\Porter;
 
-use Amp\Promise;
 use Psr\Container\ContainerInterface;
 use ScriptFUSION\Porter\Collection\AsyncPorterRecords;
 use ScriptFUSION\Porter\Collection\AsyncProviderRecords;
@@ -25,7 +24,6 @@ use ScriptFUSION\Porter\Specification\AsyncImportSpecification;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSION\Porter\Transform\AsyncTransformer;
 use ScriptFUSION\Porter\Transform\Transformer;
-use function Amp\call;
 
 /**
  * Imports data from a provider defined in the container of providers or the internal factory.
@@ -35,12 +33,12 @@ class Porter
     /**
      * @var ContainerInterface Container of user-defined providers.
      */
-    private $providers;
+    private ContainerInterface $providers;
 
     /**
      * @var ProviderFactory Internal factory of first-party providers.
      */
-    private $providerFactory;
+    private ProviderFactory $providerFactory;
 
     /**
      * Initializes this instance with the specified container of providers.
@@ -63,7 +61,7 @@ class Porter
      * @throws IncompatibleResourceException Resource emits a single record and must be imported with
      *     importOne() instead.
      */
-    public function import(ImportSpecification $specification): PorterRecords
+    public function import(ImportSpecification $specification): PorterRecords|CountablePorterRecords
     {
         if ($specification->getResource() instanceof SingleRecordResource) {
             throw IncompatibleResourceException::createMustNotImplementInterface();
@@ -145,7 +143,7 @@ class Porter
      * @throws IncompatibleResourceException Resource emits a single record and must be imported with
      *     importOneAsync() instead.
      */
-    public function importAsync(AsyncImportSpecification $specification): AsyncPorterRecords
+    public function importAsync(AsyncImportSpecification $specification): AsyncPorterRecords|CountableAsyncPorterRecords
     {
         if ($specification->getAsyncResource() instanceof SingleRecordResource) {
             throw IncompatibleResourceException::createMustNotImplementInterfaceAsync();
@@ -159,30 +157,30 @@ class Porter
      *
      * @param AsyncImportSpecification $specification Asynchronous import specification.
      *
-     * @return Promise<array|null> Record.
+     * @return array|null Record.
      *
      * @throws IncompatibleResourceException Resource does not implement required interface.
      * @throws ImportException More than one record was imported.
      */
-    public function importOneAsync(AsyncImportSpecification $specification): Promise
+    public function importOneAsync(AsyncImportSpecification $specification): ?array
     {
-        return call(function () use ($specification) {
-            if (!$specification->getAsyncResource() instanceof SingleRecordResource) {
-                throw IncompatibleResourceException::createMustImplementInterface();
-            }
+        if (!$specification->getAsyncResource() instanceof SingleRecordResource) {
+            throw IncompatibleResourceException::createMustImplementInterface();
+        }
 
-            $results = $this->fetchAsync($specification);
+        $results = $this->fetchAsync($specification);
 
-            yield $results->advance();
+        if (!$results->valid()) {
+            return null;
+        }
 
-            $one = $results->getCurrent();
+        $one = $results->current();
 
-            if (yield $results->advance()) {
-                throw new ImportException('Cannot import one: more than one record imported.');
-            }
+        if ($results->next() || $results->valid()) {
+            throw new ImportException('Cannot import one: more than one record imported.');
+        }
 
-            return $one;
-        });
+        return $one;
     }
 
     private function fetchAsync(AsyncImportSpecification $specification): AsyncPorterRecords
@@ -224,7 +222,7 @@ class Porter
      * @param Transformer[] $transformers
      * @param mixed $context
      */
-    private function transformRecords(RecordCollection $records, array $transformers, $context): RecordCollection
+    private function transformRecords(RecordCollection $records, array $transformers, mixed $context): RecordCollection
     {
         foreach ($transformers as $transformer) {
             if ($transformer instanceof PorterAware) {
@@ -245,7 +243,7 @@ class Porter
     private function transformRecordsAsync(
         AsyncRecordCollection $records,
         array $transformers,
-        $context
+        mixed $context
     ): AsyncRecordCollection {
         foreach ($transformers as $transformer) {
             if ($transformer instanceof PorterAware) {
@@ -296,7 +294,7 @@ class Porter
      *
      * @throws ProviderNotFoundException The specified provider was not found.
      */
-    private function getProvider(string $name)
+    private function getProvider(string $name): Provider|AsyncProvider
     {
         if ($this->providers->has($name)) {
             return $this->providers->get($name);
@@ -311,6 +309,6 @@ class Porter
 
     private function getOrCreateProviderFactory(): ProviderFactory
     {
-        return $this->providerFactory ?: $this->providerFactory = new ProviderFactory;
+        return $this->providerFactory ??= new ProviderFactory;
     }
 }

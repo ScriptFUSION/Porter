@@ -3,14 +3,13 @@ declare(strict_types=1);
 
 namespace ScriptFUSION\Porter\Collection;
 
-use Amp\Iterator;
 use ScriptFUSION\Porter\Specification\AsyncImportSpecification;
 
 class AsyncPorterRecords extends AsyncRecordCollection
 {
-    private $specification;
+    private AsyncImportSpecification $specification;
 
-    public function __construct(Iterator $records, AsyncImportSpecification $specification)
+    public function __construct(AsyncRecordCollection $records, AsyncImportSpecification $specification)
     {
         parent::__construct($records, $records);
 

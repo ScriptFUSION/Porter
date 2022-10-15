@@ -5,8 +5,7 @@ namespace ScriptFUSION\Porter\Collection;
 
 trait CountableRecordsTrait
 {
-    /** @var int */
-    private $count;
+    private int $count;
 
     public function count(): int
     {

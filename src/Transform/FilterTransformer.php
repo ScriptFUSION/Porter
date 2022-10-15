@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace ScriptFUSION\Porter\Transform;
 
-use Amp\Producer;
 use ScriptFUSION\Porter\Collection\AsyncFilteredRecords;
 use ScriptFUSION\Porter\Collection\AsyncRecordCollection;
 use ScriptFUSION\Porter\Collection\FilteredRecords;
@@ -16,17 +15,8 @@ use ScriptFUSION\Porter\Collection\RecordCollection;
  */
 class FilterTransformer implements Transformer, AsyncTransformer
 {
-    /**
-     * @var callable
-     */
-    private $filter;
-
-    /**
-     * @param callable $filter
-     */
-    public function __construct(callable $filter)
+    public function __construct(private readonly \Closure $filter)
     {
-        $this->filter = $filter;
     }
 
     public function transform(RecordCollection $records, $context): RecordCollection
@@ -45,13 +35,7 @@ class FilterTransformer implements Transformer, AsyncTransformer
     public function transformAsync(AsyncRecordCollection $records, $context): AsyncRecordCollection
     {
         return new AsyncFilteredRecords(
-            new Producer(function (\Closure $emit) use ($records): \Generator {
-                while (yield $records->advance()) {
-                    if (($this->filter)($record = $records->getCurrent())) {
-                        yield $emit($record);
-                    }
-                }
-            }),
+            (fn () => yield from $this->transform($records, $context))(),
             $records,
             $this->filter
         );

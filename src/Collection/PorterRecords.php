@@ -7,7 +7,7 @@ use ScriptFUSION\Porter\Specification\ImportSpecification;
 
 class PorterRecords extends RecordCollection
 {
-    private $specification;
+    private ImportSpecification $specification;
 
     public function __construct(RecordCollection $records, ImportSpecification $specification)
     {

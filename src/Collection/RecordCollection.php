@@ -8,14 +8,8 @@ namespace ScriptFUSION\Porter\Collection;
  */
 abstract class RecordCollection implements \Iterator
 {
-    private $records;
-
-    private $previousCollection;
-
-    public function __construct(\Iterator $records, self $previousCollection = null)
+    public function __construct(private readonly \Iterator $records, private readonly ?self $previousCollection = null)
     {
-        $this->records = $records;
-        $this->previousCollection = $previousCollection;
     }
 
     // TODO: Consider throwing our own exception type for clarity, instead of relying on PHP's TypeError.
@@ -29,11 +23,7 @@ abstract class RecordCollection implements \Iterator
         $this->records->next();
     }
 
-    #[\ReturnTypeWillChange]
-    /**
-     * @return mixed
-     */
-    public function key()
+    public function key(): mixed
     {
         return $this->records->key();
     }

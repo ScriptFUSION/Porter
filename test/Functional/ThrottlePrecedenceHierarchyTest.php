@@ -3,13 +3,17 @@ declare(strict_types=1);
 
 namespace ScriptFUSIONTest\Functional;
 
-use Amp\PHPUnit\AsyncTestCase;
-use Amp\Success;
+use Amp\Future;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+use Mockery\MockInterface;
+use PHPUnit\Framework\TestCase;
+use ScriptFUSION\Async\Throttle\Throttle;
 use ScriptFUSION\Porter\Connector\AsyncConnector;
 use ScriptFUSION\Porter\Connector\AsyncDataSource;
 use ScriptFUSION\Porter\Connector\ImportConnectorFactory;
 use ScriptFUSION\Porter\Connector\ThrottledConnector;
+use ScriptFUSION\Porter\Provider\AsyncProvider;
+use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Specification\AsyncImportSpecification;
 use ScriptFUSIONTest\MockFactory;
 
@@ -20,17 +24,17 @@ use ScriptFUSIONTest\MockFactory;
  *
  * @see ImportConnectorFactory
  */
-final class ThrottlePrecedenceHierarchyTest extends AsyncTestCase
+final class ThrottlePrecedenceHierarchyTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 
-    private $specificationThrottle;
+    private Throttle|MockInterface $specificationThrottle;
 
-    private $connectorThrottle;
+    private Throttle|MockInterface $connectorThrottle;
 
-    private $specification;
+    private AsyncImportSpecification $specification;
 
-    private $provider;
+    private AsyncProvider|Provider|MockInterface $provider;
 
     protected function setUp(): void
     {
@@ -47,11 +51,11 @@ final class ThrottlePrecedenceHierarchyTest extends AsyncTestCase
     /**
      * Tests that when the connector is non-throttling, the specification's throttle is used.
      */
-    public function testNonThrottledConnector(): \Generator
+    public function testNonThrottledConnector(): void
     {
         $this->specification->setThrottle($this->specificationThrottle);
-        $this->specificationThrottle->expects('await')->once()->andReturn(new Success());
-        $this->connectorThrottle->expects('await')->never();
+        $this->specificationThrottle->expects('watch')->once()->andReturn(Future::complete());
+        $this->connectorThrottle->expects('watch')->never();
 
         $connector = ImportConnectorFactory::create(
             $this->provider,
@@ -59,17 +63,17 @@ final class ThrottlePrecedenceHierarchyTest extends AsyncTestCase
             $this->specification
         );
 
-        yield $connector->fetchAsync(\Mockery::mock(AsyncDataSource::class));
+        $connector->fetchAsync(\Mockery::mock(AsyncDataSource::class));
     }
 
     /**
      * Tests that when the connector is throttled, and the specification's throttle is not set, the connector's
      * throttle is used.
      */
-    public function testThrottledConnector(): \Generator
+    public function testThrottledConnector(): void
     {
-        $this->specificationThrottle->expects('await')->never();
-        $this->connectorThrottle->expects('await')->once()->andReturn(new Success());
+        $this->specificationThrottle->expects('watch')->never();
+        $this->connectorThrottle->expects('watch')->once()->andReturn(Future::complete());
 
         $connector = ImportConnectorFactory::create(
             $this->provider,
@@ -77,18 +81,18 @@ final class ThrottlePrecedenceHierarchyTest extends AsyncTestCase
             $this->specification
         );
 
-        yield $connector->fetchAsync(\Mockery::mock(AsyncDataSource::class));
+        $connector->fetchAsync(\Mockery::mock(AsyncDataSource::class));
     }
 
     /**
      * Tests that when both the connector is throttled and the specification's throttle are set, the specification's
      * throttle overrides that of the connector.
      */
-    public function testThrottledConnectorOverride(): \Generator
+    public function testThrottledConnectorOverride(): void
     {
         $this->specification->setThrottle($this->specificationThrottle);
-        $this->specificationThrottle->expects('await')->once()->andReturn(new Success());
-        $this->connectorThrottle->expects('await')->never();
+        $this->specificationThrottle->expects('watch')->once()->andReturn(Future::complete());
+        $this->connectorThrottle->expects('watch')->never();
 
         $connector = ImportConnectorFactory::create(
             $this->provider,
@@ -96,19 +100,14 @@ final class ThrottlePrecedenceHierarchyTest extends AsyncTestCase
             $this->specification
         );
 
-        yield $connector->fetchAsync(\Mockery::mock(AsyncDataSource::class));
+        $connector->fetchAsync(\Mockery::mock(AsyncDataSource::class));
     }
 
-    /**
-     * @return AsyncConnector|ThrottledConnector
-     */
-    private function mockThrottledConnector(): AsyncConnector
+    private function mockThrottledConnector(): AsyncConnector|ThrottledConnector
     {
         return \Mockery::mock(AsyncConnector::class, ThrottledConnector::class)
             ->shouldReceive('getThrottle')
                 ->andReturn($this->connectorThrottle)
-            ->shouldReceive('fetchAsync')
-                ->andReturn(MockFactory::mockPromise())
             ->getMock()
         ;
     }

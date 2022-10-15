@@ -17,15 +17,11 @@ final class ImportConnectorFactory
 {
     use StaticClass;
 
-    /**
-     * @param Provider|AsyncProvider $provider
-     * @param Connector|AsyncConnector $connector
-     * @param Specification $specification
-     *
-     * @return ImportConnector
-     */
-    public static function create($provider, $connector, Specification $specification): ImportConnector
-    {
+    public static function create(
+        Provider|AsyncProvider $provider,
+        Connector|AsyncConnector $connector,
+        Specification $specification
+    ): ImportConnector {
         if ($specification instanceof AsyncImportSpecification) {
             $throttle = $specification->getThrottle();
 

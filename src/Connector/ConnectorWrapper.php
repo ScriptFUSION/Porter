@@ -10,8 +10,6 @@ interface ConnectorWrapper
 {
     /**
      * Gets the wrapped connector.
-     *
-     * @return Connector|AsyncConnector
      */
-    public function getWrappedConnector();
+    public function getWrappedConnector(): Connector|AsyncConnector;
 }

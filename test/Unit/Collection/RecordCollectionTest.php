@@ -33,7 +33,7 @@ final class RecordCollectionTest extends TestCase
                     RecordCollection::class,
                     [
                         $it,
-                        $collection1 = \Mockery::mock(RecordCollection::class)->makePartial(),
+                        $collection1 = \Mockery::mock(RecordCollection::class, [$it])->makePartial(),
                     ]
                 )->makePartial(),
             ]

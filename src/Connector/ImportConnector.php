@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace ScriptFUSION\Porter\Connector;
 
-use Amp\Promise;
 use ScriptFUSION\Async\Throttle\Throttle;
 use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableException;
@@ -11,10 +10,7 @@ use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandler;
 use ScriptFUSION\Porter\Provider\AsyncProvider;
 use ScriptFUSION\Porter\Provider\Provider;
-use function Amp\call;
-use function Amp\Promise\all;
 use function ScriptFUSION\Retry\retry;
-use function ScriptFUSION\Retry\retryAsync;
 
 /**
  * Connector whose lifecycle is synchronised with an import operation. Intercepts failed connections to facilitate
@@ -26,27 +22,17 @@ use function ScriptFUSION\Retry\retryAsync;
  */
 final class ImportConnector implements ConnectorWrapper
 {
-    private $provider;
-
-    private $connector;
+    private Connector|AsyncConnector $connector;
 
     /**
      * User-defined exception handler called when a recoverable exception is thrown by Connector::fetch().
-     *
-     * @var RecoverableExceptionHandler
      */
-    private $userExceptionHandler;
+    private RecoverableExceptionHandler $userExceptionHandler;
 
     /**
      * Resource-defined exception handler called when a recoverable exception is thrown by Connector::fetch().
-     *
-     * @var RecoverableExceptionHandler
      */
-    private $resourceExceptionHandler;
-
-    private $maxFetchAttempts;
-
-    private $throttle;
+    private ?RecoverableExceptionHandler $resourceExceptionHandler = null;
 
     /**
      * @param Provider|AsyncProvider $provider Provider.
@@ -58,18 +44,17 @@ final class ImportConnector implements ConnectorWrapper
      *     for synchronous imports only.
      */
     public function __construct(
-        $provider,
-        $connector,
+        private readonly Provider|AsyncProvider $provider,
+        Connector|AsyncConnector $connector,
         RecoverableExceptionHandler $recoverableExceptionHandler,
-        int $maxFetchAttempts,
+        private readonly int $maxFetchAttempts,
         bool $mustCache,
-        ?Throttle $throttle
+        private readonly ?Throttle $throttle
     ) {
         if ($mustCache && !$connector instanceof CachingConnector) {
             throw CacheUnavailableException::createUnsupported();
         }
 
-        $this->provider = $provider;
         $this->connector = clone (
             $connector instanceof CachingConnector && !$mustCache
                 // Bypass cache when not required.
@@ -77,8 +62,6 @@ final class ImportConnector implements ConnectorWrapper
                 : $connector
         );
         $this->userExceptionHandler = $recoverableExceptionHandler;
-        $this->maxFetchAttempts = $maxFetchAttempts;
-        $this->throttle = $throttle;
     }
 
     /**
@@ -88,7 +71,7 @@ final class ImportConnector implements ConnectorWrapper
      *
      * @return mixed Data.
      */
-    public function fetch(DataSource $source)
+    public function fetch(DataSource $source): mixed
     {
         return retry(
             $this->maxFetchAttempts,
@@ -104,23 +87,13 @@ final class ImportConnector implements ConnectorWrapper
      *
      * @param AsyncDataSource $source Data source.
      *
-     * @return Promise<mixed> Data.
+     * @return mixed Data.
      */
-    public function fetchAsync(AsyncDataSource $source): Promise
+    public function fetchAsync(AsyncDataSource $source): mixed
     {
-        return retryAsync(
+        return retry(
             $this->maxFetchAttempts,
-            function () use ($source): Promise {
-                return call(function () use ($source): \Generator {
-                    while (!yield $this->throttle->join()) {
-                        // Throttle is choked. Wait for free slot.
-                    }
-
-                    yield $this->throttle->await($response = $this->connector->fetchAsync($source));
-
-                    return yield $response;
-                });
-            },
+            fn () => $this->throttle->watch($this->connector->fetchAsync(...), $source),
             $this->createExceptionHandler()
         );
     }
@@ -129,7 +102,7 @@ final class ImportConnector implements ConnectorWrapper
     {
         $userHandlerCloned = $resourceHandlerCloned = false;
 
-        return function (\Exception $exception) use (&$userHandlerCloned, &$resourceHandlerCloned): ?Promise {
+        return function (\Exception $exception) use (&$userHandlerCloned, &$resourceHandlerCloned): void {
             // Throw exception instead of retrying, if unrecoverable.
             if (!$exception instanceof RecoverableException) {
                 throw $exception;
@@ -137,24 +110,11 @@ final class ImportConnector implements ConnectorWrapper
 
             // Call resource's exception handler, if defined.
             if ($this->resourceExceptionHandler) {
-                $results[] = self::invokeHandler($this->resourceExceptionHandler, $exception, $resourceHandlerCloned);
+                self::invokeHandler($this->resourceExceptionHandler, $exception, $resourceHandlerCloned);
             }
 
             // Call user's exception handler.
-            $results[] = self::invokeHandler($this->userExceptionHandler, $exception, $userHandlerCloned);
-
-            /*
-             * Handlers may return a Promise, but all other return values are discarded. Although the underlying
-             * library supports returning false, Porter only allows exceptions to short-circuit. However,
-             * Porter does nothing to restrict promises that return false, although it is discouraged and may be
-             * prevented in future. TODO: Mask promise return values.
-             */
-            return ($promises = array_filter(
-                $results,
-                static function ($value): bool {
-                    return $value instanceof Promise;
-                }
-            )) ? all($promises) : null;
+            self::invokeHandler($this->userExceptionHandler, $exception, $userHandlerCloned);
         };
     }
 
@@ -164,49 +124,41 @@ final class ImportConnector implements ConnectorWrapper
      * @param RecoverableExceptionHandler $handler Fetch exception handler.
      * @param RecoverableException $recoverableException Recoverable exception to pass to the handler.
      * @param bool $cloned False if handler requires cloning, true if handler has already been cloned.
-     *
-     * @return Promise|null
      */
     private static function invokeHandler(
         RecoverableExceptionHandler &$handler,
         RecoverableException $recoverableException,
         bool &$cloned
-    ): ?Promise {
+    ): void {
         if (!$cloned && !$handler instanceof StatelessRecoverableExceptionHandler) {
             $handler = clone $handler;
             $handler->initialize();
             $cloned = true;
         }
 
-        return $handler($recoverableException);
+        $handler($recoverableException);
     }
 
     /**
      * Gets the provider owning the resource being imported.
-     *
-     * @return AsyncProvider|Provider
      */
-    public function getProvider()
+    public function getProvider(): Provider|AsyncProvider
     {
         return $this->provider;
     }
 
     /**
      * Gets the wrapped connector.
-     *
-     * @return Connector|AsyncConnector Wrapped connector.
      */
-    public function getWrappedConnector()
+    public function getWrappedConnector(): Connector|AsyncConnector
     {
         return $this->connector;
     }
 
     /**
      * Finds the base connector by traversing the stack of wrapped connectors.
-     *
-     * @return Connector|AsyncConnector Base connector.
      */
-    public function findBaseConnector()
+    public function findBaseConnector(): Connector|AsyncConnector
     {
         $connector = $this->connector;
 

@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace ScriptFUSIONTest\Unit\Collection;
 
-use Amp\Iterator;
 use PHPUnit\Framework\TestCase;
 use ScriptFUSION\Porter\Collection\AsyncProviderRecords;
 use ScriptFUSION\Porter\Collection\ProviderRecords;
@@ -20,7 +19,7 @@ final class AsyncProviderRecordsTest extends TestCase
     public function testGetResource(): void
     {
         $records = new AsyncProviderRecords(
-            \Mockery::mock(Iterator::class),
+            \Mockery::mock(\Iterator::class),
             $resource = \Mockery::mock(AsyncResource::class)
         );
 

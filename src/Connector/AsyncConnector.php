@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace ScriptFUSION\Porter\Connector;
 
-use Amp\Promise;
-
 /**
  * Provides a method for fetching data from a data source asynchronously.
  */
@@ -15,7 +13,7 @@ interface AsyncConnector
      *
      * @param AsyncDataSource $source Data source.
      *
-     * @return Promise<mixed> Data.
+     * @return mixed Data.
      */
-    public function fetchAsync(AsyncDataSource $source): Promise;
+    public function fetchAsync(AsyncDataSource $source): mixed;
 }

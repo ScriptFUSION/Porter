@@ -74,7 +74,7 @@ final class PorterSyncTest extends PorterTest
         $records = $this->porter->import(
             (new StaticDataImportSpecification(
                 new \ArrayIterator(range(1, 10))
-            ))->addTransformer(new FilterTransformer([$this, __FUNCTION__]))
+            ))->addTransformer(new FilterTransformer((__METHOD__)(...)))
         );
 
         // Innermost collection.
@@ -240,12 +240,12 @@ final class PorterSyncTest extends PorterTest
     /**
      * Tests that when importing one from a resource not marked with SingleRecordResource, an exception is thrown.
      */
-    public function testImportOneNonSingle(): \Generator
+    public function testImportOneNonSingle(): void
     {
         $this->expectException(IncompatibleResourceException::class);
         $this->expectExceptionMessage(SingleRecordResource::class);
 
-        yield $this->porter->importOne(new ImportSpecification(\Mockery::mock(ProviderResource::class)));
+        $this->porter->importOne(new ImportSpecification(\Mockery::mock(ProviderResource::class)));
     }
 
     #endregion

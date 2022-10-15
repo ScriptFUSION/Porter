@@ -3,11 +3,7 @@ declare(strict_types=1);
 
 namespace ScriptFUSIONTest;
 
-use Amp\Delayed;
-use Amp\Iterator;
-use Amp\Producer;
-use Amp\Promise;
-use Amp\Success;
+use Amp\Future;
 use Mockery\MockInterface;
 use ScriptFUSION\Async\Throttle\Throttle;
 use ScriptFUSION\Porter\Connector\AsyncConnector;
@@ -21,15 +17,13 @@ use ScriptFUSION\Porter\Provider\Resource\AsyncResource;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Provider\Resource\SingleRecordResource;
 use ScriptFUSION\StaticClass;
+use function Amp\delay;
 
 final class MockFactory
 {
     use StaticClass;
 
-    /**
-     * @return Provider|AsyncProvider|MockInterface
-     */
-    public static function mockProvider()
+    public static function mockProvider(): Provider|AsyncProvider|MockInterface
     {
         return \Mockery::namedMock(uniqid(Provider::class), Provider::class, AsyncProvider::class)
             ->shouldReceive('getConnector')
@@ -45,7 +39,11 @@ final class MockFactory
                 ->andReturn(
                     \Mockery::mock(AsyncConnector::class)
                         ->shouldReceive('fetchAsync')
-                        ->andReturn(new Delayed(0, 'foo'))
+                        ->andReturnUsing(static function (): mixed {
+                            delay(0);
+
+                            return 'foo';
+                        })
                         ->getMock()
                 )
                 ->byDefault()
@@ -53,10 +51,8 @@ final class MockFactory
         ;
     }
 
-    /**
-     * @return ProviderResource|AsyncResource|MockInterface
-     */
     public static function mockResource(Provider $provider, \Iterator $return = null, bool $single = false)
+        : ProviderResource|AsyncResource|MockInterface
     {
         /** @var ProviderResource|AsyncResource|MockInterface $resource */
         $resource = \Mockery::mock(
@@ -73,10 +69,8 @@ final class MockFactory
                 })
                 ->byDefault()
             ->shouldReceive('fetchAsync')
-                ->andReturnUsing(static function (ImportConnector $connector): Iterator {
-                    return new Producer(static function (\Closure $emit) use ($connector): \Generator {
-                        yield $emit([yield $connector->fetchAsync(\Mockery::mock(AsyncDataSource::class))]);
-                    });
+                ->andReturnUsing(static function (ImportConnector $connector): \Iterator {
+                    return new \ArrayIterator([[$connector->fetchAsync(\Mockery::mock(AsyncDataSource::class))]]);
                 })
                 ->byDefault()
             ->getMock()
@@ -89,36 +83,17 @@ final class MockFactory
         return $resource;
     }
 
-    /**
-     * @return ProviderResource|AsyncResource|MockInterface
-     */
-    public static function mockSingleRecordResource(Provider $provider)
+    public static function mockSingleRecordResource(Provider $provider): ProviderResource|AsyncResource|MockInterface
     {
         return self::mockResource($provider, null, true);
     }
 
-    /**
-     * @return Throttle|MockInterface
-     */
-    public static function mockThrottle()
+    public static function mockThrottle(): Throttle|MockInterface
     {
         return \Mockery::mock(Throttle::class)
-            ->shouldReceive('join')
-                ->andReturn(new Success(true))
-            ->getMock()
-        ;
-    }
-
-    /**
-     * @return Promise|MockInterface
-     */
-    public static function mockPromise()
-    {
-        return \Mockery::mock(Promise::class)
-            ->expects('onResolve')
-                ->andReturnUsing(static function (\Closure $onResolve): void {
-                    $onResolve(null, null);
-                })
+            ->allows('watch')
+                ->andReturnUsing(fn (\Closure $closure, mixed ...$args) => $closure($args))
+                ->byDefault()
             ->getMock()
         ;
     }

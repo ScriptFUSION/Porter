@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 namespace ScriptFUSIONTest\Integration;
 
-use Amp\PHPUnit\AsyncTestCase;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
+use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use ScriptFUSION\Porter\Connector\AsyncConnector;
 use ScriptFUSION\Porter\Connector\Connector;
@@ -18,7 +18,7 @@ use ScriptFUSION\Porter\Specification\AsyncImportSpecification;
 use ScriptFUSION\Porter\Specification\ImportSpecification;
 use ScriptFUSIONTest\MockFactory;
 
-abstract class PorterTest extends AsyncTestCase
+abstract class PorterTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 

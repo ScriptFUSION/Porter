@@ -3,14 +3,14 @@ declare(strict_types=1);
 
 namespace ScriptFUSIONTest\Unit\Connector\Recoverable;
 
-use Amp\PHPUnit\AsyncTestCase;
+use PHPUnit\Framework\TestCase;
 use ScriptFUSION\Porter\Connector\Recoverable\ExponentialAsyncDelayRecoverableExceptionHandler;
 use ScriptFUSIONTest\Stubs\TestRecoverableException;
 
 /**
  * @see ExponentialAsyncDelayRecoverableExceptionHandler
  */
-final class ExponentialAsyncDelayRecoverableExceptionHandlerTest extends AsyncTestCase
+final class ExponentialAsyncDelayRecoverableExceptionHandlerTest extends TestCase
 {
     /** @var ExponentialAsyncDelayRecoverableExceptionHandler */
     private $handler;
@@ -30,11 +30,11 @@ final class ExponentialAsyncDelayRecoverableExceptionHandlerTest extends AsyncTe
     /**
      * Tests that when the handler is invoked, each delay is longer than the last.
      */
-    public function testDelay(): \Generator
+    public function testDelay(): void
     {
         for ($i = $previousDuration = 0; $i < 4; ++$i) {
             $start = microtime(true);
-            yield ($this->handler)($this->exception);
+            ($this->handler)($this->exception);
             $duration = microtime(true) - $start;
 
             self::assertGreaterThan($previousDuration, $duration);

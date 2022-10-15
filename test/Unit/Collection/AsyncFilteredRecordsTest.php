@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace ScriptFUSIONTest\Unit\Collection;
 
-use Amp\Iterator;
 use PHPUnit\Framework\TestCase;
 use ScriptFUSION\Porter\Collection\AsyncFilteredRecords;
 use ScriptFUSION\Porter\Collection\AsyncRecordCollection;
@@ -19,7 +18,7 @@ final class AsyncFilteredRecordsTest extends TestCase
     public function testGetResource(): void
     {
         $records = new AsyncFilteredRecords(
-            \Mockery::mock(Iterator::class),
+            \Mockery::mock(\Iterator::class),
             \Mockery::mock(AsyncRecordCollection::class),
             $callable = [$this, __FUNCTION__]
         );

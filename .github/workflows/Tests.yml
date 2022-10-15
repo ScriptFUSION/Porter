@@ -1,8 +1,11 @@
-name: CI
+name: Tests
 
 on:
   push:
   pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: 0 6 * * *
 
 jobs:
   Test:
@@ -12,16 +15,14 @@ jobs:
       fail-fast: false
       matrix:
         php:
-          - 7.3
-          - 7.4
-          - 8.0
           - 8.1
+          - 8.2
         dependencies:
           - hi
           - lo
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup PHP ${{ matrix.php }}
         uses: shivammathur/setup-php@v2
@@ -34,7 +35,7 @@ jobs:
 
       - name: Cache dependencies
         id: composer-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: vendor
           key: php-${{ matrix.php }}-${{ matrix.dependencies }}-${{ hashFiles('composer.json') }}
@@ -51,9 +52,7 @@ jobs:
         run: |
           curl -Os https://uploader.codecov.io/latest/linux/codecov
           chmod +x codecov
-          ./codecov -t $CODECOV_TOKEN
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          ./codecov
 
       - name: Run mutation tests
         run: |

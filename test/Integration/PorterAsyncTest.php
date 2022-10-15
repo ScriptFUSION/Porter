@@ -3,10 +3,7 @@ declare(strict_types=1);
 
 namespace ScriptFUSIONTest\Integration;
 
-use Amp\Iterator;
-use Amp\Loop;
-use Amp\Producer;
-use Amp\Promise;
+use Amp\Future;
 use ScriptFUSION\Async\Throttle\DualThrottle;
 use ScriptFUSION\Porter\Collection\AsyncPorterRecords;
 use ScriptFUSION\Porter\Collection\AsyncRecordCollection;
@@ -25,7 +22,8 @@ use ScriptFUSION\Porter\Specification\AsyncImportSpecification;
 use ScriptFUSION\Porter\Transform\AsyncTransformer;
 use ScriptFUSION\Porter\Transform\FilterTransformer;
 use ScriptFUSIONTest\MockFactory;
-use function Amp\call;
+use function Amp\async;
+use function Amp\delay;
 
 /**
  * @see Porter
@@ -43,14 +41,15 @@ final class PorterAsyncTest extends PorterTest
     /**
      * Tests that the full async import path, via connector, resource and provider, fetches a record correctly.
      */
-    public function testImportAsync(): \Generator
+    public function testImportAsync(): void
     {
         $records = $this->porter->importAsync($this->specification);
 
+        $this->specification->setThrottle(new DualThrottle());
         self::assertInstanceOf(AsyncPorterRecords::class, $records);
         self::assertNotSame($this->specification, $records->getSpecification(), 'Specification was not cloned.');
-        self::assertTrue(yield $records->advance());
-        self::assertSame(['foo'], $records->getCurrent());
+        self::assertTrue($records->valid());
+        self::assertSame(['foo'], $records->current());
     }
 
     /**
@@ -67,30 +66,30 @@ final class PorterAsyncTest extends PorterTest
     /**
      * Tests that the full async import path, via connector, resource and provider, fetches one record correctly.
      */
-    public function testImportOneAsync(): \Generator
+    public function testImportOneAsync(): void
     {
-        self::assertSame(['foo'], yield $this->porter->importOneAsync($this->singleSpecification));
+        self::assertSame(['foo'], $this->porter->importOneAsync($this->singleSpecification));
     }
 
     /**
      * Tests that when importing one from a resource not marked with SingleRecordResource, an exception is thrown.
      */
-    public function testImportOneNonSingleAsync(): \Generator
+    public function testImportOneNonSingleAsync(): void
     {
         $this->expectException(IncompatibleResourceException::class);
         $this->expectExceptionMessage(SingleRecordResource::class);
 
-        yield $this->porter->importOneAsync(new AsyncImportSpecification(\Mockery::mock(AsyncResource::class)));
+        $this->porter->importOneAsync(new AsyncImportSpecification(\Mockery::mock(AsyncResource::class)));
     }
 
     /**
      * Tests that when the resource is countable, the count is propagated to the outermost collection and the records
      * are intact.
      */
-    public function testImportCountableAsyncRecords(): \Generator
+    public function testImportCountableAsyncRecords(): void
     {
         $this->resource->shouldReceive('fetchAsync')->andReturn(
-            new CountableAsyncProviderRecords(Iterator\fromIterable([$record = ['foo']]), $count = 123, $this->resource)
+            new CountableAsyncProviderRecords(new \ArrayIterator([$record = ['foo']]), $count = 123, $this->resource)
         );
 
         $records = $this->porter->importAsync($this->specification);
@@ -103,43 +102,43 @@ final class PorterAsyncTest extends PorterTest
         self::assertInstanceOf(CountableAsyncPorterRecords::class, $records);
         self::assertCount($count, $records);
 
-        self::assertTrue(yield $records->advance());
-        self::assertSame($record, $records->getCurrent());
+        self::assertTrue($records->valid());
+        self::assertSame($record, $records->current());
     }
 
     /**
      * Tests that when importOne receives multiple records from a resource, an exception is thrown.
      */
-    public function testImportOneOfManyAsync(): \Generator
+    public function testImportOneOfManyAsync(): void
     {
-        $this->singleResource->shouldReceive('fetchAsync')->andReturn(Iterator\fromIterable([['foo'], ['bar']]));
+        $this->singleResource->shouldReceive('fetchAsync')->andReturn(new \ArrayIterator([['foo'], ['bar']]));
 
         $this->expectException(ImportException::class);
-        yield $this->porter->importOneAsync($this->singleSpecification);
+        $this->porter->importOneAsync($this->singleSpecification);
     }
 
     /**
      * Tests that when importing from a provider that does not implement AsyncProvider, an exception is thrown.
      */
-    public function testImportIncompatibleProviderAsync(): \Generator
+    public function testImportIncompatibleProviderAsync(): void
     {
         $this->registerProvider(\Mockery::mock(Provider::class), $providerName = 'foo');
 
         $this->expectException(IncompatibleProviderException::class);
         $this->expectExceptionMessageMatches('[\bAsyncProvider\b]');
-        yield $this->porter->importAsync($this->specification->setProviderName($providerName));
+        $this->porter->importAsync($this->specification->setProviderName($providerName));
     }
 
     /**
      * Tests that when a resource's provider class name does not match the provider an exception is thrown.
      */
-    public function testImportForeignResourceAsync(): \Generator
+    public function testImportForeignResourceAsync(): void
     {
         // Replace existing provider with a different one.
         $this->registerProvider(MockFactory::mockProvider(), \get_class($this->provider));
 
         $this->expectException(ForeignResourceException::class);
-        yield $this->porter->importAsync($this->specification);
+        $this->porter->importAsync($this->specification);
     }
 
     /**
@@ -148,40 +147,28 @@ final class PorterAsyncTest extends PorterTest
      */
     public function testFilterAsync(): void
     {
-        $this->resource->shouldReceive('fetchAsync')->andReturnUsing(static function (): Iterator {
-            return new Producer(static function (\Closure $emit): \Generator {
-                foreach (range(1, 10) as $integer) {
-                    yield $emit([$integer]);
-                }
-            });
-        });
+        $this->resource->shouldReceive('fetchAsync')->andReturnUsing(
+            fn () => yield from array_map(static fn (int $i): array => [$i], range(1, 10))
+        );
 
         // Filter out even numbers.
         $this->specification->addTransformer(
-            new FilterTransformer(static function (array $record): int {
-                return $record[0] % 2;
-            })
+            new FilterTransformer(fn (array $record) => $record[0] % 2)
         );
 
         $importAndExpect = function ($expect): void {
-            Loop::run(function () use ($expect): \Generator {
-                $records = $this->porter->importAsync($this->specification);
+            $records = $this->porter->importAsync($this->specification);
 
-                while (yield $records->advance()) {
-                    $filtered[] = $records->getCurrent()[0];
-                }
+            $filtered = array_map(static fn (array $record): int => $record[0], iterator_to_array($records));
 
-                self::assertSame($expect, $filtered);
-            });
+            self::assertSame($expect, $filtered);
         };
 
         $importAndExpect([1, 3, 5, 7, 9]);
 
         // Filter out numbers below 6.
         $this->specification->addTransformer(
-            new FilterTransformer(static function (array $record): bool {
-                return $record[0] > 5;
-            })
+            new FilterTransformer(fn (array $record) => $record[0] > 5)
         );
 
         $importAndExpect([7, 9]);
@@ -208,41 +195,39 @@ final class PorterAsyncTest extends PorterTest
     /**
      * Tests that a working throttle implementation is invoked during fetch operations.
      */
-    public function testThrottle(): \Generator
+    public function testThrottle(): void
     {
         $this->specification->setThrottle($throttle = new DualThrottle);
         $throttle->setMaxConcurrency(1);
 
-        $records = $this->porter->importAsync($this->specification);
+        $records = async($this->porter->importAsync(...), $this->specification);
+        delay(0);
         self::assertTrue($throttle->isThrottling());
 
-        yield $records->advance();
+        $records->await();
         self::assertFalse($throttle->isThrottling());
     }
 
     /**
      * Tests that a working throttle implementation can be called from multiple fibers queueing excess objects.
      */
-    public function testThrottleConcurrentFibers(): \Generator
+    public function testThrottleConcurrentFibers(): void
     {
         $this->specification->setThrottle($throttle = new DualThrottle);
         $throttle->setMaxPerSecond(1);
 
-        $import = function (): Promise {
-            return call(
-                function (): \Generator {
-                    $records = $this->porter->importAsync($this->specification);
+        $import = function (): void {
+            $records = async($this->porter->importAsync(...), $this->specification)->await();
+            delay(0);
 
-                    while (yield $records->advance()) {
-                        // Do nothing.
-                    }
-                }
-            );
+            while ($records->valid()) {
+                $records->next();
+            }
         };
 
         $start = microtime(true);
 
-        yield [$import(), $import(), $import()];
+        Future\await([async($import), async($import), async($import)]);
 
         self::assertGreaterThan(3, microtime(true) - $start);
     }

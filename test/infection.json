@@ -10,8 +10,8 @@
     },
     "logs": {
         "text": "infection.log",
-        "badge": {
-            "branch": "master"
+        "stryker": {
+            "report": "master"
         }
     },
     "mutators": {

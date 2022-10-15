@@ -14,10 +14,8 @@ use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandler;
 use ScriptFUSION\Retry\FailingTooHardException;
 use ScriptFUSIONTest\FixtureFactory;
-use ScriptFUSIONTest\MockFactory;
 use ScriptFUSIONTest\Stubs\TestRecoverableException;
 use ScriptFUSIONTest\Stubs\TestRecoverableExceptionHandler;
-use function Amp\Promise\wait;
 
 /**
  * @see ImportConnector
@@ -87,7 +85,7 @@ final class ImportConnectorTest extends TestCase
             \Mockery::mock(Connector::class)
                 ->shouldReceive('fetch')
                 ->twice()
-                ->andReturnUsing($this->createExceptionThrowingClosure())
+                ->andReturnUsing(self::createExceptionThrowingClosure())
                 ->getMock(),
             $handler = new StatelessRecoverableExceptionHandler(static function (): void {
                 // Intentionally empty.
@@ -140,7 +138,7 @@ final class ImportConnectorTest extends TestCase
         );
 
         try {
-            wait($connector->fetchAsync($this->asyncSource));
+            $connector->fetchAsync($this->asyncSource);
         } catch (FailingTooHardException $exception) {
             // This is fine.
         }
@@ -163,7 +161,7 @@ final class ImportConnectorTest extends TestCase
         $connector->setRecoverableExceptionHandler(self::createAsyncRecoverableExceptionHandler());
 
         try {
-            wait($connector->fetchAsync($this->asyncSource));
+            $connector->fetchAsync($this->asyncSource);
         } catch (FailingTooHardException $exception) {
             // This is fine.
         }
@@ -188,7 +186,7 @@ final class ImportConnectorTest extends TestCase
         $connector->setRecoverableExceptionHandler(self::createAsyncRecoverableExceptionHandler());
 
         try {
-            wait($connector->fetchAsync($this->asyncSource));
+            $connector->fetchAsync($this->asyncSource);
         } catch (FailingTooHardException $exception) {
             // This is fine.
         }
@@ -212,8 +210,6 @@ final class ImportConnectorTest extends TestCase
 
     private static function createAsyncRecoverableExceptionHandler(): RecoverableExceptionHandler
     {
-        return new StatelessRecoverableExceptionHandler(static function () {
-            return MockFactory::mockPromise();
-        });
+        return new StatelessRecoverableExceptionHandler(fn () => null);
     }
 }

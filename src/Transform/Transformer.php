@@ -16,5 +16,5 @@ interface Transformer extends AnysyncTransformer
      * @param RecordCollection $records Record collection.
      * @param mixed $context Context data.
      */
-    public function transform(RecordCollection $records, $context): RecordCollection;
+    public function transform(RecordCollection $records, mixed $context): RecordCollection;
 }

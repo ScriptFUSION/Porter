@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace ScriptFUSION\Porter\Provider\Resource;
 
-use Amp\Iterator;
 use ScriptFUSION\Porter\Connector\ImportConnector;
 
 /**
@@ -23,7 +22,7 @@ interface AsyncResource
      *
      * @param ImportConnector $connector Connector.
      *
-     * @return Iterator Enumerable data series.
+     * @return \Iterator Enumerable data series.
      */
-    public function fetchAsync(ImportConnector $connector): Iterator;
+    public function fetchAsync(ImportConnector $connector): \Iterator;
 }

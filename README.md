@@ -5,7 +5,7 @@ Porter <img src="https://github.com/ScriptFUSION/Porter/blob/master/docs/images/
 [![Latest version][Version image]][Releases]
 [![Total downloads][Downloads image]][Downloads]
 [![Build status][Build image]][Build]
-[![Mutation score][MSI image]][Build]
+[![Mutation score][MSI image]][MSI report]
 [![Test coverage][Coverage image]][Coverage]
 
 ### Scalable and durable data imports for publishing and consuming APIs
@@ -527,6 +527,7 @@ Porter is published under the open source GNU Lesser General Public License v3.0
   [Build]: http://travis-ci.com/ScriptFUSION/Porter
   [Build image]: https://travis-ci.com/ScriptFUSION/Porter.svg?branch=master "Build status"
   [MSI image]: https://badge.stryker-mutator.io/github.com/ScriptFUSION/Porter/master
+  [MSI report]: https://dashboard.stryker-mutator.io/github.com/ScriptFUSION/Porter/master
   [Coverage]: https://codecov.io/gh/ScriptFUSION/Porter
   [Coverage image]: https://codecov.io/gh/ScriptFUSION/Porter/branch/master/graphs/badge.svg "Test coverage"
   
