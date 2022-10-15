@@ -13,10 +13,8 @@ class MemoryCache extends \ArrayObject implements CacheItemPoolInterface
 {
     /**
      * @param string $key
-     *
-     * @return mixed
      */
-    public function getItem($key)
+    public function getItem($key): mixed
     {
         return \Closure::bind(
             function () use ($key): self {

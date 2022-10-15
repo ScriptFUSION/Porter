@@ -22,45 +22,14 @@ abstract class PorterTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 
-    /**
-     * @var Porter
-     */
-    protected $porter;
-
-    /**
-     * @var Provider|AsyncProvider|MockInterface
-     */
-    protected $provider;
-
-    /**
-     * @var ProviderResource|AsyncResource|MockInterface
-     */
-    protected $resource;
-
-    /**
-     * @var ProviderResource|AsyncResource|MockInterface
-     */
-    protected $singleResource;
-
-    /**
-     * @var Connector|AsyncConnector|MockInterface
-     */
-    protected $connector;
-
-    /**
-     * @var ImportSpecification|AsyncImportSpecification
-     */
-    protected $specification;
-
-    /**
-     * @var ImportSpecification|AsyncImportSpecification
-     */
-    protected $singleSpecification;
-
-    /**
-     * @var ContainerInterface|MockInterface
-     */
-    protected $container;
+    protected Porter $porter;
+    protected Provider|AsyncProvider|MockInterface $provider;
+    protected ProviderResource|AsyncResource|MockInterface $resource;
+    protected ProviderResource|AsyncResource|MockInterface $singleResource;
+    protected Connector|AsyncConnector|MockInterface $connector;
+    protected ImportSpecification|AsyncImportSpecification $specification;
+    protected ImportSpecification|AsyncImportSpecification $singleSpecification;
+    protected ContainerInterface|MockInterface $container;
 
     protected function setUp(): void
     {
@@ -76,11 +45,7 @@ abstract class PorterTest extends TestCase
         $this->singleSpecification = new ImportSpecification($this->singleResource);
     }
 
-    /**
-     * @param Provider|AsyncProvider $provider
-     * @param string|null $name
-     */
-    protected function registerProvider($provider, string $name = null): void
+    protected function registerProvider(Provider|AsyncProvider $provider, string $name = null): void
     {
         $name = $name ?? \get_class($provider);
 

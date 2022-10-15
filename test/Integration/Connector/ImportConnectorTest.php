@@ -22,11 +22,9 @@ final class ImportConnectorTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 
-    /** @var DataSource|MockInterface */
-    private $source;
+    private DataSource|MockInterface $source;
 
-    /** @var AsyncDataSource|MockInterface */
-    private $asyncSource;
+    private AsyncDataSource|MockInterface $asyncSource;
 
     protected function setUp(): void
     {

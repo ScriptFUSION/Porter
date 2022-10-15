@@ -13,7 +13,7 @@ use ScriptFUSION\Porter\Transform\Transformer;
  */
 class ImportSpecification extends Specification
 {
-    private $resource;
+    private ProviderResource $resource;
 
     /**
      * Initializes this instance with the specified resource.

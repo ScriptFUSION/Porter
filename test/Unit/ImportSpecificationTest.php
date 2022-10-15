@@ -16,11 +16,9 @@ use ScriptFUSION\Porter\Transform\Transformer;
  */
 final class ImportSpecificationTest extends TestCase
 {
-    /** @var ImportSpecification */
-    private $specification;
+    private ImportSpecification $specification;
 
-    /** @var ProviderResource */
-    private $resource;
+    private ProviderResource $resource;
 
     protected function setUp(): void
     {
@@ -148,12 +146,9 @@ final class ImportSpecificationTest extends TestCase
     }
 
     /**
-     * @param mixed $value
-     * @param string $exceptionType
-     *
      * @dataProvider provideInvalidFetchAttempts
      */
-    public function testInvalidMaxFetchAttempts($value, string $exceptionType): void
+    public function testInvalidMaxFetchAttempts(int|float $value, string $exceptionType): void
     {
         $this->expectException($exceptionType);
         $this->specification->setMaxFetchAttempts($value);

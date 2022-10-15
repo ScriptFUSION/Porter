@@ -17,11 +17,9 @@ use ScriptFUSION\Porter\Transform\Transformer;
  */
 final class AsyncImportSpecificationTest extends TestCase
 {
-    /** @var AsyncImportSpecification */
-    private $specification;
+    private AsyncImportSpecification $specification;
 
-    /** @var AsyncResource */
-    private $resource;
+    private AsyncResource $resource;
 
     protected function setUp(): void
     {

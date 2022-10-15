@@ -10,21 +10,18 @@ abstract class Specification
 {
     public const DEFAULT_FETCH_ATTEMPTS = 5;
 
-    /** @var string|null */
-    private $providerName;
+    private ?string $providerName = null;
 
     /** @var AnysyncTransformer[] */
-    private $transformers;
+    private array $transformers;
 
-    /** @var mixed */
-    private $context;
+    private mixed $context = null;
 
-    private $mustCache = false;
+    private bool $mustCache = false;
 
-    private $maxFetchAttempts = self::DEFAULT_FETCH_ATTEMPTS;
+    private int $maxFetchAttempts = self::DEFAULT_FETCH_ATTEMPTS;
 
-    /** @var RecoverableExceptionHandler */
-    private $recoverableExceptionHandler;
+    private RecoverableExceptionHandler $recoverableExceptionHandler;
 
     public function __construct()
     {
@@ -42,7 +39,7 @@ abstract class Specification
         ));
 
         \is_object($this->context) && $this->context = clone $this->context;
-        $this->recoverableExceptionHandler &&
+        isset($this->recoverableExceptionHandler) &&
             $this->recoverableExceptionHandler = clone $this->recoverableExceptionHandler;
     }
 
@@ -138,7 +135,7 @@ abstract class Specification
      *
      * @deprecated TODO: Evaluate whether context can be removed.
      */
-    final public function getContext()
+    final public function getContext(): mixed
     {
         return $this->context;
     }
@@ -152,7 +149,7 @@ abstract class Specification
      *
      * @deprecated TODO: Evaluate whether context can be removed.
      */
-    final public function setContext($context): self
+    final public function setContext(mixed $context): self
     {
         $this->context = $context;
 
@@ -228,7 +225,7 @@ abstract class Specification
      */
     final public function getRecoverableExceptionHandler(): RecoverableExceptionHandler
     {
-        return $this->recoverableExceptionHandler ?:
+        return $this->recoverableExceptionHandler ??
             $this->recoverableExceptionHandler = static::createDefaultRecoverableExceptionHandler();
     }
 

@@ -8,7 +8,7 @@ use ScriptFUSION\Porter\Connector\NullConnector;
 
 class StaticDataProvider implements Provider
 {
-    private $connector;
+    private Connector $connector;
 
     public function __construct()
     {

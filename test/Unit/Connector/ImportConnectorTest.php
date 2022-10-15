@@ -23,8 +23,7 @@ final class ImportConnectorTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 
-    /** @var DataSource|MockInterface */
-    private $source;
+    private DataSource|MockInterface $source;
 
     protected function setUp(): void
     {
@@ -129,7 +128,7 @@ final class ImportConnectorTest extends TestCase
      */
     public function testSetExceptionHandlerTwice(): void
     {
-        $connector = FixtureFactory::buildImportConnector($wrappedConnector = \Mockery::mock(Connector::class));
+        $connector = FixtureFactory::buildImportConnector(\Mockery::mock(Connector::class));
 
         $connector->setRecoverableExceptionHandler(
             $handler = \Mockery::mock(RecoverableExceptionHandler::class)

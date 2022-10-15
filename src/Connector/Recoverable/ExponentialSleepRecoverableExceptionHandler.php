@@ -10,12 +10,7 @@ use ScriptFUSION\Retry\ExceptionHandler\ExponentialBackoffExceptionHandler;
  */
 class ExponentialSleepRecoverableExceptionHandler implements RecoverableExceptionHandler
 {
-    private $initialDelay;
-
-    /**
-     * @var ExponentialBackoffExceptionHandler
-     */
-    private $handler;
+    private ExponentialBackoffExceptionHandler $handler;
 
     /**
      * Initializes this instance with the specified initial delay. The initial delay will be used when the first
@@ -23,9 +18,9 @@ class ExponentialSleepRecoverableExceptionHandler implements RecoverableExceptio
      *
      * @param int $initialDelay Initial delay in microseconds.
      */
-    public function __construct(int $initialDelay = ExponentialBackoffExceptionHandler::DEFAULT_COEFFICIENT)
-    {
-        $this->initialDelay = $initialDelay;
+    public function __construct(
+        private readonly int $initialDelay = ExponentialBackoffExceptionHandler::DEFAULT_COEFFICIENT
+    ) {
     }
 
     public function initialize(): void

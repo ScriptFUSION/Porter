@@ -10,10 +10,9 @@ use ScriptFUSION\Porter\Cache\MemoryCache;
 
 final class MemoryCacheTest extends TestCase
 {
-    /** @var MemoryCache */
-    private $cache;
+    private MemoryCache $cache;
 
-    private $items;
+    private array $items;
 
     protected function setUp(): void
     {

@@ -15,5 +15,5 @@ interface Connector
      *
      * @return mixed Data.
      */
-    public function fetch(DataSource $source);
+    public function fetch(DataSource $source): mixed;
 }

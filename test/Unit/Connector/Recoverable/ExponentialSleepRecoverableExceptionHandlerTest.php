@@ -12,11 +12,9 @@ use ScriptFUSIONTest\Stubs\TestRecoverableException;
  */
 final class ExponentialSleepRecoverableExceptionHandlerTest extends TestCase
 {
-    /** @var ExponentialSleepRecoverableExceptionHandler */
-    private $handler;
+    private ExponentialSleepRecoverableExceptionHandler $handler;
 
-    /** @var TestRecoverableException */
-    private $exception;
+    private TestRecoverableException $exception;
 
     protected function setUp(): void
     {

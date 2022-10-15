@@ -8,10 +8,7 @@ use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 
 final class TestRecoverableExceptionHandler implements RecoverableExceptionHandler
 {
-    /**
-     * @var \Generator
-     */
-    private $series;
+    private \Generator $series;
 
     public function initialize(): void
     {

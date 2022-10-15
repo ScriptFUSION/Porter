@@ -8,11 +8,8 @@ use ScriptFUSION\Porter\Provider\StaticDataProvider;
 
 class StaticResource implements ProviderResource
 {
-    private $data;
-
-    public function __construct(\Iterator $data)
+    public function __construct(private readonly \Iterator $data)
     {
-        $this->data = $data;
     }
 
     public function getProviderClassName(): string

@@ -16,5 +16,5 @@ interface AsyncTransformer extends AnysyncTransformer
      * @param AsyncRecordCollection $records Asynchronous Record collection.
      * @param mixed $context Context data.
      */
-    public function transformAsync(AsyncRecordCollection $records, $context): AsyncRecordCollection;
+    public function transformAsync(AsyncRecordCollection $records, mixed $context): AsyncRecordCollection;
 }

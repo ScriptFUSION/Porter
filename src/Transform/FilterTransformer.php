@@ -32,7 +32,7 @@ class FilterTransformer implements Transformer, AsyncTransformer
         return new FilteredRecords($filter($this->filter), $records, $filter);
     }
 
-    public function transformAsync(AsyncRecordCollection $records, $context): AsyncRecordCollection
+    public function transformAsync(AsyncRecordCollection $records, mixed $context): AsyncRecordCollection
     {
         return new AsyncFilteredRecords(
             (fn () => yield from $this->transform($records, $context))(),

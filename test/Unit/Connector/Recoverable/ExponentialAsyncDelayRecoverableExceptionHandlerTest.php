@@ -12,11 +12,9 @@ use ScriptFUSIONTest\Stubs\TestRecoverableException;
  */
 final class ExponentialAsyncDelayRecoverableExceptionHandlerTest extends TestCase
 {
-    /** @var ExponentialAsyncDelayRecoverableExceptionHandler */
-    private $handler;
+    private ExponentialAsyncDelayRecoverableExceptionHandler $handler;
 
-    /** @var TestRecoverableException */
-    private $exception;
+    private TestRecoverableException $exception;
 
     protected function setUp(): void
     {

@@ -5,8 +5,7 @@ namespace ScriptFUSION\Porter;
 
 trait PorterAwareTrait
 {
-    /** @var Porter */
-    private $porter;
+    private Porter $porter;
 
     private function getPorter(): Porter
     {

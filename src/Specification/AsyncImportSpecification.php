@@ -15,20 +15,15 @@ use ScriptFUSION\Porter\Transform\AsyncTransformer;
  */
 class AsyncImportSpecification extends Specification
 {
-    private $asyncResource;
-
-    /** @var Throttle */
-    private $throttle;
+    private Throttle $throttle;
 
     /**
      * Initializes this instance with the specified asynchronous resource.
      *
-     * @param AsyncResource $resource Asynchronous resource.
+     * @param AsyncResource $asyncResource Asynchronous resource.
      */
-    public function __construct(AsyncResource $resource)
+    public function __construct(private AsyncResource $asyncResource)
     {
-        $this->asyncResource = $resource;
-
         parent::__construct();
     }
 

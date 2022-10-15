@@ -7,7 +7,7 @@ use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 
 class ProviderRecords extends RecordCollection
 {
-    private $resource;
+    private ProviderResource $resource;
 
     public function __construct(\Iterator $providerRecords, ProviderResource $resource)
     {

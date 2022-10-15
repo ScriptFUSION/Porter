@@ -9,8 +9,7 @@ use ScriptFUSION\Porter\Cache\NotImplementedException;
 
 final class CacheItemTest extends TestCase
 {
-    /** @var CacheItem */
-    private $item;
+    private CacheItem $item;
 
     protected function setUp(): void
     {

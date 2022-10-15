@@ -10,12 +10,7 @@ use ScriptFUSION\Retry\ExceptionHandler\AsyncExponentialBackoffExceptionHandler;
  */
 class ExponentialAsyncDelayRecoverableExceptionHandler implements RecoverableExceptionHandler
 {
-    private $initialDelay;
-
-    /**
-     * @var AsyncExponentialBackoffExceptionHandler
-     */
-    private $handler;
+    private AsyncExponentialBackoffExceptionHandler $handler;
 
     /**
      * Initializes this instance with the specified initial delay. The initial delay will be used when the first
@@ -23,9 +18,9 @@ class ExponentialAsyncDelayRecoverableExceptionHandler implements RecoverableExc
      *
      * @param int $initialDelay Initial delay in milliseconds.
      */
-    public function __construct(int $initialDelay = AsyncExponentialBackoffExceptionHandler::DEFAULT_COEFFICIENT)
-    {
-        $this->initialDelay = $initialDelay;
+    public function __construct(
+        private readonly int $initialDelay = AsyncExponentialBackoffExceptionHandler::DEFAULT_COEFFICIENT
+    ) {
     }
 
     public function initialize(): void

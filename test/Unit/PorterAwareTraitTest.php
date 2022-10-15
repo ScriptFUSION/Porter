@@ -20,7 +20,6 @@ final class PorterAwareTraitTest extends TestCase
             $porter,
             \Closure::bind(
                 function (): Porter {
-                    /** @var PorterAwareTrait $this */
                     return $this->getPorter();
                 },
                 $porterAware,

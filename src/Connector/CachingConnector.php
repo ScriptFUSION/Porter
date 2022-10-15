@@ -16,21 +16,12 @@ class CachingConnector implements Connector, ConnectorWrapper
 {
     public const RESERVED_CHARACTERS = '{}()/\@:';
 
-    /**
-     * @var Connector
-     */
-    private $connector;
-
-    /**
-     * @var CacheItemPoolInterface
-     */
-    private $cache;
+    private CacheItemPoolInterface $cache;
 
     public function __construct(
-        Connector $connector,
+        private Connector $connector,
         CacheItemPoolInterface $cache = null
     ) {
-        $this->connector = $connector;
         $this->cache = $cache ?: new MemoryCache;
     }
 
@@ -45,7 +36,7 @@ class CachingConnector implements Connector, ConnectorWrapper
     /**
      * @throws InvalidCacheKeyException Cache key contains invalid data.
      */
-    public function fetch(DataSource $source)
+    public function fetch(DataSource $source): mixed
     {
         $this->validateCacheKey($key = $source->computeHash());
 
