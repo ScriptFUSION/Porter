@@ -526,8 +526,8 @@ Porter is published under the open source GNU Lesser General Public License v3.0
   [Downloads image]: https://poser.pugx.org/scriptfusion/porter/downloads "Total downloads"
   [Build]: https://github.com/ScriptFUSION/Porter/actions/workflows/Tests.yaml
   [Build image]: https://github.com/ScriptFUSION/Porter/actions/workflows/Tests.yaml/badge.svg "Build status"
-  [MSI image]: https://badge.stryker-mutator.io/github.com/ScriptFUSION/Porter/master
-  [MSI report]: https://dashboard.stryker-mutator.io/github.com/ScriptFUSION/Porter/master
+  [MSI image]: https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2FScriptFUSION%2FPorter%2Fmaster
+  [MSI report]: https://dashboard.stryker-mutator.io/reports/github.com/ScriptFUSION/Porter/master
   [Coverage]: https://codecov.io/gh/ScriptFUSION/Porter
   [Coverage image]: https://codecov.io/gh/ScriptFUSION/Porter/branch/master/graphs/badge.svg "Test coverage"
   
