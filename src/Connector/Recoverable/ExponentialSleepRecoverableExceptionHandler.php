@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace ScriptFUSION\Porter\Connector\Recoverable;
 
-use Amp\Promise;
 use ScriptFUSION\Retry\ExceptionHandler\ExponentialBackoffExceptionHandler;
 
 /**
@@ -34,10 +33,8 @@ class ExponentialSleepRecoverableExceptionHandler implements RecoverableExceptio
         $this->handler = new ExponentialBackoffExceptionHandler($this->initialDelay);
     }
 
-    public function __invoke(RecoverableException $exception): ?Promise
+    public function __invoke(RecoverableException $exception): void
     {
         ($this->handler)();
-
-        return null;
     }
 }

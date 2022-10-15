@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace ScriptFUSION\Porter\Connector\Recoverable;
 
-use Amp\Promise;
-
 /**
  * Provides methods for handling recoverable exceptions.
  *
@@ -28,11 +26,10 @@ interface RecoverableExceptionHandler
     public function initialize(): void;
 
     /**
-     * Handles a recoverable exception. Return value is ignored unless it's a promise.
+     * Handles a recoverable exception. The handler may either throw its own exception to abort the import, or ignore
+     * the exception to continue retrying the import.
      *
      * @param RecoverableException $exception Recoverable exception.
-     *
-     * @return Promise|null Promise that responds with an asynchronous delay or null.
      */
-    public function __invoke(RecoverableException $exception): ?Promise;
+    public function __invoke(RecoverableException $exception): void;
 }

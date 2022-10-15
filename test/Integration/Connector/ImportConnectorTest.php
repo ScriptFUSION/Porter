@@ -103,22 +103,6 @@ final class ImportConnectorTest extends TestCase
     }
 
     /**
-     * Tests that a recoverable exception handler cannot return false.
-     */
-    public function testExceptionHandlerCannotCancelRetries(): void
-    {
-        $this->expectException(\TypeError::class);
-
-        FixtureFactory::buildImportConnector(
-            \Mockery::mock(Connector::class)
-                ->shouldReceive('fetch')
-                ->andThrow(new TestRecoverableException)
-                ->getMock(),
-            new StatelessRecoverableExceptionHandler(fn () => false)
-        )->fetch($this->source);
-    }
-
-    /**
      * Tests that when a user recoverable exception handler throws an exception, the handler's exception can be
      * captured.
      */
