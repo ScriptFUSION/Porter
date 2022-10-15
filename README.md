@@ -69,11 +69,11 @@ About this manual
 
 Those wishing to consume a Porter provider create one instance of `Porter` for their application and an instance of `ImportSpecification` for each data import they wish to perform. Those publishing providers must implement `Provider` and `ProviderResource`.
 
-The first half of this manual covers Porter's main API for consuming data services. The second half covers architecture, interface and implementation details for publishing data services. There's an intermission in-between so you'll know where the separation is!
+The first half of this manual covers Porter's main API for consuming data services. The second half covers architecture, interface and implementation details for publishing data services. There's an intermission in-between, so you'll know where the separation is!
 
 Text marked as `inline code` denotes literal code, as it would appear in a PHP file. For example, `Porter` refers specifically to the class of the same name within this library, whereas *Porter* refers to this project as a whole.
 
-Porter has a dual API for the synchronous and asynchronous workflow dichotomy. Almost every Porter feature has an asynchronous equivalent. You will need to choose which you prefer to use. Most examples in this manual are for the synchronous API, for brevity and simplicity, but the asynchronous version will invariably be similar. Working synchronously may be easier when getting started but you are encouraged to use the async API if you are able, to reap its benefits.
+Porter has a dual API for the synchronous and asynchronous workflow dichotomy. Almost every Porter feature has an asynchronous equivalent. You will need to choose which you prefer to use. Most examples in this manual are for the synchronous API, for brevity and simplicity, but the asynchronous version will invariably be similar. Working synchronously may be easier when getting started, but you are encouraged to use the async API if you are able, to reap its benefits.
 
 Usage
 -----
@@ -134,12 +134,12 @@ The following data flow diagram gives a high level overview of Porter's main int
 
 </div>
 
-Our application calls `Porter::import()` with an `ImportSpecification` and receives `PorterRecords` back. Everything else happens internally so we don't need to worry about it unless writing custom providers, resources or connectors.
+Our application calls `Porter::import()` with an `ImportSpecification` and receives `PorterRecords` back. Everything else happens internally, so we don't need to worry about it unless writing custom providers, resources or connectors.
 
 Import specifications
 ---------------------
 
-Import specifications specify *what* to import, *how* it should be [transformed](#transformers) and whether to use [caching](#caching). In synchronous code, create an new instance of `ImportSpecification` and pass a `ProviderResource` that specifies the resource we want to import. In Asynchronous code, create `AsyncImportSpecification` instead.
+Import specifications specify *what* to import, *how* it should be [transformed](#transformers) and whether to use [caching](#caching). In synchronous code, create a new instance of `ImportSpecification` and pass a `ProviderResource` that specifies the resource we want to import. In Asynchronous code, create `AsyncImportSpecification` instead.
 
 Options may be configured using the methods below.
 
@@ -232,14 +232,14 @@ public function transformAsync(AsyncRecordCollection $records, mixed $context): 
 
 When `transform()` or `transformAsync()` is called the transformer may iterate each record and change it in any way, including removing or inserting additional records. The record collection must be returned by the method, whether or not changes were made.
 
-Transformers should also implement the `__clone` magic method if the they store any object state, in order to facilitate deep copy when Porter clones the owning `ImportSpecification` during import.
+Transformers should also implement the `__clone` magic method if they store any object state, in order to facilitate deep copy when Porter clones the owning `ImportSpecification` during import.
 
 Filtering
 ---------
 
 Filtering provides a way to remove some records. For each record, if the specified predicate function returns `false` (or a falsy value), the record will be removed, otherwise the record will be kept. The predicate receives the current record as an array as its first parameter and context as its second parameter.
 
-In general we would like to avoid filtering because it is inefficient to import data and then immediately remove some of it, but some immature APIs do not provide a way to reduce the data set on the server, so filtering on the client is the only alternative. Filtering also invalidates the record count reported by some resources, meaning we no longer know how many records are in the collection before iteration.
+In general, we would like to avoid filtering because it is inefficient to import data and then immediately remove some of it, but some immature APIs do not provide a way to reduce the data set on the server, so filtering on the client is the only alternative. Filtering also invalidates the record count reported by some resources, meaning we no longer know how many records are in the collection before iteration.
 
 ### Example
 
@@ -330,7 +330,7 @@ Providers must implement the `Provider` interface and supply a valid connector w
 
 #### Implementation example
 
-In the following example we create a provider that only accepts `HttpConnector` instances. We also create a default connector in case one is not supplied. Note it is not always possible to create a default connector and it is perfectly valid to insist the caller supplies a connector.
+In the following example we create a provider that only accepts `HttpConnector` instances. We also create a default connector in case one is not supplied. Note it is not always possible to create a default connector, and it is perfectly valid to insist the caller supplies a connector.
 
 ```php
 final class MyProvider implements Provider
@@ -511,7 +511,7 @@ Everyone is welcome to contribute anything, from [ideas and issues][Issues] to [
 License
 -------
 
-Porter is published under the open source GNU Lesser General Public License v3.0. However, the original Porter character and artwork is copyright &copy; 2019 [Bilge](https://github.com/Bilge) and may not be reproduced or modified without express written permission.
+Porter is published under the open source GNU Lesser General Public License v3.0. However, the original Porter character and artwork is copyright &copy; 2022 [Bilge](https://github.com/Bilge) and may not be reproduced or modified without express written permission.
 
 ###### Quick links
 

@@ -10,9 +10,7 @@ use ScriptFUSION\Porter\Connector\AsyncDataSource;
 use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Connector\DataSource;
 use ScriptFUSION\Porter\Connector\ImportConnector;
-use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandler;
-use ScriptFUSION\Retry\FailingTooHardException;
 use ScriptFUSIONTest\FixtureFactory;
 use ScriptFUSIONTest\Stubs\TestRecoverableException;
 use ScriptFUSIONTest\Stubs\TestRecoverableExceptionHandler;
@@ -64,7 +62,7 @@ final class ImportConnectorTest extends TestCase
             $connector = FixtureFactory::buildImportConnector(
                 \Mockery::mock(Connector::class)
                     ->shouldReceive('fetch')
-                    ->andReturnUsing($this->createExceptionThrowingClosure())
+                    ->andReturnUsing(self::createExceptionThrowingClosure())
                     ->getMock(),
                 $handler
             ),
@@ -97,9 +95,7 @@ final class ImportConnectorTest extends TestCase
         self::assertSame(
             $handler,
             \Closure::bind(
-                function (): RecoverableExceptionHandler {
-                    return $this->userExceptionHandler;
-                },
+                fn () => $this->userExceptionHandler,
                 $connector,
                 $connector
             )()
@@ -118,14 +114,13 @@ final class ImportConnectorTest extends TestCase
                 ->shouldReceive('fetch')
                 ->andThrow(new TestRecoverableException)
                 ->getMock(),
-            new StatelessRecoverableExceptionHandler(static function () {
-                return false;
-            })
+            new StatelessRecoverableExceptionHandler(fn () => false)
         )->fetch($this->source);
     }
 
     /**
-     * Tests that when a user recoverable exception handler returns a promise, the promise is resolved.
+     * Tests that when a user recoverable exception handler throws an exception, the handler's exception can be
+     * captured.
      */
     public function testAsyncUserRecoverableExceptionHandler(): void
     {
@@ -134,20 +129,21 @@ final class ImportConnectorTest extends TestCase
                 ->shouldReceive('fetchAsync')
                 ->andThrow(new TestRecoverableException)
                 ->getMock(),
-            self::createAsyncRecoverableExceptionHandler()
+            new StatelessRecoverableExceptionHandler(
+                self::createExceptionThrowingClosure($exception = new TestRecoverableException)
+            )
         );
 
         try {
             $connector->fetchAsync($this->asyncSource);
-        } catch (FailingTooHardException $exception) {
-            // This is fine.
+        } catch (\Exception $e) {
+            self::assertSame($exception, $e);
         }
-
-        self::assertTrue(isset($exception));
     }
 
     /**
-     * Tests that when a resource recoverable exception handler returns a promise, the promise is resolved.
+     * Tests that when a resource recoverable exception handler throws an exception, the handler's exception can be
+     * captured.
      */
     public function testAsyncResourceRecoverableExceptionHandler(): void
     {
@@ -158,20 +154,20 @@ final class ImportConnectorTest extends TestCase
                 ->getMock()
         );
 
-        $connector->setRecoverableExceptionHandler(self::createAsyncRecoverableExceptionHandler());
+        $connector->setRecoverableExceptionHandler(new StatelessRecoverableExceptionHandler(
+            self::createExceptionThrowingClosure($exception = new TestRecoverableException)
+        ));
 
         try {
             $connector->fetchAsync($this->asyncSource);
-        } catch (FailingTooHardException $exception) {
-            // This is fine.
+        } catch (\Exception $e) {
+            self::assertSame($exception, $e);
         }
-
-        self::assertTrue(isset($exception));
     }
 
     /**
-     * Tests that when user and resource recoverable exception handlers both return promises, both promises are
-     * resolved.
+     * Tests that when user and resource recoverable exception handlers are both set, both handlers are invoked,
+     * resource handler first and user handler second.
      */
     public function testAsyncUserAndResourceRecoverableExceptionHandlers(): void
     {
@@ -180,36 +176,37 @@ final class ImportConnectorTest extends TestCase
                 ->shouldReceive('fetchAsync')
                 ->andThrow(new TestRecoverableException)
                 ->getMock(),
-            self::createAsyncRecoverableExceptionHandler()
+            new StatelessRecoverableExceptionHandler(self::createExceptionThrowingClosure($e2 = new \Exception))
         );
 
-        $connector->setRecoverableExceptionHandler(self::createAsyncRecoverableExceptionHandler());
+        $connector->setRecoverableExceptionHandler(new StatelessRecoverableExceptionHandler(
+            self::createExceptionThrowingClosure($e1 = new \Exception())
+        ));
 
         try {
             $connector->fetchAsync($this->asyncSource);
-        } catch (FailingTooHardException $exception) {
-            // This is fine.
+        } catch (\Exception $exception) {
+            self::assertSame($e1, $exception);
         }
 
-        self::assertTrue(isset($exception));
+        try {
+            $connector->fetchAsync($this->asyncSource);
+        } catch (\Exception $exception) {
+            self::assertSame($e2, $exception);
+        }
     }
 
     /**
      * Creates a closure that only throws an exception on the first invocation.
      */
-    private static function createExceptionThrowingClosure(): \Closure
+    private static function createExceptionThrowingClosure(\Exception $exception = null): \Closure
     {
-        return static function (): void {
+        return static function () use ($exception): void {
             static $invocationCount;
 
             if (!$invocationCount++) {
-                throw new TestRecoverableException;
+                throw $exception ?? new TestRecoverableException;
             }
         };
-    }
-
-    private static function createAsyncRecoverableExceptionHandler(): RecoverableExceptionHandler
-    {
-        return new StatelessRecoverableExceptionHandler(fn () => null);
     }
 }

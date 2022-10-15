@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace ScriptFUSIONTest;
 
-use Amp\Future;
 use Mockery\MockInterface;
 use ScriptFUSION\Async\Throttle\Throttle;
 use ScriptFUSION\Porter\Connector\AsyncConnector;
@@ -17,6 +16,7 @@ use ScriptFUSION\Porter\Provider\Resource\AsyncResource;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Provider\Resource\SingleRecordResource;
 use ScriptFUSION\StaticClass;
+use function Amp\async;
 use function Amp\delay;
 
 final class MockFactory
@@ -92,7 +92,7 @@ final class MockFactory
     {
         return \Mockery::mock(Throttle::class)
             ->allows('watch')
-                ->andReturnUsing(fn (\Closure $closure, mixed ...$args) => $closure($args))
+                ->andReturnUsing(fn (\Closure $closure, mixed ...$args) => async($closure, ...$args))
                 ->byDefault()
             ->getMock()
         ;

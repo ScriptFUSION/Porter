@@ -3,3 +3,4 @@
 !/.github/
 /composer.lock
 /*.log
+.phpunit.result.cache
