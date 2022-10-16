@@ -73,8 +73,8 @@ final class PorterSyncTest extends PorterTest
     {
         $records = $this->porter->import(
             (new StaticDataImportSpecification(
-                new \ArrayIterator(range(1, 10))
-            ))->addTransformer(new FilterTransformer((__METHOD__)(...)))
+                new \ArrayIterator(array_map(fn ($i) => [$i], range(1, 10)))
+            ))->addTransformer(new FilterTransformer(fn () => true))
         );
 
         // Innermost collection.
@@ -103,6 +103,23 @@ final class PorterSyncTest extends PorterTest
     }
 
     /**
+     * Tests that when importing records implemented using deferred execution with generators, the generator runs up
+     * to the first suspension point instead of being paused at the start.
+     */
+    public function testImportGenerator(): void
+    {
+        $this->resource->expects('fetch')->andReturnUsing(function () use (&$init): \Generator {
+            $init = true;
+
+            yield [];
+        });
+
+        $this->porter->import($this->specification);
+
+        self::assertTrue($init);
+    }
+
+    /**
      * Tests that when a Transformer is PorterAware it receives the Porter instance that invoked it.
      */
     public function testPorterAwareTransformer(): void
@@ -114,7 +131,7 @@ final class PorterSyncTest extends PorterTest
                         ->with($this->porter)
                         ->once()
                     ->shouldReceive('transform')
-                        ->andReturn(\Mockery::mock(RecordCollection::class))
+                        ->andReturn(\Mockery::spy(RecordCollection::class))
                     ->getMock()
             )
         );

@@ -19,7 +19,7 @@ final class AsyncPorterRecordsTest extends TestCase
     public function testGetSpecification(): void
     {
         $records = new AsyncPorterRecords(
-            \Mockery::mock(AsyncRecordCollection::class),
+            \Mockery::spy(AsyncRecordCollection::class),
             $specification = \Mockery::mock(AsyncImportSpecification::class)
         );
 

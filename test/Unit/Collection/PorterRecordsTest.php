@@ -19,7 +19,7 @@ final class PorterRecordsTest extends TestCase
     public function testGetSpecification(): void
     {
         $records = new PorterRecords(
-            \Mockery::mock(RecordCollection::class),
+            \Mockery::spy(RecordCollection::class),
             $specification = \Mockery::mock(ImportSpecification::class)
         );
 

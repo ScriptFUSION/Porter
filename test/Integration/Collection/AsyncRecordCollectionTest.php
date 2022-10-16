@@ -19,7 +19,7 @@ final class AsyncRecordCollectionTest extends TestCase
     public function testGetPreviousCollection(): void
     {
         $records = new AsyncPorterRecords(
-            $previous = \Mockery::mock(AsyncRecordCollection::class),
+            $previous = \Mockery::spy(AsyncRecordCollection::class),
             \Mockery::mock(AsyncImportSpecification::class)
         );
 
@@ -33,7 +33,7 @@ final class AsyncRecordCollectionTest extends TestCase
     public function testFindFirstCollection(): void
     {
         $collection3 = new AsyncFilteredRecords(
-            $iterator = \Mockery::mock(\Iterator::class),
+            $iterator = \Mockery::spy(\Iterator::class),
             $collection2 = new AsyncPorterRecords(
                 $collection1 =
                     new AsyncProviderRecords($iterator, \Mockery::mock(AsyncResource::class)),

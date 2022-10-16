@@ -7,13 +7,12 @@ use ScriptFUSION\Porter\Specification\ImportSpecification;
 
 class PorterRecords extends RecordCollection
 {
-    private ImportSpecification $specification;
-
-    public function __construct(RecordCollection $records, ImportSpecification $specification)
+    public function __construct(RecordCollection $records, private readonly ImportSpecification $specification)
     {
         parent::__construct($records, $records);
 
-        $this->specification = $specification;
+        // Force generators to run to first suspension point.
+        $records->valid();
     }
 
     public function getSpecification(): ImportSpecification

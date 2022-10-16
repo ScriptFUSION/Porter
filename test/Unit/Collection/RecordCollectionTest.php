@@ -20,11 +20,6 @@ final class RecordCollectionTest extends TestCase
      */
     public function testFindFirstCollection(): void
     {
-        /**
-         * @var RecordCollection $collection1
-         * @var RecordCollection $collection2
-         * @var RecordCollection $collection3
-         */
         $collection3 = \Mockery::mock(
             RecordCollection::class,
             [

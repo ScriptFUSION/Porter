@@ -7,13 +7,14 @@ use ScriptFUSION\Porter\Specification\AsyncImportSpecification;
 
 class AsyncPorterRecords extends AsyncRecordCollection
 {
-    private AsyncImportSpecification $specification;
-
-    public function __construct(AsyncRecordCollection $records, AsyncImportSpecification $specification)
-    {
+    public function __construct(
+        AsyncRecordCollection $records,
+        private readonly AsyncImportSpecification $specification
+    ) {
         parent::__construct($records, $records);
 
-        $this->specification = $specification;
+        // Force generators to run to first suspension point.
+        $records->valid();
     }
 
     public function getSpecification(): AsyncImportSpecification

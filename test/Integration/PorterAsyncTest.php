@@ -64,6 +64,23 @@ final class PorterAsyncTest extends PorterTest
     }
 
     /**
+     * Tests that when importing records implemented using deferred execution with generators, the generator runs up
+     * to the first suspension point instead of being paused at the start.
+     */
+    public function testImportGenerator(): void
+    {
+        $this->resource->expects('fetchAsync')->andReturnUsing(function () use (&$init): \Generator {
+            $init = true;
+
+            yield [];
+        });
+
+        $this->porter->importAsync($this->specification);
+
+        self::assertTrue($init);
+    }
+
+    /**
      * Tests that the full async import path, via connector, resource and provider, fetches one record correctly.
      */
     public function testImportOneAsync(): void
@@ -186,7 +203,7 @@ final class PorterAsyncTest extends PorterTest
                         ->with($this->porter)
                         ->once()
                     ->shouldReceive('transformAsync')
-                        ->andReturn(\Mockery::mock(AsyncRecordCollection::class))
+                        ->andReturn(\Mockery::spy(AsyncRecordCollection::class))
                     ->getMock()
             )
         );

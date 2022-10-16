@@ -21,7 +21,7 @@
   },
   "require-dev": {
     "infection/infection": ">=0.26,<0.27",
-    "mockery/mockery": "^1.4.2",
+    "mockery/mockery": "^1.5",
     "phpunit/phpunit": "^9.5.23"
   },
   "suggest" : {
