@@ -119,7 +119,7 @@ final class ImportConnectorTest extends TestCase
         try {
             $connector->fetchAsync($this->asyncSource);
         } catch (\Exception $e) {
-            self::assertSame($exception, $e);
+            self::assertSame($exception, $e, $e->getMessage());
         }
     }
 
@@ -143,7 +143,7 @@ final class ImportConnectorTest extends TestCase
         try {
             $connector->fetchAsync($this->asyncSource);
         } catch (\Exception $e) {
-            self::assertSame($exception, $e);
+            self::assertSame($exception, $e, $e->getMessage());
         }
     }
 
@@ -168,13 +168,13 @@ final class ImportConnectorTest extends TestCase
         try {
             $connector->fetchAsync($this->asyncSource);
         } catch (\Exception $exception) {
-            self::assertSame($e1, $exception);
+            self::assertSame($e1, $exception, $exception->getMessage());
         }
 
         try {
             $connector->fetchAsync($this->asyncSource);
         } catch (\Exception $exception) {
-            self::assertSame($e2, $exception);
+            self::assertSame($e2, $exception, $exception->getMessage());
         }
     }
 

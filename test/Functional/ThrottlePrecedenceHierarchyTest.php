@@ -54,8 +54,8 @@ final class ThrottlePrecedenceHierarchyTest extends TestCase
     public function testNonThrottledConnector(): void
     {
         $this->specification->setThrottle($this->specificationThrottle);
-        $this->specificationThrottle->expects('watch')->once()->andReturn(Future::complete());
-        $this->connectorThrottle->expects('watch')->never();
+        $this->specificationThrottle->expects('async')->once()->andReturn(Future::complete());
+        $this->connectorThrottle->expects('async')->never();
 
         $connector = ImportConnectorFactory::create(
             $this->provider,
@@ -72,8 +72,8 @@ final class ThrottlePrecedenceHierarchyTest extends TestCase
      */
     public function testThrottledConnector(): void
     {
-        $this->specificationThrottle->expects('watch')->never();
-        $this->connectorThrottle->expects('watch')->once()->andReturn(Future::complete());
+        $this->specificationThrottle->expects('async')->never();
+        $this->connectorThrottle->expects('async')->once()->andReturn(Future::complete());
 
         $connector = ImportConnectorFactory::create(
             $this->provider,
@@ -91,8 +91,8 @@ final class ThrottlePrecedenceHierarchyTest extends TestCase
     public function testThrottledConnectorOverride(): void
     {
         $this->specification->setThrottle($this->specificationThrottle);
-        $this->specificationThrottle->expects('watch')->once()->andReturn(Future::complete());
-        $this->connectorThrottle->expects('watch')->never();
+        $this->specificationThrottle->expects('async')->once()->andReturn(Future::complete());
+        $this->connectorThrottle->expects('async')->never();
 
         $connector = ImportConnectorFactory::create(
             $this->provider,

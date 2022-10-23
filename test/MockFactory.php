@@ -91,7 +91,7 @@ final class MockFactory
     public static function mockThrottle(): Throttle|MockInterface
     {
         return \Mockery::mock(Throttle::class)
-            ->allows('watch')
+            ->allows('async')
                 ->andReturnUsing(fn (\Closure $closure, mixed ...$args) => async($closure, ...$args))
                 ->byDefault()
             ->getMock()
