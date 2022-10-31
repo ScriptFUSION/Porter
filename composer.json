@@ -15,7 +15,7 @@
     "psr/cache": "^1",
     "psr/container": "^1",
     "revolt/event-loop": "^0.2",
-    "scriptfusion/retry": "^4",
+    "scriptfusion/retry": "^5",
     "scriptfusion/retry-exception-handlers": "^1.2",
     "scriptfusion/static-class": "^1"
   },

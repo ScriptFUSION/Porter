@@ -93,7 +93,7 @@ final class ImportConnector implements ConnectorWrapper
     {
         return retry(
             $this->maxFetchAttempts,
-            fn () => $this->throttle->async($this->connector->fetchAsync(...), $source),
+            fn () => $this->throttle->async($this->connector->fetchAsync(...), $source)->await(),
             $this->createExceptionHandler()
         );
     }
