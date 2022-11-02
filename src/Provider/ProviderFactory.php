@@ -8,7 +8,7 @@ namespace ScriptFUSION\Porter\Provider;
  */
 final class ProviderFactory
 {
-    public function createProvider($name): Provider
+    public function createProvider(string $name): Provider
     {
         switch ($name) {
             case StaticDataProvider::class:

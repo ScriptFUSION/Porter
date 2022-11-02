@@ -19,7 +19,7 @@
   },
   "require-dev": {
     "amphp/amp": "^3-beta.9",
-    "infection/infection": ">=0.26,<0.27",
+    "infection/infection": ">=0.26.16,<0.27",
     "mockery/mockery": "^1.5",
     "phpunit/phpunit": "^9.5.23",
     "revolt/event-loop": "^0.2"

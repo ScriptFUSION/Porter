@@ -25,6 +25,7 @@ use ScriptFUSION\Porter\IncompatibleResourceException;
 use ScriptFUSION\Porter\Porter;
 use ScriptFUSION\Porter\PorterAware;
 use ScriptFUSION\Porter\Provider\Provider;
+use ScriptFUSION\Porter\Provider\ProviderFactory;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Provider\Resource\SingleRecordResource;
 use ScriptFUSION\Porter\ProviderNotFoundException;
@@ -490,4 +491,21 @@ final class PorterTest extends TestCase
     }
 
     #endregion
+
+    /**
+     * Tests that when a provider is fetched from the provider factory multiple times, the provider factory is only
+     * created once.
+     */
+    public function testGetOrCreateProviderFactory(): void
+    {
+        $property = new \ReflectionProperty($this->porter, 'providerFactory');
+
+        $this->porter->import($spec = new StaticDataSpecification(new \EmptyIterator()));
+        self::assertInstanceOf(ProviderFactory::class, $factory1 = $property->getValue($this->porter));
+
+        $this->porter->import($spec);
+        self::assertInstanceOf(ProviderFactory::class, $factory2 = $property->getValue($this->porter));
+
+        self::assertSame($factory1, $factory2);
+    }
 }
