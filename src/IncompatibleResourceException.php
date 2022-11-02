@@ -24,9 +24,4 @@ final class IncompatibleResourceException extends \LogicException
     {
         return new self('This is a single record resource. Try calling importOne() instead.');
     }
-
-    public static function createMustNotImplementInterfaceAsync(): self
-    {
-        return new self('This is a single record resource. Try calling importOneAsync() instead.');
-    }
 }

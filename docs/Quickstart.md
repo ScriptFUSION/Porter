@@ -30,13 +30,13 @@ $container->set(EuropeanCentralBankProvider::class, new EuropeanCentralBankProvi
 $porter = new Porter($container);
 ```
 
-We're now ready to import any of the ECB's resources. Let's import the latest daily foreign exchange rates provided by `DailyForexRates`. Porter's `import()` method requires an `ImportSpecification` that accepts the resource we want to import.
+We're now ready to import any of the ECB's resources. Let's import the latest daily foreign exchange rates provided by `DailyForexRates`. Porter's `import()` method requires a `Specification` that accepts the resource we want to import.
 
 ```php
-$rates = $porter->import(new ImportSpecification(new DailyForexRates));
+$rates = $porter->import(new Specification(new DailyForexRates));
 ```
 
-Porter returns an iterator so we can now loop over the rates and print them out.
+Porter returns an iterator, so we can now loop over the rates and print them out.
 
 ```php
 foreach ($rates as $rate) {
@@ -58,6 +58,7 @@ Since these rates come from the European Central Bank, they're relative to the E
 This just scratches the surface of Porter without going into any details. Explore the [rest of the manual][Readme] at your leisure to gain a fuller understanding of the features at your disposal.
 
 ⮪ [Back to main readme][Readme]
+
 
   [Readme]: https://github.com/ScriptFUSION/Porter/blob/master/README.md
   [ECB provider]: https://github.com/Provider/European-Central-Bank

@@ -9,8 +9,6 @@ use ScriptFUSION\Porter\Cache\MemoryCache;
 
 /**
  * Wraps a connector to cache fetched data using PSR-6-compliant objects.
- *
- * TODO: Async support
  */
 class CachingConnector implements Connector, ConnectorWrapper
 {

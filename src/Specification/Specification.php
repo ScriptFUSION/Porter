@@ -3,17 +3,22 @@ declare(strict_types=1);
 
 namespace ScriptFUSION\Porter\Specification;
 
+use ScriptFUSION\Async\Throttle\NullThrottle;
+use ScriptFUSION\Async\Throttle\Throttle;
+use ScriptFUSION\Porter\Connector\Recoverable\ExponentialAsyncDelayRecoverableExceptionHandler;
+use ScriptFUSION\Porter\Connector\Recoverable\ExponentialSleepRecoverableExceptionHandler;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
-use ScriptFUSION\Porter\Transform\AnysyncTransformer;
+use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
+use ScriptFUSION\Porter\Transform\Transformer;
 
-abstract class Specification
+class Specification
 {
     public const DEFAULT_FETCH_ATTEMPTS = 5;
 
     private ?string $providerName = null;
 
-    /** @var AnysyncTransformer[] */
-    private array $transformers;
+    /** @var Transformer[] */
+    private array $transformers = [];
 
     private mixed $context = null;
 
@@ -23,24 +28,43 @@ abstract class Specification
 
     private RecoverableExceptionHandler $recoverableExceptionHandler;
 
-    public function __construct()
+    private Throttle $throttle;
+
+    /**
+     * Initializes this instance with the specified resource.
+     *
+     * @param ProviderResource $resource Resource.
+     */
+    public function __construct(private ProviderResource $resource)
     {
-        $this->clearTransformers();
     }
 
     public function __clone()
     {
+        $this->resource = clone $this->resource;
+
         $transformers = $this->transformers;
         $this->clearTransformers()->addTransformers(array_map(
-            static function (AnysyncTransformer $transformer): AnysyncTransformer {
-                return clone $transformer;
-            },
+            static fn ($transformer) => clone $transformer,
             $transformers
         ));
 
         \is_object($this->context) && $this->context = clone $this->context;
+
         isset($this->recoverableExceptionHandler) &&
             $this->recoverableExceptionHandler = clone $this->recoverableExceptionHandler;
+
+        // Throttle is not cloned because it most likely wants to be shared between imports.
+    }
+
+    /**
+     * Gets the resource to import.
+     *
+     * @return ProviderResource Resource.
+     */
+    final public function getResource(): ProviderResource
+    {
+        return $this->resource;
     }
 
     /**
@@ -70,7 +94,7 @@ abstract class Specification
     /**
      * Gets the ordered list of transformers.
      *
-     * @return AnysyncTransformer[]
+     * @return Transformer[]
      */
     final public function getTransformers(): array
     {
@@ -78,19 +102,19 @@ abstract class Specification
     }
 
     /**
-     * Adds the specified transformer of any sync type.
+     * Adds the specified transformer to the end of the transformers queue.
      *
-     * @param AnysyncTransformer $transformer Transformer.
+     * @param Transformer $transformer Transformer.
      *
      * @return $this
      */
-    final protected function addAnyTransformer(AnysyncTransformer $transformer): self
+    final public function addTransformer(Transformer $transformer): self
     {
         if ($this->hasTransformer($transformer)) {
             throw new DuplicateTransformerException('Transformer already added.');
         }
 
-        $this->transformers[spl_object_hash($transformer)] = $transformer;
+        $this->transformers[spl_object_id($transformer)] = $transformer;
 
         return $this;
     }
@@ -98,14 +122,14 @@ abstract class Specification
     /**
      * Adds one or more transformers.
      *
-     * @param AnysyncTransformer[] $transformers Transformers.
+     * @param Transformer[] $transformers Transformers.
      *
      * @return $this
      */
     final public function addTransformers(array $transformers): self
     {
         foreach ($transformers as $transformer) {
-            $this->addAnyTransformer($transformer);
+            $this->addTransformer($transformer);
         }
 
         return $this;
@@ -123,9 +147,9 @@ abstract class Specification
         return $this;
     }
 
-    private function hasTransformer(AnysyncTransformer $transformer): bool
+    private function hasTransformer(Transformer $transformer): bool
     {
-        return isset($this->transformers[spl_object_hash($transformer)]);
+        return isset($this->transformers[spl_object_id($transformer)]);
     }
 
     /**
@@ -226,7 +250,7 @@ abstract class Specification
     final public function getRecoverableExceptionHandler(): RecoverableExceptionHandler
     {
         return $this->recoverableExceptionHandler ??
-            $this->recoverableExceptionHandler = static::createDefaultRecoverableExceptionHandler();
+            $this->recoverableExceptionHandler = new ExponentialAsyncDelayRecoverableExceptionHandler();
     }
 
     /**
@@ -243,5 +267,27 @@ abstract class Specification
         return $this;
     }
 
-    abstract protected static function createDefaultRecoverableExceptionHandler(): RecoverableExceptionHandler;
+    /**
+     * Gets the connection throttle, invoked each time a connector fetches data.
+     *
+     * @return Throttle Connection throttle.
+     */
+    final public function getThrottle(): Throttle
+    {
+        return $this->throttle ??= new NullThrottle;
+    }
+
+    /**
+     * Sets the connection throttle, invoked each time a connector fetches data.
+     *
+     * @param Throttle $throttle Connection throttle.
+     *
+     * @return $this
+     */
+    final public function setThrottle(Throttle $throttle): self
+    {
+        $this->throttle = $throttle;
+
+        return $this;
+    }
 }

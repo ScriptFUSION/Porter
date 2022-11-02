@@ -7,8 +7,6 @@ use ScriptFUSION\Async\Throttle\Throttle;
 
 /**
  * Specifies a connector that is rate-limited by a connection throttle.
- *
- * Currently only supported for async connectors.
  */
 interface ThrottledConnector
 {

@@ -6,7 +6,7 @@ namespace ScriptFUSIONTest\Unit\Collection;
 use PHPUnit\Framework\TestCase;
 use ScriptFUSION\Porter\Collection\PorterRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
-use ScriptFUSION\Porter\Specification\ImportSpecification;
+use ScriptFUSION\Porter\Specification\Specification;
 
 /**
  * @see PorterRecords
@@ -20,7 +20,7 @@ final class PorterRecordsTest extends TestCase
     {
         $records = new PorterRecords(
             \Mockery::spy(RecordCollection::class),
-            $specification = \Mockery::mock(ImportSpecification::class)
+            $specification = \Mockery::mock(Specification::class)
         );
 
         self::assertSame($specification, $records->getSpecification());

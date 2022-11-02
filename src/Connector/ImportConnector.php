@@ -8,7 +8,6 @@ use ScriptFUSION\Porter\Cache\CacheUnavailableException;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableException;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Connector\Recoverable\StatelessRecoverableExceptionHandler;
-use ScriptFUSION\Porter\Provider\AsyncProvider;
 use ScriptFUSION\Porter\Provider\Provider;
 use function ScriptFUSION\Retry\retry;
 
@@ -22,7 +21,7 @@ use function ScriptFUSION\Retry\retry;
  */
 final class ImportConnector implements ConnectorWrapper
 {
-    private Connector|AsyncConnector $connector;
+    private Connector $connector;
 
     /**
      * User-defined exception handler called when a recoverable exception is thrown by Connector::fetch().
@@ -35,21 +34,20 @@ final class ImportConnector implements ConnectorWrapper
     private ?RecoverableExceptionHandler $resourceExceptionHandler = null;
 
     /**
-     * @param Provider|AsyncProvider $provider Provider.
-     * @param Connector|AsyncConnector $connector Wrapped connector.
+     * @param Provider $provider Provider.
+     * @param Connector $connector Wrapped connector.
      * @param RecoverableExceptionHandler $recoverableExceptionHandler User's recoverable exception handler.
      * @param int $maxFetchAttempts Maximum fetch attempts.
      * @param bool $mustCache True if the response must be cached, otherwise false.
-     * @param Throttle|null $throttle Connection throttle invoked each time the connector fetches data. May be null
-     *     for synchronous imports only.
+     * @param Throttle $throttle Connection throttle invoked each time the connector fetches data.
      */
     public function __construct(
-        private readonly Provider|AsyncProvider $provider,
-        Connector|AsyncConnector $connector,
+        private readonly Provider $provider,
+        Connector $connector,
         RecoverableExceptionHandler $recoverableExceptionHandler,
         private readonly int $maxFetchAttempts,
         bool $mustCache,
-        private readonly ?Throttle $throttle
+        private readonly Throttle $throttle
     ) {
         if ($mustCache && !$connector instanceof CachingConnector) {
             throw CacheUnavailableException::createUnsupported();
@@ -75,25 +73,7 @@ final class ImportConnector implements ConnectorWrapper
     {
         return retry(
             $this->maxFetchAttempts,
-            function () use ($source) {
-                return $this->connector->fetch($source);
-            },
-            $this->createExceptionHandler()
-        );
-    }
-
-    /**
-     * Fetches data asynchronously from the specified data source.
-     *
-     * @param AsyncDataSource $source Data source.
-     *
-     * @return mixed Data.
-     */
-    public function fetchAsync(AsyncDataSource $source): mixed
-    {
-        return retry(
-            $this->maxFetchAttempts,
-            fn () => $this->throttle->async($this->connector->fetchAsync(...), $source)->await(),
+            fn () => $this->throttle->async($this->connector->fetch(...), $source)->await(),
             $this->createExceptionHandler()
         );
     }
@@ -142,7 +122,7 @@ final class ImportConnector implements ConnectorWrapper
     /**
      * Gets the provider owning the resource being imported.
      */
-    public function getProvider(): Provider|AsyncProvider
+    public function getProvider(): Provider
     {
         return $this->provider;
     }
@@ -150,7 +130,7 @@ final class ImportConnector implements ConnectorWrapper
     /**
      * Gets the wrapped connector.
      */
-    public function getWrappedConnector(): Connector|AsyncConnector
+    public function getWrappedConnector(): Connector
     {
         return $this->connector;
     }
@@ -158,7 +138,7 @@ final class ImportConnector implements ConnectorWrapper
     /**
      * Finds the base connector by traversing the stack of wrapped connectors.
      */
-    public function findBaseConnector(): Connector|AsyncConnector
+    public function findBaseConnector(): Connector
     {
         $connector = $this->connector;
 

@@ -5,7 +5,7 @@ namespace ScriptFUSION\Porter\Specification;
 
 use ScriptFUSION\Porter\Provider\Resource\StaticResource;
 
-class StaticDataImportSpecification extends ImportSpecification
+class StaticDataSpecification extends Specification
 {
     public function __construct(\Iterator $data)
     {

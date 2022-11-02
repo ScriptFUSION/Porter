@@ -24,14 +24,11 @@ final class ImportConnectorTest extends TestCase
 
     private DataSource|MockInterface $source;
 
-    private AsyncDataSource|MockInterface $asyncSource;
-
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->source = \Mockery::mock(DataSource::class);
-        $this->asyncSource = \Mockery::mock(AsyncDataSource::class);
     }
 
     /**
@@ -104,11 +101,11 @@ final class ImportConnectorTest extends TestCase
      * Tests that when a user recoverable exception handler throws an exception, the handler's exception can be
      * captured.
      */
-    public function testAsyncUserRecoverableExceptionHandler(): void
+    public function testUserRecoverableExceptionHandler(): void
     {
         $connector = FixtureFactory::buildImportConnector(
             \Mockery::mock(Connector::class)
-                ->shouldReceive('fetchAsync')
+                ->expects('fetch')
                 ->andThrow(new TestRecoverableException)
                 ->getMock(),
             new StatelessRecoverableExceptionHandler(
@@ -117,7 +114,7 @@ final class ImportConnectorTest extends TestCase
         );
 
         try {
-            $connector->fetchAsync($this->asyncSource);
+            $connector->fetch($this->source);
         } catch (\Exception $e) {
             self::assertSame($exception, $e, $e->getMessage());
         }
@@ -127,11 +124,11 @@ final class ImportConnectorTest extends TestCase
      * Tests that when a resource recoverable exception handler throws an exception, the handler's exception can be
      * captured.
      */
-    public function testAsyncResourceRecoverableExceptionHandler(): void
+    public function testResourceRecoverableExceptionHandler(): void
     {
         $connector = FixtureFactory::buildImportConnector(
             \Mockery::mock(Connector::class)
-                ->shouldReceive('fetchAsync')
+                ->expects('fetch')
                 ->andThrow(new TestRecoverableException)
                 ->getMock()
         );
@@ -141,7 +138,7 @@ final class ImportConnectorTest extends TestCase
         ));
 
         try {
-            $connector->fetchAsync($this->asyncSource);
+            $connector->fetch($this->source);
         } catch (\Exception $e) {
             self::assertSame($exception, $e, $e->getMessage());
         }
@@ -151,11 +148,11 @@ final class ImportConnectorTest extends TestCase
      * Tests that when user and resource recoverable exception handlers are both set, both handlers are invoked,
      * resource handler first and user handler second.
      */
-    public function testAsyncUserAndResourceRecoverableExceptionHandlers(): void
+    public function testUserAndResourceRecoverableExceptionHandlers(): void
     {
         $connector = FixtureFactory::buildImportConnector(
             \Mockery::mock(Connector::class)
-                ->shouldReceive('fetchAsync')
+                ->expects('fetch')->twice()
                 ->andThrow(new TestRecoverableException)
                 ->getMock(),
             new StatelessRecoverableExceptionHandler(self::createExceptionThrowingClosure($e2 = new \Exception))
@@ -166,13 +163,13 @@ final class ImportConnectorTest extends TestCase
         ));
 
         try {
-            $connector->fetchAsync($this->asyncSource);
+            $connector->fetch($this->source);
         } catch (\Exception $exception) {
             self::assertSame($e1, $exception, $exception->getMessage());
         }
 
         try {
-            $connector->fetchAsync($this->asyncSource);
+            $connector->fetch($this->source);
         } catch (\Exception $exception) {
             self::assertSame($e2, $exception, $exception->getMessage());
         }

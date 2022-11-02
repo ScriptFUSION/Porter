@@ -4,9 +4,7 @@ declare(strict_types=1);
 namespace ScriptFUSION\Porter\Connector;
 
 use ScriptFUSION\Async\Throttle\NullThrottle;
-use ScriptFUSION\Porter\Provider\AsyncProvider;
 use ScriptFUSION\Porter\Provider\Provider;
-use ScriptFUSION\Porter\Specification\AsyncImportSpecification;
 use ScriptFUSION\Porter\Specification\Specification;
 use ScriptFUSION\StaticClass;
 
@@ -18,16 +16,14 @@ final class ImportConnectorFactory
     use StaticClass;
 
     public static function create(
-        Provider|AsyncProvider $provider,
-        Connector|AsyncConnector $connector,
+        Provider $provider,
+        Connector $connector,
         Specification $specification
     ): ImportConnector {
-        if ($specification instanceof AsyncImportSpecification) {
-            $throttle = $specification->getThrottle();
+        $throttle = $specification->getThrottle();
 
-            if ($throttle instanceof NullThrottle && $connector instanceof ThrottledConnector) {
-                $throttle = $connector->getThrottle();
-            }
+        if ($throttle instanceof NullThrottle && $connector instanceof ThrottledConnector) {
+            $throttle = $connector->getThrottle();
         }
 
         return new ImportConnector(

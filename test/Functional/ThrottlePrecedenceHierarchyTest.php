@@ -8,17 +8,16 @@ use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
 use PHPUnit\Framework\TestCase;
 use ScriptFUSION\Async\Throttle\Throttle;
-use ScriptFUSION\Porter\Connector\AsyncConnector;
-use ScriptFUSION\Porter\Connector\AsyncDataSource;
+use ScriptFUSION\Porter\Connector\Connector;
+use ScriptFUSION\Porter\Connector\DataSource;
 use ScriptFUSION\Porter\Connector\ImportConnectorFactory;
 use ScriptFUSION\Porter\Connector\ThrottledConnector;
-use ScriptFUSION\Porter\Provider\AsyncProvider;
 use ScriptFUSION\Porter\Provider\Provider;
-use ScriptFUSION\Porter\Specification\AsyncImportSpecification;
+use ScriptFUSION\Porter\Specification\Specification;
 use ScriptFUSIONTest\MockFactory;
 
 /**
- * Tests the throttle hierarchy of precedence. Only applies to async imports.
+ * Tests the throttle hierarchy of precedence.
  *
  * Specification throttle (preferred) > Connector throttle (default).
  *
@@ -32,9 +31,9 @@ final class ThrottlePrecedenceHierarchyTest extends TestCase
 
     private Throttle|MockInterface $connectorThrottle;
 
-    private AsyncImportSpecification $specification;
+    private Specification $specification;
 
-    private AsyncProvider|Provider|MockInterface $provider;
+    private Provider|MockInterface $provider;
 
     protected function setUp(): void
     {
@@ -43,7 +42,7 @@ final class ThrottlePrecedenceHierarchyTest extends TestCase
         $this->specificationThrottle = MockFactory::mockThrottle();
         $this->connectorThrottle = MockFactory::mockThrottle();
 
-        $this->specification = new AsyncImportSpecification(MockFactory::mockResource(
+        $this->specification = new Specification(MockFactory::mockResource(
             $this->provider = MockFactory::mockProvider()
         ));
     }
@@ -59,11 +58,11 @@ final class ThrottlePrecedenceHierarchyTest extends TestCase
 
         $connector = ImportConnectorFactory::create(
             $this->provider,
-            $this->provider->getAsyncConnector(),
+            $this->provider->getConnector(),
             $this->specification
         );
 
-        $connector->fetchAsync(\Mockery::mock(AsyncDataSource::class));
+        $connector->fetch(\Mockery::mock(DataSource::class));
     }
 
     /**
@@ -81,7 +80,7 @@ final class ThrottlePrecedenceHierarchyTest extends TestCase
             $this->specification
         );
 
-        $connector->fetchAsync(\Mockery::mock(AsyncDataSource::class));
+        $connector->fetch(\Mockery::mock(DataSource::class));
     }
 
     /**
@@ -100,12 +99,12 @@ final class ThrottlePrecedenceHierarchyTest extends TestCase
             $this->specification
         );
 
-        $connector->fetchAsync(\Mockery::mock(AsyncDataSource::class));
+        $connector->fetch(\Mockery::mock(DataSource::class));
     }
 
-    private function mockThrottledConnector(): AsyncConnector|ThrottledConnector
+    private function mockThrottledConnector(): Connector|ThrottledConnector
     {
-        return \Mockery::mock(AsyncConnector::class, ThrottledConnector::class)
+        return \Mockery::mock(Connector::class, ThrottledConnector::class)
             ->shouldReceive('getThrottle')
                 ->andReturn($this->connectorThrottle)
             ->getMock()

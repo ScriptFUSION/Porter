@@ -4,25 +4,25 @@ declare(strict_types=1);
 namespace ScriptFUSIONTest\Unit;
 
 use PHPUnit\Framework\TestCase;
+use ScriptFUSION\Async\Throttle\Throttle;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Specification\DuplicateTransformerException;
-use ScriptFUSION\Porter\Specification\ImportSpecification;
-use ScriptFUSION\Porter\Transform\AsyncTransformer;
+use ScriptFUSION\Porter\Specification\Specification;
 use ScriptFUSION\Porter\Transform\Transformer;
 
 /**
- * @see ImportSpecification
+ * @see Specification
  */
-final class ImportSpecificationTest extends TestCase
+final class SpecificationTest extends TestCase
 {
-    private ImportSpecification $specification;
+    private Specification $specification;
 
     private ProviderResource $resource;
 
     protected function setUp(): void
     {
-        $this->specification = new ImportSpecification(
+        $this->specification = new Specification(
             $this->resource = \Mockery::mock(ProviderResource::class)
         );
     }
@@ -168,6 +168,17 @@ final class ImportSpecificationTest extends TestCase
         self::assertSame(
             $handler = \Mockery::mock(RecoverableExceptionHandler::class),
             $this->specification->setRecoverableExceptionHandler($handler)->getRecoverableExceptionHandler()
+        );
+    }
+
+    /**
+     * Tests that a custom throttle can be set.
+     */
+    public function testThrottle(): void
+    {
+        self::assertSame(
+            $throttle = \Mockery::mock(Throttle::class),
+            $this->specification->setThrottle($throttle)->getThrottle()
         );
     }
 }

@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace ScriptFUSION\Porter\Transform;
 
-use ScriptFUSION\Porter\Collection\AsyncFilteredRecords;
-use ScriptFUSION\Porter\Collection\AsyncRecordCollection;
 use ScriptFUSION\Porter\Collection\FilteredRecords;
 use ScriptFUSION\Porter\Collection\RecordCollection;
 
@@ -13,7 +11,7 @@ use ScriptFUSION\Porter\Collection\RecordCollection;
  *
  * This simple transformer is bundled with Porter as an example reference implementation for other transformers.
  */
-class FilterTransformer implements Transformer, AsyncTransformer
+class FilterTransformer implements Transformer
 {
     public function __construct(private readonly \Closure $filter)
     {
@@ -30,14 +28,5 @@ class FilterTransformer implements Transformer, AsyncTransformer
         };
 
         return new FilteredRecords($filter($this->filter), $records, $filter);
-    }
-
-    public function transformAsync(AsyncRecordCollection $records, mixed $context): AsyncRecordCollection
-    {
-        return new AsyncFilteredRecords(
-            (fn () => yield from $this->transform($records, $context))(),
-            $records,
-            $this->filter
-        );
     }
 }

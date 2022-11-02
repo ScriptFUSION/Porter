@@ -57,6 +57,6 @@ jobs:
       - name: Run mutation tests
         run: |
           ln -sfv ../build test
-          composer mutation -- --min-msi=99 --threads=$(nproc) --show-mutations --coverage=build/coverage
+          composer mutate -- --min-msi=99 --threads=$(nproc) --show-mutations --coverage=build/coverage
         env:
           INFECTION_BADGE_API_KEY: ${{ secrets.INFECTION_BADGE_API_KEY }}
