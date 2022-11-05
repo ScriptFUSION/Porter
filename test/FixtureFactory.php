@@ -7,7 +7,7 @@ use ScriptFUSION\Porter\Connector\Connector;
 use ScriptFUSION\Porter\Connector\ImportConnector;
 use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Provider\Provider;
-use ScriptFUSION\Porter\Specification\Specification;
+use ScriptFUSION\Porter\Import\Import;
 use ScriptFUSION\StaticClass;
 
 final class FixtureFactory
@@ -18,7 +18,7 @@ final class FixtureFactory
         Connector $connector,
         RecoverableExceptionHandler $recoverableExceptionHandler = null,
         Provider $provider = null,
-        int $maxFetchAttempts = Specification::DEFAULT_FETCH_ATTEMPTS,
+        int $maxFetchAttempts = Import::DEFAULT_FETCH_ATTEMPTS,
         bool $mustCache = false
     ): ImportConnector {
         return new ImportConnector(

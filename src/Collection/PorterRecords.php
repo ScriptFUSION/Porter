@@ -3,11 +3,11 @@ declare(strict_types=1);
 
 namespace ScriptFUSION\Porter\Collection;
 
-use ScriptFUSION\Porter\Specification\Specification;
+use ScriptFUSION\Porter\Import\Import;
 
 class PorterRecords extends RecordCollection
 {
-    public function __construct(RecordCollection $records, private readonly Specification $specification)
+    public function __construct(RecordCollection $records, private readonly Import $import)
     {
         parent::__construct($records, $records);
 
@@ -15,8 +15,8 @@ class PorterRecords extends RecordCollection
         $records->valid();
     }
 
-    public function getSpecification(): Specification
+    public function getImport(): Import
     {
-        return $this->specification;
+        return $this->import;
     }
 }

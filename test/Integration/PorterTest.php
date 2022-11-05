@@ -29,8 +29,8 @@ use ScriptFUSION\Porter\Provider\ProviderFactory;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Provider\Resource\SingleRecordResource;
 use ScriptFUSION\Porter\ProviderNotFoundException;
-use ScriptFUSION\Porter\Specification\Specification;
-use ScriptFUSION\Porter\Specification\StaticDataSpecification;
+use ScriptFUSION\Porter\Import\Import;
+use ScriptFUSION\Porter\Import\StaticImport;
 use ScriptFUSION\Porter\Transform\FilterTransformer;
 use ScriptFUSION\Porter\Transform\Transformer;
 use ScriptFUSION\Retry\FailingTooHardException;
@@ -50,8 +50,8 @@ final class PorterTest extends TestCase
     private ProviderResource|MockInterface $resource;
     private ProviderResource|MockInterface $singleResource;
     private Connector|MockInterface $connector;
-    private Specification $specification;
-    private Specification $singleSpecification;
+    private Import $import;
+    private Import $singleImport;
     private ContainerInterface|MockInterface $container;
 
     protected function setUp(): void
@@ -63,9 +63,9 @@ final class PorterTest extends TestCase
         $this->registerProvider($this->provider = MockFactory::mockProvider());
         $this->connector = $this->provider->getConnector();
         $this->resource = MockFactory::mockResource($this->provider);
-        $this->specification = new Specification($this->resource);
+        $this->import = new Import($this->resource);
         $this->singleResource = MockFactory::mockSingleRecordResource($this->provider);
-        $this->singleSpecification = new Specification($this->singleResource);
+        $this->singleImport = new Import($this->singleResource);
     }
 
     private function registerProvider(Provider $provider, string $name = null): void
@@ -93,10 +93,10 @@ final class PorterTest extends TestCase
      */
     public function testImport(): void
     {
-        $records = $this->porter->import($this->specification);
+        $records = $this->porter->import($this->import);
 
         self::assertInstanceOf(PorterRecords::class, $records);
-        self::assertNotSame($this->specification, $records->getSpecification(), 'Specification was not cloned.');
+        self::assertNotSame($this->import, $records->getImport(), 'Import was not cloned.');
         self::assertSame(['foo'], $records->current());
 
         /** @var ProviderRecords $previous */
@@ -110,7 +110,7 @@ final class PorterTest extends TestCase
     public function testImportCountableRecords(): void
     {
         $records = $this->porter->import(
-            new StaticDataSpecification(new \ArrayIterator(range(1, $count = 10)))
+            new StaticImport(new \ArrayIterator(range(1, $count = 10)))
         );
 
         // Innermost collection.
@@ -128,7 +128,7 @@ final class PorterTest extends TestCase
     public function testImportAndFilterCountableRecords(): void
     {
         $records = $this->porter->import(
-            (new StaticDataSpecification(
+            (new StaticImport(
                 new \ArrayIterator(array_map(fn ($i) => [$i], range(1, 10)))
             ))->addTransformer(new FilterTransformer(fn () => true))
         );
@@ -147,7 +147,7 @@ final class PorterTest extends TestCase
     {
         $this->resource->shouldReceive('fetch')->andReturn(new \ArrayIterator([$i1 = ['foo'], $i2 = ['bar']]));
 
-        $records = $this->porter->import($this->specification);
+        $records = $this->porter->import($this->import);
 
         self::assertTrue($records->valid());
         self::assertCount(2, $records);
@@ -170,7 +170,7 @@ final class PorterTest extends TestCase
             yield [];
         });
 
-        $this->porter->import($this->specification);
+        $this->porter->import($this->import);
 
         self::assertTrue($init);
     }
@@ -181,7 +181,7 @@ final class PorterTest extends TestCase
     public function testPorterAwareTransformer(): void
     {
         $this->porter->import(
-            $this->specification->addTransformer(
+            $this->import->addTransformer(
                 \Mockery::mock(implode(',', [Transformer::class, PorterAware::class]))
                     ->shouldReceive('setPorter')
                         ->with($this->porter)
@@ -194,7 +194,7 @@ final class PorterTest extends TestCase
     }
 
     /**
-     * Tests that when provider name is specified in an import specification its value is used instead of the default
+     * Tests that when provider name is specified in an import specification, its value is used instead of the default
      * provider class name of the resource.
      */
     public function testImportCustomProviderName(): void
@@ -205,7 +205,7 @@ final class PorterTest extends TestCase
         );
 
         $records = $this->porter->import(
-            (new Specification(MockFactory::mockResource($provider, new \ArrayIterator([$output = ['bar']]))))
+            (new Import(MockFactory::mockResource($provider, new \ArrayIterator([$output = ['bar']]))))
                 ->setProviderName($providerName)
         );
 
@@ -221,7 +221,7 @@ final class PorterTest extends TestCase
 
         $this->expectException(\TypeError::class);
         $this->expectExceptionMessage(\get_class($this->resource));
-        $this->porter->import($this->specification);
+        $this->porter->import($this->import);
     }
 
     public function testImportUnregisteredProvider(): void
@@ -230,7 +230,7 @@ final class PorterTest extends TestCase
         $this->expectExceptionMessage($providerName = 'foo');
         $this->expectExceptionCode(0);
 
-        $this->porter->import($this->specification->setProviderName("\"$providerName\""));
+        $this->porter->import($this->import->setProviderName("\"$providerName\""));
     }
 
     /**
@@ -242,7 +242,7 @@ final class PorterTest extends TestCase
         $this->registerProvider(MockFactory::mockProvider(), \get_class($this->provider));
 
         $this->expectException(ForeignResourceException::class);
-        $this->porter->import($this->specification);
+        $this->porter->import($this->import);
     }
 
     /**
@@ -253,7 +253,7 @@ final class PorterTest extends TestCase
         $this->expectException(IncompatibleResourceException::class);
         $this->expectExceptionMessage('importOne()');
 
-        $this->porter->import($this->singleSpecification);
+        $this->porter->import($this->singleImport);
     }
 
     /**
@@ -264,7 +264,7 @@ final class PorterTest extends TestCase
         $this->resource->shouldReceive('fetch')
             ->andReturn($records = new ProviderRecords(new \ArrayIterator([]), $this->resource));
 
-        $imported = $this->porter->import($this->specification);
+        $imported = $this->porter->import($this->import);
 
         self::assertInstanceOf(PorterRecords::class, $imported);
         self::assertSame($records, $imported->getPreviousCollection());
@@ -276,7 +276,7 @@ final class PorterTest extends TestCase
 
     public function testImportOne(): void
     {
-        $result = $this->porter->importOne($this->singleSpecification);
+        $result = $this->porter->importOne($this->singleImport);
 
         self::assertSame(['foo'], $result);
     }
@@ -285,7 +285,7 @@ final class PorterTest extends TestCase
     {
         $this->singleResource->shouldReceive('fetch')->andReturn(new \EmptyIterator);
 
-        $result = $this->porter->importOne($this->singleSpecification);
+        $result = $this->porter->importOne($this->singleImport);
 
         self::assertNull($result);
     }
@@ -295,7 +295,7 @@ final class PorterTest extends TestCase
         $this->singleResource->shouldReceive('fetch')->andReturn(new \ArrayIterator([['foo'], ['bar']]));
 
         $this->expectException(ImportException::class);
-        $this->porter->importOne($this->singleSpecification);
+        $this->porter->importOne($this->singleImport);
     }
 
     /**
@@ -306,7 +306,7 @@ final class PorterTest extends TestCase
         $this->expectException(IncompatibleResourceException::class);
         $this->expectExceptionMessage(SingleRecordResource::class);
 
-        $this->porter->importOne(new Specification(\Mockery::mock(ProviderResource::class)));
+        $this->porter->importOne(new Import(\Mockery::mock(ProviderResource::class)));
     }
 
     #endregion
@@ -322,7 +322,7 @@ final class PorterTest extends TestCase
 
         $this->expectException(FailingTooHardException::class);
         $this->expectExceptionMessage('1');
-        $this->porter->import($this->specification->setMaxFetchAttempts(1));
+        $this->porter->import($this->import->setMaxFetchAttempts(1));
     }
 
     /**
@@ -334,7 +334,7 @@ final class PorterTest extends TestCase
         $this->arrangeConnectorException(new TestRecoverableException);
 
         $this->expectException(FailingTooHardException::class);
-        $this->porter->import($this->specification->setMaxFetchAttempts(1));
+        $this->porter->import($this->import->setMaxFetchAttempts(1));
     }
 
     /**
@@ -345,11 +345,11 @@ final class PorterTest extends TestCase
     {
         $this->arrangeConnectorException(new TestRecoverableException);
         // Speed up test by circumventing exponential backoff default handler.
-        $this->specification->setRecoverableExceptionHandler(new TestRecoverableExceptionHandler);
+        $this->import->setRecoverableExceptionHandler(new TestRecoverableExceptionHandler);
 
         $this->expectException(FailingTooHardException::class);
-        $this->expectExceptionMessage((string)Specification::DEFAULT_FETCH_ATTEMPTS);
-        $this->porter->import($this->specification);
+        $this->expectExceptionMessage((string)Import::DEFAULT_FETCH_ATTEMPTS);
+        $this->porter->import($this->import);
     }
 
     /**
@@ -361,7 +361,7 @@ final class PorterTest extends TestCase
         $this->arrangeConnectorException($exception = \Mockery::mock(\Exception::class));
 
         $this->expectException(\get_class($exception));
-        $this->porter->import($this->specification);
+        $this->porter->import($this->import);
     }
 
     /**
@@ -370,19 +370,19 @@ final class PorterTest extends TestCase
      */
     public function testCustomFetchExceptionHandler(): void
     {
-        $this->specification->setRecoverableExceptionHandler(
+        $this->import->setRecoverableExceptionHandler(
             \Mockery::mock(RecoverableExceptionHandler::class)
                 ->shouldReceive('initialize')
                     ->once()
                 ->shouldReceive('__invoke')
-                    ->times(Specification::DEFAULT_FETCH_ATTEMPTS - 1)
+                    ->times(Import::DEFAULT_FETCH_ATTEMPTS - 1)
                 ->getMock()
         );
 
         $this->arrangeConnectorException(new TestRecoverableException);
 
         $this->expectException(FailingTooHardException::class);
-        $this->porter->import($this->specification);
+        $this->porter->import($this->import);
     }
 
     /**
@@ -391,7 +391,7 @@ final class PorterTest extends TestCase
      */
     public function testCustomProviderFetchExceptionHandler(): void
     {
-        $this->specification->setRecoverableExceptionHandler(
+        $this->import->setRecoverableExceptionHandler(
             new StatelessRecoverableExceptionHandler(static function (): void {
                 throw new \LogicException('This exception must not be thrown!');
             })
@@ -416,7 +416,7 @@ final class PorterTest extends TestCase
         ;
 
         $this->expectException(\RuntimeException::class);
-        $this->porter->importOne($this->singleSpecification);
+        $this->porter->importOne($this->singleImport);
     }
 
     #endregion
@@ -432,7 +432,7 @@ final class PorterTest extends TestCase
         );
 
         $records = $this->porter->import(
-            $this->specification
+            $this->import
                 ->addTransformer(new FilterTransformer($filter = static function (array $record): int {
                     return $record[0] % 2;
                 }))
@@ -453,7 +453,7 @@ final class PorterTest extends TestCase
     {
         $this->expectException(CacheUnavailableException::class);
 
-        $this->porter->import($this->specification->enableCache());
+        $this->porter->import($this->import->enableCache());
     }
 
     #region Throttle
@@ -463,10 +463,10 @@ final class PorterTest extends TestCase
      */
     public function testThrottle(): void
     {
-        $this->specification->setThrottle($throttle = new DualThrottle);
+        $this->import->setThrottle($throttle = new DualThrottle);
         $throttle->setMaxConcurrency(1);
 
-        $records = async($this->porter->import(...), $this->specification);
+        $records = async($this->porter->import(...), $this->import);
         delay(0);
         self::assertTrue($throttle->isThrottling());
 
@@ -479,10 +479,10 @@ final class PorterTest extends TestCase
      */
     public function testThrottleConcurrentFibers(): void
     {
-        $this->specification->setThrottle($throttle = new DualThrottle);
+        $this->import->setThrottle($throttle = new DualThrottle);
         $throttle->setMaxPerSecond(1);
 
-        $import = fn () => async($this->porter->import(...), $this->specification)->await();
+        $import = fn () => async($this->porter->import(...), $this->import)->await();
 
         $start = microtime(true);
         await([async($import), async($import), async($import)]);
@@ -500,7 +500,7 @@ final class PorterTest extends TestCase
     {
         $property = new \ReflectionProperty($this->porter, 'providerFactory');
 
-        $this->porter->import($spec = new StaticDataSpecification(new \EmptyIterator()));
+        $this->porter->import($spec = new StaticImport(new \EmptyIterator()));
         self::assertInstanceOf(ProviderFactory::class, $factory1 = $property->getValue($this->porter));
 
         $this->porter->import($spec);

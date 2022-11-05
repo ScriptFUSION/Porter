@@ -30,10 +30,10 @@ $container->set(EuropeanCentralBankProvider::class, new EuropeanCentralBankProvi
 $porter = new Porter($container);
 ```
 
-We're now ready to import any of the ECB's resources. Let's import the latest daily foreign exchange rates provided by `DailyForexRates`. Porter's `import()` method requires a `Specification` that accepts the resource we want to import.
+We're now ready to import any of the ECB's resources. Let's import the latest daily foreign exchange rates provided by `DailyForexRates`. Porter's `import()` method requires a `Import` that accepts the resource we want to import.
 
 ```php
-$rates = $porter->import(new Specification(new DailyForexRates));
+$rates = $porter->import(new Import(new DailyForexRates));
 ```
 
 Porter returns an iterator, so we can now loop over the rates and print them out.

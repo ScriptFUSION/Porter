@@ -5,7 +5,7 @@ namespace ScriptFUSION\Porter\Connector;
 
 use ScriptFUSION\Async\Throttle\NullThrottle;
 use ScriptFUSION\Porter\Provider\Provider;
-use ScriptFUSION\Porter\Specification\Specification;
+use ScriptFUSION\Porter\Import\Import;
 use ScriptFUSION\StaticClass;
 
 /**
@@ -18,9 +18,9 @@ final class ImportConnectorFactory
     public static function create(
         Provider $provider,
         Connector $connector,
-        Specification $specification
+        Import $import
     ): ImportConnector {
-        $throttle = $specification->getThrottle();
+        $throttle = $import->getThrottle();
 
         if ($throttle instanceof NullThrottle && $connector instanceof ThrottledConnector) {
             $throttle = $connector->getThrottle();
@@ -29,9 +29,9 @@ final class ImportConnectorFactory
         return new ImportConnector(
             $provider,
             $connector,
-            $specification->getRecoverableExceptionHandler(),
-            $specification->getMaxFetchAttempts(),
-            $specification->mustCache(),
+            $import->getRecoverableExceptionHandler(),
+            $import->getMaxFetchAttempts(),
+            $import->mustCache(),
             $throttle ?? null
         );
     }

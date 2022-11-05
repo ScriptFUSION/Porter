@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace ScriptFUSION\Porter\Specification;
+namespace ScriptFUSION\Porter\Import;
 
 use ScriptFUSION\Async\Throttle\NullThrottle;
 use ScriptFUSION\Async\Throttle\Throttle;
@@ -10,7 +10,7 @@ use ScriptFUSION\Porter\Connector\Recoverable\RecoverableExceptionHandler;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Transform\Transformer;
 
-class Specification
+class Import
 {
     public const DEFAULT_FETCH_ATTEMPTS = 5;
 

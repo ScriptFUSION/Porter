@@ -15,7 +15,7 @@ use ScriptFUSION\Porter\Provider\Provider;
 use ScriptFUSION\Porter\Provider\ProviderFactory;
 use ScriptFUSION\Porter\Provider\Resource\ProviderResource;
 use ScriptFUSION\Porter\Provider\Resource\SingleRecordResource;
-use ScriptFUSION\Porter\Specification\Specification;
+use ScriptFUSION\Porter\Import\Import;
 use ScriptFUSION\Porter\Transform\Transformer;
 
 /**
@@ -46,7 +46,7 @@ class Porter
     /**
      * Imports one or more records from the resource contained in the specified import specification.
      *
-     * @param Specification $specification Import specification.
+     * @param Import $import Import specification.
      *
      * @return PorterRecords|CountablePorterRecords Collection of records. If the total size of the collection is known,
      *     the collection may implement Countable, otherwise PorterRecords is returned.
@@ -54,32 +54,32 @@ class Porter
      * @throws IncompatibleResourceException Resource emits a single record and must be imported with
      *     importOne() instead.
      */
-    public function import(Specification $specification): PorterRecords|CountablePorterRecords
+    public function import(Import $import): PorterRecords|CountablePorterRecords
     {
-        if ($specification->getResource() instanceof SingleRecordResource) {
+        if ($import->getResource() instanceof SingleRecordResource) {
             throw IncompatibleResourceException::createMustNotImplementInterface();
         }
 
-        return $this->fetch($specification);
+        return $this->fetch($import);
     }
 
     /**
      * Imports one record from the resource contained in the specified import specification.
      *
-     * @param Specification $specification Import specification.
+     * @param Import $import Import specification.
      *
      * @return array|null Record.
      *
      * @throws IncompatibleResourceException Resource does not implement required interface.
      * @throws ImportException More than one record was imported.
      */
-    public function importOne(Specification $specification): ?array
+    public function importOne(Import $import): ?array
     {
-        if (!$specification->getResource() instanceof SingleRecordResource) {
+        if (!$import->getResource() instanceof SingleRecordResource) {
             throw IncompatibleResourceException::createMustImplementInterface();
         }
 
-        $results = $this->fetch($specification);
+        $results = $this->fetch($import);
 
         if (!$results->valid()) {
             return null;
@@ -94,11 +94,11 @@ class Porter
         return $one;
     }
 
-    private function fetch(Specification $specification): PorterRecords
+    private function fetch(Import $import): PorterRecords
     {
-        $specification = clone $specification;
-        $resource = $specification->getResource();
-        $provider = $this->getProvider($specification->getProviderName() ?? $resource->getProviderClassName());
+        $import = clone $import;
+        $resource = $import->getResource();
+        $provider = $this->getProvider($import->getProviderName() ?? $resource->getProviderClassName());
 
         if ($resource->getProviderClassName() !== \get_class($provider)) {
             throw new ForeignResourceException(sprintf(
@@ -108,16 +108,16 @@ class Porter
         }
 
         $records = $resource->fetch(
-            ImportConnectorFactory::create($provider, $provider->getConnector(), $specification)
+            ImportConnectorFactory::create($provider, $provider->getConnector(), $import)
         );
 
         if (!$records instanceof ProviderRecords) {
-            $records = $this->createProviderRecords($records, $specification->getResource());
+            $records = $this->createProviderRecords($records, $import->getResource());
         }
 
-        $records = $this->transformRecords($records, $specification->getTransformers(), $specification->getContext());
+        $records = $this->transformRecords($records, $import->getTransformers(), $import->getContext());
 
-        return $this->createPorterRecords($records, $specification);
+        return $this->createPorterRecords($records, $import);
     }
 
     /**
@@ -145,13 +145,13 @@ class Porter
         return new ProviderRecords($records, $resource);
     }
 
-    private function createPorterRecords(RecordCollection $records, Specification $specification): PorterRecords
+    private function createPorterRecords(RecordCollection $records, Import $import): PorterRecords
     {
         if ($records instanceof \Countable) {
-            return new CountablePorterRecords($records, \count($records), $specification);
+            return new CountablePorterRecords($records, \count($records), $import);
         }
 
-        return new PorterRecords($records, $specification);
+        return new PorterRecords($records, $import);
     }
 
     /**

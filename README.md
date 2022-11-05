@@ -67,7 +67,7 @@ To get started quickly consuming an existing Porter provider, try our [quick sta
 About this manual
 -----------------
 
-Those wishing to consume a Porter provider create one instance of `Porter` for their application and an instance of `Specification` for each data import they wish to perform. Those publishing providers must implement `Provider` and `ProviderResource`.
+Those wishing to consume a Porter provider create one instance of `Porter` for their application and an instance of `Import` for each data import they wish to perform. Those publishing providers must implement `Provider` and `ProviderResource`.
 
 The first half of this manual covers Porter's main API for consuming data services. The second half covers architecture, interface and implementation details for publishing data services. There's an intermission in-between, so you'll know where the separation is!
 
@@ -90,14 +90,14 @@ Without a framework, pick any [PSR-11 compatible library][PSR-11 search] and inj
 
 Configure the container by registering one or more Porter [providers][Provider]. In this example we'll add the [ECB provider][] for foreign exchange rates. Most provider libraries will export just one provider class; in this case it's `EuropeanCentralBankProvider`. We could add the provider to the container by writing something similar to `$container->set(EuropeanCentralBankProvider::class, new EuropeanCentralBankProvider)`, but consult the manual for your particular container implementation for the exact syntax.
 
-It is recommended to use the provider's class name as the container service name, as in the example in the previous paragraph. Porter will retrieve the service matching the provider's class name by default, so this reduces friction when getting started. If we use a different service name, it will need to be configured later in the `Specification` by calling `setProviderName()`.
+It is recommended to use the provider's class name as the container service name, as in the example in the previous paragraph. Porter will retrieve the service matching the provider's class name by default, so this reduces friction when getting started. If we use a different service name, it will need to be configured later in the `Import` by calling `setProviderName()`.
 
 ### Importing data
 
-Porter's `import` method accepts an `Specification` that describes which data should be imported and how the data should be transformed. To import `DailyForexRates` without applying any transformations we can write the following.
+Porter's `import` method accepts an `Import` that describes which data should be imported and how the data should be transformed. To import `DailyForexRates` without applying any transformations we can write the following.
 
 ```php
-$records = $porter->import(new Specification(new DailyForexRates));
+$records = $porter->import(new Import(new DailyForexRates));
 ```
 
 Calling `import()` returns an instance of `PorterRecords` or `CountablePorterRecords`, which both implement `Iterator`, allowing each record in the collection to be enumerated using `foreach` as in the following example.
@@ -115,8 +115,8 @@ Porter's API
 
 `Porter` provides just two public methods for synchronous data import. These are the methods to be most familiar with, where the life of a data import operation begins.
 
-* `import(Specification): PorterRecords|CountablePorterRecords` &ndash; Imports one or more records from the resource contained in the specified import specification. If the total size of the collection is known, the record collection may implement `Countable`.
-* `importOne(Specification): ?array` &ndash; Imports one record from the resource contained in the specified import specification. If more than one record is imported, `ImportException` is thrown. Use this when a provider just returns a single record.
+* `import(Import): PorterRecords|CountablePorterRecords` &ndash; Imports one or more records from the resource contained in the specified import specification. If the total size of the collection is known, the record collection may implement `Countable`.
+* `importOne(Import): ?array` &ndash; Imports one record from the resource contained in the specified import specification. If more than one record is imported, `ImportException` is thrown. Use this when a provider just returns a single record.
 
 Porter's asynchronous API mirrors the synchronous one with similar method names but different signatures.
 
@@ -134,12 +134,12 @@ The following data flow diagram gives a high level overview of Porter's main int
 
 </div>
 
-Our application calls `Porter::import()` with an `Specification` and receives `PorterRecords` back. Everything else happens internally, so we don't need to worry about it unless writing custom providers, resources or connectors.
+Our application calls `Porter::import()` with an `Import` and receives `PorterRecords` back. Everything else happens internally, so we don't need to worry about it unless writing custom providers, resources or connectors.
 
 Import specifications
 ---------------------
 
-Import specifications specify *what* to import, *how* it should be [transformed](#transformers) and whether to use [caching](#caching). In synchronous code, create a new instance of `Specification` and pass a `ProviderResource` that specifies the resource we want to import. In Asynchronous code, create `AsyncImportSpecification` instead.
+Import specifications specify *what* to import, *how* it should be [transformed](#transformers) and whether to use [caching](#caching). In synchronous code, create a new instance of `Import` and pass a `ProviderResource` that specifies the resource we want to import. In Asynchronous code, create `AsyncImportSpecification` instead.
 
 Options may be configured using the methods below.
 
@@ -163,7 +163,7 @@ Record collections may be `Countable`, depending on whether the imported data wa
 
 Record collections are composed by Porter using the decorator pattern. If provider data is not modified, `PorterRecords` will decorate the `ProviderRecords` returned from a `ProviderResource`. That is, `PorterRecords` has a pointer back to the previous collection, which could be written as: `PorterRecords` → `ProviderRecords`. If a [filter](#filtering) was applied, the collection stack would be `PorterRecords` → `FilteredRecords` → `ProviderRecords`. Normally this is an unimportant detail but can sometimes be useful for debugging.
 
-The stack of record collection types informs us of the transformations a collection has undergone and each type holds a pointer to relevant objects that participated in the transformation. For example, `PorterRecords` holds a reference to the `Specification` that was used to create it and can be accessed using `PorterRecords::getSpecification`.
+The stack of record collection types informs us of the transformations a collection has undergone and each type holds a pointer to relevant objects that participated in the transformation. For example, `PorterRecords` holds a reference to the `Import` that was used to create it and can be accessed using `PorterRecords::getSpecification`.
 
 ### Metadata
 
@@ -216,7 +216,7 @@ Implementing `ThrottledConnector` is likely to be preferable when we want many r
 Transformers
 ------------
 
-Transformers manipulate imported data. Transforming data is useful because third-party data seldom arrives in a format that looks exactly as we want. Transformers are added to the transformation queue of an `Specification` by calling its `addTransformer` method and are executed in the order they are added.
+Transformers manipulate imported data. Transforming data is useful because third-party data seldom arrives in a format that looks exactly as we want. Transformers are added to the transformation queue of an `Import` by calling its `addTransformer` method and are executed in the order they are added.
 
 Porter includes one transformer, `FilterTransformer`, that removes records from the collection based on a predicate. For more information, see [filtering](#filtering). More powerful data transformations can be designed with [MappingTransformer][]. More transformers may be available from [Porter transformers][].
 
@@ -232,7 +232,7 @@ public function transformAsync(AsyncRecordCollection $records, mixed $context): 
 
 When `transform()` or `transformAsync()` is called the transformer may iterate each record and change it in any way, including removing or inserting additional records. The record collection must be returned by the method, whether or not changes were made.
 
-Transformers should also implement the `__clone` magic method if they store any object state, in order to facilitate deep copy when Porter clones the owning `Specification` during import.
+Transformers should also implement the `__clone` magic method if they store any object state, in order to facilitate deep copy when Porter clones the owning `Import` during import.
 
 Filtering
 ---------
@@ -247,7 +247,7 @@ The following example filters out any records that do not have an *id* field pre
 
 ```php
 $records = $porter->import(
-    (new Specification(new MyResource))
+    (new Import(new MyResource))
         ->addTransformer(
             new FilterTransformer(static function (array $record) {
                 return array_key_exists('id', $record);
@@ -259,7 +259,7 @@ $records = $porter->import(
 Durability
 ----------
 
-Porter automatically retries connections when an exception occurs during `Connector::fetch`. This helps mitigate intermittent network conditions that cause temporary data fetch failures. The number of retry attempts can be configured by calling the `setMaxFetchAttempts` method of an [`Specification`](#import-specifications).
+Porter automatically retries connections when an exception occurs during `Connector::fetch`. This helps mitigate intermittent network conditions that cause temporary data fetch failures. The number of retry attempts can be configured by calling the `setMaxFetchAttempts` method of an [`Import`](#import-specifications).
 
 The default exception handler, `ExponentialSleepFetchExceptionHandler`, causes a failed fetch to pause the entire program for a series of increasing delays, doubling each time. Given that the default number of retry attempts is *five*, the exception handler may be called up to *four* times, delaying each retry attempt for ~0.1, ~0.2, ~0.4, and finally, ~0.8 seconds. After the fifth and final failure, `FailingTooHardException` is thrown.
 
@@ -276,7 +276,7 @@ Caching
 
 Any connector can be wrapped in a `CachingConnector` to provide [PSR-6][] caching facilities to the base connector. Porter ships with one cache implementation, `MemoryCache`, which caches fetched data in memory, but this can be substituted for any other PSR-6 cache implementation. The `CachingConnector` caches raw responses for each unique request, where uniqueness is determined by `DataSource::computeHash`.
 
-Remember that whilst using a `CachingConnector` enables caching, caching must also be enabled on a per-import basis by calling `Specification::enableCache()`.
+Remember that whilst using a `CachingConnector` enables caching, caching must also be enabled on a per-import basis by calling `Import::enableCache()`.
 
 Note that Caching is not yet supported for asynchronous imports.
 
@@ -286,7 +286,7 @@ The follow example enables connector caching.
 
 ```php
 $records = $porter->import(
-    (new Specification(new MyResource))
+    (new Import(new MyResource))
         ->enableCache()
 );
 ```
