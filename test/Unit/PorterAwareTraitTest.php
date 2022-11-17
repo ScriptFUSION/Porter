@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace ScriptFUSIONTest\Unit;
 
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 use ScriptFUSION\Porter\Porter;
 use ScriptFUSION\Porter\PorterAwareTrait;
 
@@ -14,14 +15,12 @@ final class PorterAwareTraitTest extends TestCase
         /** @var PorterAwareTrait $porterAware */
         $porterAware = $this->getObjectForTrait(PorterAwareTrait::class);
 
-        $porterAware->setPorter($porter = \Mockery::mock(Porter::class));
+        $porterAware->setPorter($porter = new Porter(\Mockery::mock(ContainerInterface::class)));
 
         self::assertSame(
             $porter,
             \Closure::bind(
-                function (): Porter {
-                    return $this->getPorter();
-                },
+                fn () => $this->getPorter(),
                 $porterAware,
                 $porterAware
             )()

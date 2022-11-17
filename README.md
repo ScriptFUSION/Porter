@@ -1,4 +1,3 @@
-
 Porter <img src="https://github.com/ScriptFUSION/Porter/blob/master/docs/images/porter%20222x.png?raw=true" align="right">
 ======
 
@@ -12,7 +11,7 @@ Porter <img src="https://github.com/ScriptFUSION/Porter/blob/master/docs/images/
 
 Porter is the all-purpose PHP data importer. She fetches data from anywhere and serves it as a single record or an iterable [record collection](#record-collections), encouraging processing one record at a time instead of loading full data sets into memory at once. Her [durability](#durability) feature provides automatic, transparent recovery from intermittent network connectivity errors by default.
 
-Porter's [interface trichotomy](#overview) of [providers](#providers), [resources](#resources) and [connectors](#connectors) maps well to APIs. For example, a typical API such as GitHub would define the provider as GitHub, a resource as `GetUser` or `ListRepositories` and the connector could be [HttpConnector][].
+Porter's [interface triad](#overview) of [providers](#providers), [resources](#resources) and [connectors](#connectors) maps well to APIs. For example, a typical API such as GitHub would define the provider as GitHub, a resource as `GetUser` or `ListRepositories` and the connector could be [HttpConnector][].
 
 Porter provides a dual API for synchronous and [asynchronous](#asynchronous) imports, both of which are concurrency safe, so multiple imports can be paused and resumed simultaneously. Asynchronous mode allows large scale imports across multiple connections to work at maximum efficiency without waiting for each network call to complete.
 
@@ -26,32 +25,32 @@ Contents
 --------
 
   1. [Benefits](#benefits)
-  1. [Quick start](#quick-start)
-  1. [About this manual](#about-this-manual)
-  1. [Usage](#usage)
-  1. [Porter's API](#porters-api)
-  1. [Overview](#overview)
-  1. [Import specifications](#import-specifications)
-  1. [Record collections](#record-collections)
-  1. [Asynchronous](#asynchronous)
-  1. [Transformers](#transformers)
-  1. [Filtering](#filtering)
-  1. [Durability](#durability)
-  1. [Caching](#caching)
-  1. [Architecture](#architecture)
-  1. [Providers](#providers)
-  1. [Resources](#resources)
-  1. [Connectors](#connectors)
-  1. [Requirements](#requirements)
-  1. [Limitations](#limitations)
-  1. [Testing](#testing)
-  1. [Contributing](#contributing)
-  1. [License](#license)
+  2. [Quick start](#quick-start)
+  3. [About this manual](#about-this-manual)
+  4. [Usage](#usage)
+  5. [Porter's API](#porters-api)
+  6. [Overview](#overview)
+  7. [Import specifications](#import-specifications)
+  8. [Record collections](#record-collections)
+  9. [Asynchronous](#asynchronous)
+  10. [Transformers](#transformers)
+  11. [Filtering](#filtering)
+  12. [Durability](#durability)
+  13. [Caching](#caching)
+  14. [Architecture](#architecture)
+  15. [Providers](#providers)
+  16. [Resources](#resources)
+  17. [Connectors](#connectors)
+  18. [Requirements](#requirements)
+  19. [Limitations](#limitations)
+  20. [Testing](#testing)
+  21. [Contributing](#contributing)
+  22. [License](#license)
 
 Benefits
 --------
 
- * Defines an **interface trichotomy** for data imports: [providers](#providers) represent one or more [resources](#resources) that fetch data from [connectors](#connectors). These interfaces make it very easy to **test and mock** specific parts of the import lifecycle using industry standard tools, whether we want to mock at the connector level and feed in raw responses or mock at the resource level and feed in hydrated objects.
+ * Defines an **interface triad** for data imports: [providers](#providers) represent one or more [resources](#resources) that fetch data from [connectors](#connectors). These interfaces make it very easy to **test and mock** specific parts of the import lifecycle using industry standard tools, whether we want to mock at the connector level and feed in raw responses or mock at the resource level and feed in hydrated objects.
  * Provides **memory-efficient data processing** interfaces that handle large data sets one record at a time, via iterators, which can be implemented using deferred execution with generators.
  * [Asynchronous](#asynchronous) imports offer highly efficient **CPU-bound data processing** for large scale imports across multiple connections concurrently, eliminating network latency performance bottlenecks. Concurrency can be **rate-limited** using [throttling](#throttling).
  * Protects against intermittent network failures with [durability](#durability) features that transparently and **automatically retry failed data fetches**.
@@ -479,21 +478,12 @@ It is important to define a canonical order for hashed inputs such that identica
 
 To support Porter's durability features a connector may throw a subclass of `RecoverableConnectorException` to signal that the fetch operation can be retried. Execution will halt as normal if any other exception type is thrown. It is recommended to throw a recoverable exception type when the fetch operation is idempotent.
 
-Requirements
-------------
-
- - [PHP 7.1](http://php.net/)
- - [Composer](https://getcomposer.org/)
-
 Limitations
 -----------
 
 Current limitations that may affect some users and should be addressed in the near future.
 
  - No end-to-end data steaming interface.
- - Caching does not support asynchronous imports.
- - [Sub-imports][] do not support async.
- - No import rate throttle for synchronous imports.
 
 Testing
 -------
@@ -512,6 +502,13 @@ License
 -------
 
 Porter is published under the open source GNU Lesser General Public License v3.0. However, the original Porter character and artwork is copyright &copy; 2022 [Bilge](https://github.com/Bilge) and may not be reproduced or modified without express written permission.
+
+Support
+-------
+
+Porter is supported by [JetBrains for Open Source][] products.
+
+[![][JetBrains logo]][JetBrains for Open Source]
 
 ###### Quick links
 
@@ -558,3 +555,5 @@ Porter is published under the open source GNU Lesser General Public License v3.0
   [Amp]: https://amphp.org
   [Amp documentation]: https://amphp.org/amp/
   [Async Throttle]: https://github.com/ScriptFUSION/Async-Throttle
+  [JetBrains for Open Source]: https://jb.gg/OpenSource
+  [JetBrains logo]: https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg "JetBrains logo"

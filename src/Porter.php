@@ -21,13 +21,8 @@ use ScriptFUSION\Porter\Transform\Transformer;
 /**
  * Imports data from a provider defined in the container of providers or the internal factory.
  */
-class Porter
+final class Porter
 {
-    /**
-     * @var ContainerInterface Container of user-defined providers.
-     */
-    private ContainerInterface $providers;
-
     /**
      * @var ProviderFactory Internal factory of first-party providers.
      */
@@ -38,9 +33,8 @@ class Porter
      *
      * @param ContainerInterface $providers Container of providers.
      */
-    public function __construct(ContainerInterface $providers)
+    public function __construct(private readonly ContainerInterface $providers)
     {
-        $this->providers = $providers;
     }
 
     /**
