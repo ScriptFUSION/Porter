@@ -9,7 +9,7 @@ use Psr\Cache\CacheItemPoolInterface;
 /**
  * Provides an in-memory cache with a PSR-6 interface.
  */
-class MemoryCache extends \ArrayObject implements CacheItemPoolInterface
+final class MemoryCache extends \ArrayObject implements CacheItemPoolInterface
 {
     /**
      * @param string $key
