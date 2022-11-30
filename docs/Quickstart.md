@@ -33,6 +33,9 @@ $porter = new Porter($container);
 We're now ready to import any of the ECB's resources. Let's import the latest daily foreign exchange rates provided by `DailyForexRates`. Porter's `import()` method requires a `Import` that accepts the resource we want to import.
 
 ```php
+use ScriptFUSION\Porter\Import\Import;
+use ScriptFUSION\Porter\Provider\EuropeanCentralBank\Provider\Resource\DailyForexRates;
+
 $rates = $porter->import(new Import(new DailyForexRates));
 ```
 

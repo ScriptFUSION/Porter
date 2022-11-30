@@ -1,0 +1,73 @@
+name: Quickstart
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: 0 6 * * *
+
+jobs:
+  Quickstart:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php:
+          - 8.1
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+
+      - name: Cache dependencies
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: php-quickstart-${{ matrix.php }}
+
+      - name: Initialize Composer project
+        run: composer init --name foo/bar
+
+      - name: Require ECB
+        run: composer require provider/european-central-bank
+
+      - name: Require DI library
+        run: composer require joomla/di
+
+      - name: Run PHP script
+        run: | 
+          php <<'.' | sed 's/ *//' | tee out
+            <?php
+          
+            use Joomla\DI\Container;
+            use ScriptFUSION\Porter\Porter;
+            use ScriptFUSION\Porter\Provider\EuropeanCentralBank\Provider\EuropeanCentralBankProvider;
+            use ScriptFUSION\Porter\Provider\EuropeanCentralBank\Provider\Resource\DailyForexRates;
+            use ScriptFUSION\Porter\Specification\ImportSpecification;
+            
+            require 'vendor/autoload.php';
+            
+            $container = new Container;
+            $container->set(EuropeanCentralBankProvider::class, new EuropeanCentralBankProvider);
+            
+            $porter = new Porter($container);
+            $rates = $porter->import(new ImportSpecification(new DailyForexRates));
+          
+            foreach ($rates as $rate) {
+                echo "$rate[currency]: $rate[rate]\n";
+            }
+          .
+
+      - name: Test output contains USD
+        run: "grep --perl-regexp '^USD: [\\d.]+$' out"
+
+      - name: Test output contains between 30-40 lines
+        run: |
+          echo Lines: ${lines=$(wc --lines <out)}
+          ((lines > 30 && lines < 40))
