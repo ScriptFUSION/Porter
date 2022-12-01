@@ -1,7 +1,7 @@
-Porter Quick Start Guide
-========================
+Porter Quick Start Guide for Symfony
+====================================
 
-This quick start guide will walk through getting up and running with Porter from scratch and assumes you already have a PHP environment set up with Composer. Let's start by initializing our Composer file by running `composer init` in our project's root directory and accepting the defaults. We can skip defining dependencies interactively because we'll issue separate commands in a moment.
+This quick start guide will walk through integrating Porter into a new Symfony project from scratch and assumes you already have a PHP environment set up with Composer. Let's start by initializing our Composer file by running `composer init` in our project's root directory and accepting the defaults. We can skip defining dependencies interactively because we'll issue separate commands in a moment.
 
 Let's start with the [European Central Bank][ECB provider] (ECB) provider by including it in our `composer.json` with the following command.
 

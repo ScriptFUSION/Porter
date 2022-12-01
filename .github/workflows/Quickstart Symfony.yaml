@@ -1,0 +1,113 @@
+name: Symfony quickstart
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: 0 6 * * *
+
+defaults:
+  run:
+    working-directory: Symfony quickstart
+
+jobs:
+  Symfony-quickstart:
+    runs-on: ubuntu-latest
+
+    env:
+      php: 8.1
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup PHP ${{ env.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.php }}
+
+      - name: Create working directory
+        run: mkdir --verbose "$GITHUB_WORKFLOW"
+        working-directory:
+
+      - name: Cache dependencies
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workflow }}/vendor
+          key: php-quickstart-symfony-${{ env.php }}
+
+      - name: Create Symfony project
+        run: composer create-project symfony/skeleton . ^5
+
+      - name: Configure minimum stability for Amp v3.
+        run: |
+          composer config minimum-stability beta
+          composer config prefer-stable true
+
+      - name: Require Steam
+        run: composer require --with-dependencies provider/steam
+
+      - name: Require Doctrine annotations
+        run: composer require doctrine/annotations
+
+      - name: Add Porter services
+        run: |
+          cat <<'.' >>config/services.yaml
+              ScriptFUSION\Porter\Porter:
+                  arguments:
+                      - '@providers'
+          
+              providers:
+                  class: Symfony\Component\DependencyInjection\ServiceLocator
+                  arguments:
+                      -
+                          - '@ScriptFUSION\Porter\Provider\Steam\SteamProvider'
+          
+              ScriptFUSION\Porter\Provider\Steam\SteamProvider: ~
+          .
+
+      - name: Add AppListAction
+        run: |
+          cat <<'.' | >src/Controller/AppListAction.php sed 's/ *//'
+            <?php
+            declare(strict_types=1);
+            
+            namespace App\Controller;
+            
+            use ScriptFUSION\Porter\Porter;
+            use ScriptFUSION\Porter\Provider\Steam\Resource\GetAppList;
+            use ScriptFUSION\Porter\Specification\ImportSpecification;
+            use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+            use Symfony\Component\HttpFoundation\Response;
+            use Symfony\Component\HttpFoundation\StreamedResponse;
+            use Symfony\Component\Routing\Annotation\Route;
+            
+            final class AppListAction extends AbstractController
+            {
+                #[Route('/')]
+                public function __invoke(Porter $porter): Response
+                {
+                    return new StreamedResponse(
+                        function () use ($porter): void {
+                            foreach ($porter->import(new ImportSpecification(new GetAppList())) as $app) {
+                                echo "$app[appid]\n";
+                            }
+                        },
+                        Response::HTTP_OK,
+                        ['content-type' => 'text/plain'],
+                    );
+                }
+            }
+          .
+
+      - name: Start web server
+        run: sudo php -S localhost:80 public/index.php &
+
+      - name: Download home page
+        run: curl localhost | tee out
+
+      - name: Test output contains over 150k lines
+        run: |
+          echo Lines: ${lines=$(wc --lines <out)}
+          ((lines > 150000))

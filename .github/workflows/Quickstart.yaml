@@ -70,4 +70,4 @@ jobs:
       - name: Test output contains between 30-40 lines
         run: |
           echo Lines: ${lines=$(wc --lines <out)}
-          ((lines > 30 && lines < 40))
+          ((lines >= 30 && lines <= 40))
