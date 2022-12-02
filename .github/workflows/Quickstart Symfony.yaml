@@ -30,13 +30,6 @@ jobs:
         run: mkdir --verbose "$GITHUB_WORKFLOW"
         working-directory:
 
-      - name: Cache dependencies
-        id: composer-cache
-        uses: actions/cache@v3
-        with:
-          path: ${{ github.workflow }}/vendor
-          key: php-quickstart-symfony-${{ env.php }}
-
       - name: Create Symfony project
         run: composer create-project symfony/skeleton . ^5
 

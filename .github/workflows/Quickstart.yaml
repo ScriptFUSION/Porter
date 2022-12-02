@@ -7,29 +7,28 @@ on:
   schedule:
     - cron: 0 6 * * *
 
+defaults:
+  run:
+    working-directory: Quickstart
+
 jobs:
   Quickstart:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        php:
-          - 8.1
+    env:
+      php: 8.1
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup PHP ${{ matrix.php }}
+      - name: Setup PHP ${{ env.php }}
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php }}
+          php-version: ${{ env.php }}
 
-      - name: Cache dependencies
-        id: composer-cache
-        uses: actions/cache@v3
-        with:
-          path: vendor
-          key: php-quickstart-${{ matrix.php }}
+      - name: Create working directory
+        run: mkdir --verbose "$GITHUB_WORKFLOW"
+        working-directory:
 
       - name: Initialize Composer project
         run: composer init --name foo/bar
