@@ -87,8 +87,7 @@ jobs:
                                 echo "$app[appid]\n";
                             }
                         },
-                        Response::HTTP_OK,
-                        ['content-type' => 'text/plain'],
+                        headers: ['content-type' => 'text/plain'],
                     );
                 }
             }

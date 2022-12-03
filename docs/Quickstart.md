@@ -58,10 +58,10 @@ DKK: 7.4469
 
 Since these rates come from the European Central Bank, they're relative to the Euro (EUR), which is assumed to always be *1*. We can use this information to write a currency converter that's always up-to-date with the latest exchange rate information.
 
-This just scratches the surface of Porter without going into any details. Explore the [rest of the manual][Readme] at your leisure to gain a fuller understanding of the features at your disposal.
+This just scratches the surface of Porter without going into any details. Explore the [rest of the manual][Readme] to gain a fuller understanding of the features at your disposal.
 
-⮪ [Back to main readme][Readme]
+⮪ [Back to main Readme][Readme]
 
 
-  [Readme]: https://github.com/ScriptFUSION/Porter/blob/master/README.md
+  [Readme]: https://github.com/ScriptFUSION/Porter/blob/master/README.md#quick-start
   [ECB provider]: https://github.com/Provider/European-Central-Bank
