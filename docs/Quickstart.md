@@ -1,15 +1,23 @@
 Porter Quick Start Guide
 ========================
 
-This quick start guide will walk through getting up and running with Porter from scratch and assumes you already have a PHP environment set up with Composer. Let's start by initializing our Composer file by running `composer init` in our project's root directory and accepting the defaults. We can skip defining dependencies interactively because we'll issue separate commands in a moment.
+This quick start guide will walk through getting up and running with Porter from scratch, without a framework, and assumes we already have a PHP environment set up with Composer. If you use Symfony, check out the [Symfony quickstart guide][], too.
 
-Let's start with the [European Central Bank][ECB provider] (ECB) provider by including it in our `composer.json` with the following command.
+This steps in this guide are automatically verified by a nightly [CI build][] to ensure their correctness. However, if you encounter any errors or get stuck, don't hesitate to file an issue.
+
+Let's start by initializing our Composer file by running the following command in our project's root directory and accepting the defaults. We can skip defining dependencies interactively because we'll issue separate commands in a moment.
+
+```sh
+composer init
+```
+
+For this demo we'll use the [European Central Bank][ECB provider] (ECB) provider by including it in our `composer.json` with the following command.
 
 ```sh
 composer require provider/european-central-bank
 ```
 
-We now have the provider installed along with all its dependencies, including Porter herself. We want to create a `new Porter` instance now, but we need to pass a `ContainerInterface` to her constructor. Any PSR-11 container is valid, but let's use Joomla DI for now.
+We now have the provider installed along with all its dependencies, including Porter herself. We want to create a `new Porter` instance now, but we need to pass a `ContainerInterface` to her constructor. [Any PSR-11 container][PSR-11 search] is valid, but let's use [Joomla DI][] for now.
 
 ```sh
 composer require joomla/di
@@ -63,5 +71,9 @@ This just scratches the surface of Porter without going into any details. Explor
 ⮪ [Back to main Readme][Readme]
 
 
-  [Readme]: https://github.com/ScriptFUSION/Porter/blob/master/README.md#quick-start
+  [Readme]: ../README.md#quick-start
   [ECB provider]: https://github.com/Provider/European-Central-Bank
+  [CI build]: https://github.com/ScriptFUSION/Porter/actions/workflows/Quickstart.yaml
+  [PSR-11 search]: https://packagist.org/explore/?type=library&tags=psr-11
+  [Joomla DI]: https://github.com/joomla-framework/di
+  [Symfony quickstart guide]: Quickstart%20Symfony.md

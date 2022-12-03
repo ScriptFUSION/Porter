@@ -1,7 +1,9 @@
 Porter Quick Start Guide for Symfony
 ====================================
 
-This quick start guide will walk through integrating Porter into a new Symfony project from scratch and assumes we already have a PHP 8.1 environment set up with Composer. This guide is based on a real-world use-case, used in production on [Steam 250][]. If we want to integrate Porter into an existing Symfony project, simply skip the Composer steps. If you encounter any other errors or get stuck, don't hesitate to file an issue.
+This quick start guide will walk through integrating Porter into a new Symfony project from scratch and assumes we already have a PHP 8.1 environment set up with Composer. This guide is based on a real-world use-case, used in production on [Steam 250][]. If you want to integrate Porter into an existing Symfony project, skip all steps except modifying `services.yaml`.
+
+This steps in this guide are automatically verified by a nightly [CI build][] to ensure their correctness. However, if you encounter any errors or get stuck, don't hesitate to file an issue.
 
 Let's start by creating a new Symfony 5 project in an empty directory using the following command. Ensure the current working directory is set to the empty project directory.
 
@@ -9,13 +11,13 @@ Let's start by creating a new Symfony 5 project in an empty directory using the 
 composer create-project symfony/skeleton . ^5
 ```
 
->Note: The Steam provider (used below) requires [Amp v3][], which is currently in beta, so we need to allow beta dependencies temporarily. This can be enabled with the following command.
+Let's start with the [Steam provider][] for Porter by including it in our `composer.json` with the following command.
+
+>Note: The Steam provider requires [Amp v3][], which is currently in beta, so we need to allow beta dependencies temporarily. This can be enabled with the following command.
 > ```sh
 > composer config minimum-stability beta
 > composer config prefer-stable true
 > ```
-
-Let's start with the [Steam provider][] for Porter by including it in our `composer.json` with the following command.
 
 ```sh
 composer require --with-dependencies provider/steam
@@ -25,13 +27,17 @@ composer require --with-dependencies provider/steam
 
 Now the provider is installed along with all its dependencies, including Amp and Porter herself.
 
-In this simple exercise, we will use the Steam provider to display a list of all the app IDs for every app available on [Steam][]. We're going to start coding now, so let's fire up our favourite editor. Start by creating a new `AppListAction` in our existing `src/Controller` directory. We're following the [ADR][] pattern rather than MVC, so we could rename the *Controller* directory to *Action*, too, but we will refrain for now, to keep things simple. Actions only handle a single route, using the `__invoke` method, so let's add that, too.
+In this simple exercise, we will use the [Steam provider][] to display a list of all the app IDs for every app available on [Steam][]. We're going to start coding now, so let's fire up our favourite editor. Start by creating a new `AppListAction` in our existing `src/Controller` directory.
+
+>Note: We're following the [ADR][] pattern rather than MVC, so we should rename the *Controller* directory to *Action*, too, but to keep things simple we will refrain for now.
+
+Actions only handle a single route, using the `__invoke` method, so let's add that, too.
 
 ```php
 <?php
 declare(strict_types=1);
 
-namespace App\Action;
+namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -124,7 +130,11 @@ Finally, since `SteamProvider` is third-party code, Symfony requires us to expli
     ScriptFUSION\Porter\Provider\Steam\SteamProvider: ~
 ```
 
+>Note: The tilde is optional and can be omitted.
+
 Refreshing our browser now should recompile the Symfony DI container and show us the same message as before (without errors). Porter is now injected into our action, ready to use!
+
+Let's replace the previous `StreamedResponse` closure with a new implementation that uses Porter to import data from the `GetAppList` resource (a resource belonging to `SteamProvider`).
 
 ```diff
  use ScriptFUSION\Porter\Porter;
@@ -140,7 +150,7 @@ Refreshing our browser now should recompile the Symfony DI container and show us
 +            },
 ```
 
-We iterate over each result from importing `GetAppList` and emit it using `echo`, appending a new line. Viewing the results in our browser shows us lots of numbers (the ID of each Steam app) but it does not respect the new line character (`\n`) because it renders as HTML by default. Let's fix that by specifying the correct mime type. Below is the completed code, including the new `content-type` header:
+We iterate over each result from `GetAppList` and emit it using `echo`, appending a new line to each. Viewing the results in our browser shows us lots of numbers (the ID of each Steam app) but it does not respect the new line character (`\n`) because it renders as HTML by default. Let's fix that by specifying the correct mime type. Below is the complete code, including the new `content-type` header:
 
 ```php
 <?php
@@ -184,12 +194,12 @@ This should output a long list of numbers, one on each line, in the browser. For
 
 We now have a Porter service defined that can be injected into as many services or actions as we wish. We can add as many [providers] to the `providers` service locator as we want, without any performance impact, since each service is lazy-loaded when required.
 
-This just scratches the surface of Porter without going into any details. Explore the [rest of the manual][Readme] to gain a fuller understanding of the features at your disposal.
+This just scratches the surface of Porter without going into any details. Explore the [rest of the manual][Readme] to gain a fuller understanding of the features at your disposal. For another worked example, check out the framework-less [quickstart guide][], too.
 
 ⮪ [Back to main Readme][Readme]
 
 
-  [Readme]: https://github.com/ScriptFUSION/Porter/blob/master/README.md#quick-start
+  [Readme]: ../README.md#quick-start
   [Steam provider]: https://github.com/Provider/Steam
   [Steam 250]: https://steam250.com
   [Steam]: https://store.steampowered.com
@@ -197,3 +207,5 @@ This just scratches the surface of Porter without going into any details. Explor
   [Amp v3]: https://v3.amphp.org
   [Defining a Service Locator]: https://symfony.com/doc/current/service_container/service_subscribers_locators.html#defining-a-service-locator
   [Providers]: https://github.com/provider
+  [CI build]: https://github.com/ScriptFUSION/Porter/actions/workflows/Quickstart%20Symfony.yaml
+  [Quickstart guide]: Quickstart.md
