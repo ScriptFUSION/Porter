@@ -7,13 +7,13 @@ Porter <img src="https://github.com/ScriptFUSION/Porter/blob/master/docs/images/
 [![Mutation score][MSI image]][MSI report]
 [![Test coverage][Coverage image]][Coverage]
 
-### Scalable and durable data imports for publishing and consuming APIs
+### Durable and concurrent data imports for consuming data at scale and publishing testable SDKs
 
-Porter is the all-purpose PHP data importer. She fetches data from anywhere and serves it as a single record or an iterable [record collection](#record-collections), encouraging processing one record at a time instead of loading full data sets into memory at once. Her [durability](#durability) feature provides automatic, transparent recovery from intermittent network connectivity errors by default.
+Porter is the all-purpose PHP data importer. She fetches data from APIs, web scraping or anywhere and serves it as an iterable [record collection](#record-collections), encouraging processing one record at a time instead of loading full data sets into memory. [Durability](#durability) features provide automatic, transparent recovery from intermittent network errors by default.
 
-Porter's [interface triad](#overview) of [providers](#providers), [resources](#resources) and [connectors](#connectors) maps well to APIs. For example, a typical API such as GitHub would define the provider as GitHub, a resource as `GetUser` or `ListRepositories` and the connector could be [HttpConnector][].
+Porter's [interface triad](#overview) of [providers](#providers), [resources](#resources) and [connectors](#connectors) allows us to publish testable SDKs and maps well to APIs and HTTP endpoints. For example, a typical API such as GitHub would define the provider as `GitHubProvider`, a resource as `GetUser` or `ListRepositories` and the connector could be [HttpConnector][].
 
-Porter provides a dual API for synchronous and [asynchronous](#asynchronous) imports, both of which are concurrency safe, so multiple imports can be paused and resumed simultaneously. Asynchronous mode allows large scale imports across multiple connections to work at maximum efficiency without waiting for each network call to complete.
+Porter supports [asynchronous](#asynchronous) imports via [fibers][]<sup>(PHP 8.1)</sup> allowing multiple imports to be started, paused and resumed concurrently. Async allows us to import data as fast as possible, transforming applications from network-bound (slow) to CPU-bound (optimal). [Throttle](#throttling) support ensures we do not exceed peer connection or throughput limits.
 
 ###### Porter network quick links
 
@@ -41,16 +41,15 @@ Contents
   15. [Providers](#providers)
   16. [Resources](#resources)
   17. [Connectors](#connectors)
-  18. [Requirements](#requirements)
-  19. [Limitations](#limitations)
-  20. [Testing](#testing)
-  21. [Contributing](#contributing)
-  22. [License](#license)
+  18. [Limitations](#limitations)
+  19. [Testing](#testing)
+  20. [Contributing](#contributing)
+  21. [License](#license)
 
 Benefits
 --------
 
- * Defines an **interface triad** for data imports: [providers](#providers) represent one or more [resources](#resources) that fetch data from [connectors](#connectors). These interfaces make it very easy to **test and mock** specific parts of the import lifecycle using industry standard tools, whether we want to mock at the connector level and feed in raw responses or mock at the resource level and feed in hydrated objects.
+ * Defines an easily testable **interface triad** for data imports: [providers](#providers) represent one or more [resources](#resources) that fetch data from [connectors](#connectors). These interfaces make it very easy to **test and mock** specific parts of the import lifecycle using industry standard tools, whether we want to mock at the connector level and feed in raw responses or mock at the resource level and supply ready-hydrated objects.
  * Provides **memory-efficient data processing** interfaces that handle large data sets one record at a time, via iterators, which can be implemented using deferred execution with generators.
  * [Asynchronous](#asynchronous) imports offer highly efficient **CPU-bound data processing** for large scale imports across multiple connections concurrently, eliminating network latency performance bottlenecks. Concurrency can be **rate-limited** using [throttling](#throttling).
  * Protects against intermittent network failures with [durability](#durability) features that transparently and **automatically retry failed data fetches**.
@@ -61,18 +60,21 @@ Benefits
 Quick start
 -----------
 
-To get started quickly consuming an existing Porter provider, try our [quick start guide][Quickstart]. For a more thorough introduction continue reading.
+To get started quickly, consuming an existing Porter provider, try one of our quick start guides:
+
+* [General quickstart][Quickstart] &ndash; Get started using Porter with vanilla PHP (no framework) and the [European Central Bank][ECB provider] provider.
+* [Symfony quickstart][] &ndash; Get started by integrating Porter into a new Symfony project with the [Steam provider][].
+
+For a more thorough introduction continue reading.
 
 About this manual
 -----------------
 
-Those wishing to consume a Porter provider create one instance of `Porter` for their application and an instance of `Import` for each data import they wish to perform. Those publishing providers must implement `Provider` and `ProviderResource`.
+Those **consuming** a Porter provider create one instance of `Porter` for their application and an instance of `Import` for each data import they wish to perform. Those **publishing** providers must implement `Provider` and `ProviderResource`.
 
-The first half of this manual covers Porter's main API for consuming data services. The second half covers architecture, interface and implementation details for publishing data services. There's an intermission in-between, so you'll know where the separation is!
+The first half of this manual covers Porter's main API for *consuming* data services. The second half covers architecture, interface and implementation details for *publishing* data services. There's an intermission in-between, so you'll know where the separation is!
 
 Text marked as `inline code` denotes literal code, as it would appear in a PHP file. For example, `Porter` refers specifically to the class of the same name within this library, whereas *Porter* refers to this project as a whole.
-
-Porter has a dual API for the synchronous and asynchronous workflow dichotomy. Almost every Porter feature has an asynchronous equivalent. You will need to choose which you prefer to use. Most examples in this manual are for the synchronous API, for brevity and simplicity, but the asynchronous version will invariably be similar. Working synchronously may be easier when getting started, but you are encouraged to use the async API if you are able, to reap its benefits.
 
 Usage
 -----
@@ -81,15 +83,15 @@ Usage
 
 Create a `new Porter` instance—we'll usually only need one per application. Porter's constructor requires a [PSR-11][] compatible `ContainerInterface` that acts as a repository of [providers](#providers).
 
-When integrating Porter into a typical MVC framework application, we'll usually have a service locator or DI container implementing this interface already. We can simply inject the entire container into Porter, although it's best practice to create a separate container just for Porter's providers.
+When integrating Porter into a typical MVC framework application, we'll usually have a service locator or DI container implementing this interface already. We can simply inject the entire container into Porter, although it's best practice to create a separate container just for Porter's providers. For an example of doing this correctly in Symfony, see the [Symfony quickstart][].
 
-Without a framework, pick any [PSR-11 compatible library][PSR-11 search] and inject an instance of its container class. We could even write our own container since the interface is easy to implement, but using an existing library is beneficial, particularly since most support lazy-loading of services. If you're not sure which to use, [Joomla DI](https://github.com/joomla-framework/di) is fairly lightweight and straightforward.
+Without a framework, pick any [PSR-11 compatible library][PSR-11 search] and inject an instance of its container class. We could even write our own container since the interface is easy to implement, but using an existing library is beneficial, particularly since most support lazy-loading of services. If you're not sure which to use, [Joomla DI](https://github.com/joomla-framework/di) seems fairly simple and light.
 
 ### Registering providers
 
 Configure the container by registering one or more Porter [providers][Provider]. In this example we'll add the [ECB provider][] for foreign exchange rates. Most provider libraries will export just one provider class; in this case it's `EuropeanCentralBankProvider`. We could add the provider to the container by writing something similar to `$container->set(EuropeanCentralBankProvider::class, new EuropeanCentralBankProvider)`, but consult the manual for your particular container implementation for the exact syntax.
 
-It is recommended to use the provider's class name as the container service name, as in the example in the previous paragraph. Porter will retrieve the service matching the provider's class name by default, so this reduces friction when getting started. If we use a different service name, it will need to be configured later in the `Import` by calling `setProviderName()`.
+It is recommended to use the provider's class name as the container service name, as in the example in the previous paragraph. Porter will retrieve the service matching the provider's class name by default, so this reduces friction when getting started. If we use a different service name, it will need to be configured on the `Import` by calling `setProviderName()`.
 
 ### Importing data
 
@@ -103,7 +105,7 @@ Calling `import()` returns an instance of `PorterRecords` or `CountablePorterRec
 
 ```php
 foreach ($records as $record) {
-    // Insert breakpoint or var_dump($record) here to examine each record.
+    var_dump($record);
 }
 ```
 
@@ -112,15 +114,10 @@ Porter's API
 
 `Porter`'s simple API comprises data import methods that must always be used to begin imports, instead of calling methods directly on providers or resources, in order to take advantage of Porter's features correctly.
 
-`Porter` provides just two public methods for synchronous data import. These are the methods to be most familiar with, where the life of a data import operation begins.
+`Porter` provides just two public methods for importing data. These are the methods to be most familiar with, where the life of a data import operation begins.
 
-* `import(Import): PorterRecords|CountablePorterRecords` &ndash; Imports one or more records from the resource contained in the specified import specification. If the total size of the collection is known, the record collection may implement `Countable`.
-* `importOne(Import): ?array` &ndash; Imports one record from the resource contained in the specified import specification. If more than one record is imported, `ImportException` is thrown. Use this when a provider just returns a single record.
-
-Porter's asynchronous API mirrors the synchronous one with similar method names but different signatures.
-
-* `importAsync(AsyncImportSpecification): AsyncPorterRecords|CountableAsyncPorterRecords` &ndash; Imports one or more records asynchronously from the resource contained in the specified asynchronous import specification.
-* `importOneAsync(AsyncImportSpecification): Promise<array>` &ndash; Imports one record from the resource contained in the specified asynchronous import specification.
+* `import(Import): PorterRecords|CountablePorterRecords` &ndash; Imports one or more records from the resource contained in the specified import specification. If the total size of the collection is known, the record collection may implement `Countable`, otherwise `PorterRecords` is returned.
+* `importOne(Import): ?array` &ndash; Imports one record from the resource contained in the specified import specification. If more than one record is imported, `ImportException` is thrown. Use this when a provider implements `SingleRecordResource`, returning just a single record.
 
 Overview
 --------
@@ -138,18 +135,18 @@ Our application calls `Porter::import()` with an `Import` and receives `PorterRe
 Import specifications
 ---------------------
 
-Import specifications specify *what* to import, *how* it should be [transformed](#transformers) and whether to use [caching](#caching). In synchronous code, create a new instance of `Import` and pass a `ProviderResource` that specifies the resource we want to import. In Asynchronous code, create `AsyncImportSpecification` instead.
+Import specifications specify *what* to import, *how* it should be [transformed](#transformers) and whether to use [caching](#caching). Create a new instance of `Import` and pass a `ProviderResource` that specifies the resource we want to import.
 
 Options may be configured using the methods below.
 
  - `setProviderName(string)` &ndash; Sets the provider service name.
- - `addTransformer(Transformer)` &ndash; Adds a transformer to the end of the transformation queue. In async code, pass `AsyncTransformer` instead.
+ - `addTransformer(Transformer)` &ndash; Adds a transformer to the end of the transformation queue.
  - `addTransformers(Transformer[])` &ndash; Adds one or more transformers to the end of the transformation queue.
  - `setContext(mixed)` &ndash; Specifies user-defined data to be passed to transformers.
  - `enableCache()` &ndash; Enables caching. Requires a `CachingConnector`.
  - `setMaxFetchAttempts(int)` &ndash; Sets the maximum number of fetch attempts per connection before failure is considered permanent.
  - `setFetchExceptionHandler(FetchExceptionHandler)` &ndash; Sets the exception handler invoked each time a fetch attempt fails.
- - `setThrottle(Throttle)` &ndash; Sets the asynchronous connection throttle, invoked each time a connector fetches data. Applies to `AsyncImportSpecification` only.
+ - `setThrottle(Throttle)` &ndash; Sets the connection throttle, invoked each time a connector fetches data.
 
 Record collections
 ------------------
@@ -162,35 +159,49 @@ Record collections may be `Countable`, depending on whether the imported data wa
 
 Record collections are composed by Porter using the decorator pattern. If provider data is not modified, `PorterRecords` will decorate the `ProviderRecords` returned from a `ProviderResource`. That is, `PorterRecords` has a pointer back to the previous collection, which could be written as: `PorterRecords` → `ProviderRecords`. If a [filter](#filtering) was applied, the collection stack would be `PorterRecords` → `FilteredRecords` → `ProviderRecords`. Normally this is an unimportant detail but can sometimes be useful for debugging.
 
-The stack of record collection types informs us of the transformations a collection has undergone and each type holds a pointer to relevant objects that participated in the transformation. For example, `PorterRecords` holds a reference to the `Import` that was used to create it and can be accessed using `PorterRecords::getSpecification`.
+The stack of record collection types informs us of the transformations a collection has undergone and each type holds a pointer to relevant objects that participated in the transformation. For example, `PorterRecords` holds a reference to the `Import` that was used to create it and can be accessed using `PorterRecords::getImport`.
 
 ### Metadata
 
 Since record collections are just objects, it is possible to define derived types that implement custom fields to expose additional *metadata* in addition to the iterated data. Collections are very good at representing a repeating series of data but some APIs send additional non-repeating data which we can expose as metadata. However, if the data is not repeating at all, it should be treated as a single record rather than metadata.
 
-The result of a successful `Porter::import` call is always an instance of `PorterRecords` or `CountablePorterRecords`, depending on whether the number of records is known. If we need to access methods of the original collection, returned by the provider, we can call `findFirstCollection()` on the collection. For an example, see [CurrencyRecords][] of the [European Central Bank Provider][ECB] and its associated [test case][ECB test].
+The result of a successful `Porter::import` call is always an instance of `PorterRecords` or `CountablePorterRecords`, depending on whether the number of records is known. If we need to access methods of the original collection, returned by the provider, we can call `findFirstCollection()` on the collection. For an example, see [CurrencyRecords][] of the [European Central Bank Provider][ECB provider] and its associated [test case][ECB test].
 
 Asynchronous
 ------------
 
-The asynchronous API, introduced in version 5, is built on top of the fully programmable asynchronous framework, [Amp][]. The synchronous API is not compatible with the asynchronous API so one must decide which to use. In general, the asynchronous API should be preferred for new projects because async can do everything sync can do, including emulating synchronous behaviour, but sync code cannot behave asynchronously without significant refactoring.
+Porter has had asynchronous support since version 5 (2019) thanks to [Amp][] integration. In v5, async was implemented with coroutines, but from version 6 onwards, Porter uses the simpler [fibers][] model. Fiber support is included in PHP 8.1 and can be added to PHP 8.0 using [ext-fiber][]. PHP 7 does not support fibers, so if you are stuck with that version of PHP, coroutines are the only option. It is strongly recommended to upgrade to PHP 8.1 to use async, to avoid unnecessary bugs leading to segfaults and to avoid getting trapped in the coroutine architecture that is cumbersome to upgrade, difficult to debug and harder to reason about.
 
-We must be inside the async event loop to begin programming asynchronously. Let's illustrate how to rewrite the [earlier example](#importing-data) asynchronously.
+In version 5, Porter offered a dual API to support the asynchronous code path. That is, `Porter::import` had the async analogue: `Porter::importAsync` and `Porter::importOne` had the async analogue: `Porter::importOneAsync`. In version 6 we switched to fibers but kept the dual API to making migrating from coroutines to fibers slightly easier. Since version 7, we unified the dual API because async with fibers can be almost entirely transparent: the synchronous and asynchronous code paths are identical, so we don't even have to think about async unless and until we want to start leveraging its benefits in our application.
+
+To use async in Porter v7 onwards, simply wrap an `import()` or `importOne()` call in an `async()` call using one of the following two methods.
 
 ```php
-\Amp\Loop::run(function (): \Generator {
-    $records = $porter->importAsync(new AsyncImportSpecification(new DailyForexRates));
+use function Amp\async;
 
-    while (yield $records->advance()) {
-        $record = $records->current();
-        // Insert breakpoint or var_dump($record) here to examine each record.
-    }
-});
+async(
+    $this->porter->import(...),
+    new Import(new MyResource())
+);
+
+// -OR-
+
+async(fn () => $this->porter->import(new Import(new MyResource()));
 ```
 
-We would not usually code directly inside the event loop in a real application, however we always need to create the event loop somewhere, even if it just calls a service method in our application which delegates to other objects. To pass asynchronous data through layers of abstraction, our application's methods must return `Promise`s that wrap the data they would normally return directly in a synchronous application. For example, a method returning `string` would instead return `Promise<string>`, that is, a promise that returns a string.
+In order for this to work, the only requirement is that the underlying [connector][Porter connectors] supports fibers. To know whether a particular connector supports fibers, consult its documentation. The most common connector, [HttpConnector][], already has fiber support.
 
-Programming asynchronously requires an understanding of Amp, the async framework. Further details can be found in the official [Amp documentation][].
+Calling `async()` returns a `Future` representing the eventual result of an asynchronous operation. To understand how futures are composed and abstracted, or how to await and iterate collections of futures, is beyond the scope of this document. Full details about async programming can be found in the official [Amp documentation][].
+
+>Note: At the time of writing, Amp v3 is still in beta, so you may find it necessary to lower a project's minimum stability to include Amp packages, via `composer.json`:
+> ```json
+> "minimum-stability": "beta"
+> ````
+> To avoid pulling in any betas other than those absolutely necessary for the dependency solver to be satisfied, it is recommended to also set stable packages as the preferred stability when using the above setting.
+> ```json
+> "prefer-stable": true
+> ```
+
 
 ### Throttling
 
@@ -428,7 +439,7 @@ class MyResource implements ProviderResource, SingleRecordResource
 }
 ```
 
-If the data represents a repeating series, yield each record separately instead, as in the following example and remove the `SingleRecordResource` marker interface.
+If the data represents a repeating series, `yield` each record separately instead, as in the following example, and remove the `SingleRecordResource` marker interface.
 
 ```php
 public function fetch(ImportConnector $connector): \Iterator
@@ -531,6 +542,7 @@ Porter is supported by [JetBrains for Open Source][] products.
   [Issues]: https://github.com/ScriptFUSION/Porter/issues
   [PRs]: https://github.com/ScriptFUSION/Porter/pulls
   [Quickstart]: https://github.com/ScriptFUSION/Porter/tree/master/docs/Quickstart.md
+  [Symfony quickstart]: https://github.com/ScriptFUSION/Porter/tree/master/docs/Quickstart%20Symfony.md
   [Provider]: https://github.com/provider
   [Porter transformers]: https://github.com/Porter-transformers
   [Porter connectors]: https://github.com/Porter-connectors
@@ -549,11 +561,12 @@ Porter is supported by [JetBrains for Open Source][] products.
   [Porter connectors icon]: https://avatars3.githubusercontent.com/u/25672142?v=3&s=35 "Porter connectors"
   [Class diagram]: https://github.com/ScriptFUSION/Porter/blob/master/docs/images/diagrams/Porter%20UML%20class%20diagram%207.0.png?raw=true
   [Data flow diagram]: https://github.com/ScriptFUSION/Porter/blob/master/docs/images/diagrams/Porter%20data%20flow%20diagram%207.0.png?raw=true
-  [ECB]: https://github.com/Provider/European-Central-Bank
   [CurrencyRecords]: https://github.com/Provider/European-Central-Bank/blob/master/src/Records/CurrencyRecords.php
   [ECB test]: https://github.com/Provider/European-Central-Bank/blob/master/test/DailyForexRatesTest.php
   [Amp]: https://amphp.org
-  [Amp documentation]: https://amphp.org/amp/
+  [Amp documentation]: https://v3.amphp.org/amp
   [Async Throttle]: https://github.com/ScriptFUSION/Async-Throttle
   [JetBrains for Open Source]: https://jb.gg/OpenSource
   [JetBrains logo]: https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg "JetBrains logo"
+  [Fibers]: https://www.php.net/manual/en/language.fibers.php
+  [ext-fiber]: https://github.com/amphp/ext-fiber
