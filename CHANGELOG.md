@@ -1,5 +1,28 @@
 # Porter change log
 
+## 7.0.0 – Unified API
+
+Unifies the synchronous and asynchronous APIs, so they are one and the same.
+
+### Breaking changes
+
+* Removed all async-specific code paths, including `Porter::fetchAsync()` and `Porter::fetchOneAsync()`.
+* Renamed `ImportSpecification` -> `Import`.
+* Renamed `StaticDataSpecification` -> `StaticImport`.
+* Changed `Porter`, `MemoryCache` and all outstanding exceptions' inheritance accessibility to `final`.
+
+## 6.0.0 – Fibers
+
+Replaces coroutines with fibers as the new async technology.
+
+### Breaking changes
+
+* Removed support for PHP less than 8.1.
+* Removed support for Amp v2 in lieu of Amp v3 (beta).
+* All methods returning `Amp\Promise` were changed to their underlying type.
+* Added union types and `mixed` where appropriate, e.g. `Connector|AsyncConnector`.
+* Changed `PorterRecords` semantics to always run generators to the first suspension point.
+
 ## 5.0.0 – Async
 
 Porter v5 introduces asynchronous imports and complete strict type safety (excluding union types and generics).
