@@ -13,7 +13,7 @@ composer create-project symfony/skeleton . ^5
 
 Let's start with the [Steam provider][] for Porter by including it in our `composer.json` with the following command.
 
->Note: The Steam provider requires [Amp v3][], which is currently in beta, so we need to allow beta dependencies temporarily. This can be enabled with the following command.
+>Note: The Steam provider requires [Amp v3][], which is currently in beta, so we need to allow beta dependencies temporarily. This can be enabled with the following commands.
 > ```sh
 > composer config minimum-stability beta
 > composer config prefer-stable true
