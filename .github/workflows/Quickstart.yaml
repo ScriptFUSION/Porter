@@ -33,6 +33,11 @@ jobs:
       - name: Initialize Composer project
         run: composer init --name foo/bar
 
+      - name: Configure minimum stability for Amp v3.
+        run: |
+          composer config minimum-stability beta
+          composer config prefer-stable true
+
       - name: Require ECB
         run: composer require provider/european-central-bank
 
@@ -45,10 +50,10 @@ jobs:
             <?php
           
             use Joomla\DI\Container;
+            use ScriptFUSION\Porter\Import\Import;
             use ScriptFUSION\Porter\Porter;
             use ScriptFUSION\Porter\Provider\EuropeanCentralBank\Provider\EuropeanCentralBankProvider;
             use ScriptFUSION\Porter\Provider\EuropeanCentralBank\Provider\Resource\DailyForexRates;
-            use ScriptFUSION\Porter\Specification\ImportSpecification;
             
             require 'vendor/autoload.php';
             
@@ -56,7 +61,7 @@ jobs:
             $container->set(EuropeanCentralBankProvider::class, new EuropeanCentralBankProvider);
             
             $porter = new Porter($container);
-            $rates = $porter->import(new ImportSpecification(new DailyForexRates));
+            $rates = $porter->import(new Import(new DailyForexRates));
           
             foreach ($rates as $rate) {
                 echo "$rate[currency]: $rate[rate]\n";
@@ -64,7 +69,7 @@ jobs:
           .
 
       - name: Test output contains USD
-        run: "grep --perl-regexp '^USD: [\\d.]+$' out"
+        run: 'grep --perl-regexp ''^USD: [\d.]+$'' out'
 
       - name: Test output contains between 30-40 lines
         run: |

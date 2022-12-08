@@ -137,14 +137,14 @@ Refreshing our browser now should recompile the Symfony DI container and show us
 Let's replace the previous `StreamedResponse` closure with a new implementation that uses Porter to import data from the `GetAppList` resource (a resource belonging to `SteamProvider`).
 
 ```diff
++use ScriptFUSION\Porter\Import\Import;
  use ScriptFUSION\Porter\Porter;
 +use ScriptFUSION\Porter\Provider\Steam\Resource\GetAppList;
-+use ScriptFUSION\Porter\Specification\ImportSpecification;
  use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 -            fn () => print 'Hello, Porter!',
 +            function () use ($porter): void {
-+                foreach ($porter->import(new ImportSpecification(new GetAppList())) as $app) {
++                foreach ($porter->import(new Import(new GetAppList())) as $app) {
 +                    echo "$app[appid]\n";
 +                }
 +            },
@@ -158,9 +158,9 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use ScriptFUSION\Porter\Import\Import;
 use ScriptFUSION\Porter\Porter;
 use ScriptFUSION\Porter\Provider\Steam\Resource\GetAppList;
-use ScriptFUSION\Porter\Specification\ImportSpecification;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -173,7 +173,7 @@ final class AppListAction extends AbstractController
     {
         return new StreamedResponse(
             function () use ($porter): void {
-                foreach ($porter->import(new ImportSpecification(new GetAppList())) as $app) {
+                foreach ($porter->import(new Import(new GetAppList())) as $app) {
                     echo "$app[appid]\n";
                 }
             },

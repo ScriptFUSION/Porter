@@ -50,13 +50,13 @@ jobs:
               ScriptFUSION\Porter\Porter:
                   arguments:
                       - '@providers'
-          
+
               providers:
                   class: Symfony\Component\DependencyInjection\ServiceLocator
                   arguments:
                       -
                           - '@ScriptFUSION\Porter\Provider\Steam\SteamProvider'
-          
+
               ScriptFUSION\Porter\Provider\Steam\SteamProvider: ~
           .
 
@@ -65,17 +65,17 @@ jobs:
           cat <<'.' | >src/Controller/AppListAction.php sed 's/ *//'
             <?php
             declare(strict_types=1);
-            
+
             namespace App\Controller;
-            
+
+            use ScriptFUSION\Porter\Import\Import;
             use ScriptFUSION\Porter\Porter;
             use ScriptFUSION\Porter\Provider\Steam\Resource\GetAppList;
-            use ScriptFUSION\Porter\Specification\ImportSpecification;
             use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
             use Symfony\Component\HttpFoundation\Response;
             use Symfony\Component\HttpFoundation\StreamedResponse;
             use Symfony\Component\Routing\Annotation\Route;
-            
+
             final class AppListAction extends AbstractController
             {
                 #[Route('/')]
@@ -83,7 +83,7 @@ jobs:
                 {
                     return new StreamedResponse(
                         function () use ($porter): void {
-                            foreach ($porter->import(new ImportSpecification(new GetAppList())) as $app) {
+                            foreach ($porter->import(new Import(new GetAppList())) as $app) {
                                 echo "$app[appid]\n";
                             }
                         },

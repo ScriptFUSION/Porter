@@ -13,6 +13,12 @@ composer init
 
 For this demo we'll use the [European Central Bank][ECB provider] (ECB) provider by including it in our `composer.json` with the following command.
 
+>Note: The ECB provider requires [Amp v3][], which is currently in beta, so we need to allow beta dependencies temporarily. This can be enabled with the following commands.
+> ```sh
+> composer config minimum-stability beta
+> composer config prefer-stable true
+> ```
+
 ```sh
 composer require provider/european-central-bank
 ```
@@ -77,3 +83,4 @@ This just scratches the surface of Porter without going into any details. Explor
   [PSR-11 search]: https://packagist.org/explore/?type=library&tags=psr-11
   [Joomla DI]: https://github.com/joomla-framework/di
   [Symfony quickstart guide]: Quickstart%20Symfony.md
+  [Amp v3]: https://v3.amphp.org

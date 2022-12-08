@@ -1,13 +1,15 @@
 Porter <img src="https://github.com/ScriptFUSION/Porter/blob/master/docs/images/porter%20222x.png?raw=true" align="right">
 ======
 
-[![Latest version][Version image]][Releases]
-[![Total downloads][Downloads image]][Downloads]
-[![Build status][Build image]][Build]
-[![Mutation score][MSI image]][MSI report]
-[![Test coverage][Coverage image]][Coverage]
+[![Version image]][Releases]
+[![Downloads image]][Downloads]
+[![Build image]][Build]
+[![Quickstart image]][Quickstart build]
+[![Quickstart Symfony image]][Quickstart Symfony build]
+[![Coverage image]][Coverage]
+[![Mutation score image][MSI image]][MSI report]
 
-### Durable and concurrent data imports for consuming data at scale and publishing testable SDKs
+### Durable and asynchronous data imports for consuming data at scale and publishing testable SDKs
 
 Porter is the all-purpose PHP data importer. She fetches data from APIs, web scraping or anywhere and serves it as an iterable [record collection](#record-collections), encouraging processing one record at a time instead of loading full data sets into memory. [Durability](#durability) features provide automatic, transparent recovery from intermittent network errors by default.
 
@@ -214,7 +216,7 @@ Synchronously, we seldom trip protection measures even for high volume imports, 
 A  `DualThrottle` can be assigned by modifying the import specification as follows.
 
 ```php
-(new AsyncImportSpecification)->setThrottle(new DualThrottle)
+(new Import)->setThrottle(new DualThrottle)
 ```
 
 #### ThrottledConnector
@@ -534,15 +536,19 @@ Porter is supported by [JetBrains for Open Source][] products.
   [Downloads image]: https://poser.pugx.org/scriptfusion/porter/downloads "Total downloads"
   [Build]: https://github.com/ScriptFUSION/Porter/actions/workflows/Tests.yaml
   [Build image]: https://github.com/ScriptFUSION/Porter/actions/workflows/Tests.yaml/badge.svg "Build status"
-  [MSI image]: https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2FScriptFUSION%2FPorter%2Fmaster
+  [Quickstart build]: https://github.com/ScriptFUSION/Porter/actions/workflows/Quickstart.yaml
+  [Quickstart image]: https://github.com/ScriptFUSION/Porter/actions/workflows/Quickstart.yaml/badge.svg "Quick start build status"
+  [Quickstart Symfony build]: https://github.com/ScriptFUSION/Porter/actions/workflows/Quickstart%20Symfony.yaml
+  [Quickstart Symfony image]: https://github.com/ScriptFUSION/Porter/actions/workflows/Quickstart%20Symfony.yaml/badge.svg "Symfony quick start build status"
   [MSI report]: https://dashboard.stryker-mutator.io/reports/github.com/ScriptFUSION/Porter/master
+  [MSI image]: https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2FScriptFUSION%2FPorter%2Fmaster "Mutation score"
   [Coverage]: https://codecov.io/gh/ScriptFUSION/Porter
   [Coverage image]: https://codecov.io/gh/ScriptFUSION/Porter/branch/master/graphs/badge.svg "Test coverage"
   
   [Issues]: https://github.com/ScriptFUSION/Porter/issues
   [PRs]: https://github.com/ScriptFUSION/Porter/pulls
   [Quickstart]: https://github.com/ScriptFUSION/Porter/tree/master/docs/Quickstart.md
-  [Symfony quickstart]: https://github.com/ScriptFUSION/Porter/tree/master/docs/Quickstart%20Symfony.md
+  [Symfony quickstart]: https://github.com/ScriptFUSION/Porter/tree/master/docs/Quickstart%20Symfony.md 
   [Provider]: https://github.com/provider
   [Porter transformers]: https://github.com/Porter-transformers
   [Porter connectors]: https://github.com/Porter-connectors
