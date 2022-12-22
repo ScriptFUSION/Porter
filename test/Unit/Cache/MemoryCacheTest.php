@@ -8,6 +8,9 @@ use ScriptFUSION\Porter\Cache\CacheItem;
 use ScriptFUSION\Porter\Cache\InvalidArgumentException;
 use ScriptFUSION\Porter\Cache\MemoryCache;
 
+/**
+ * @see MemoryCache
+ */
 final class MemoryCacheTest extends TestCase
 {
     private MemoryCache $cache;
@@ -50,21 +53,21 @@ final class MemoryCacheTest extends TestCase
 
     public function testClear(): void
     {
-        $this->cache->clear();
+        self::assertTrue($this->cache->clear());
 
         self::assertEmpty($this->cache->getArrayCopy());
     }
 
     public function testDeleteItem(): void
     {
-        $this->cache->deleteItem('foo');
+        self::assertTrue($this->cache->deleteItem('foo'));
 
         self::assertFalse($this->cache->hasItem('foo'));
     }
 
     public function testDeleteItems(): void
     {
-        $this->cache->deleteItems(['foo']);
+        self::assertTrue($this->cache->deleteItems(['foo']));
 
         self::assertEmpty($this->cache->getArrayCopy());
     }
@@ -78,14 +81,14 @@ final class MemoryCacheTest extends TestCase
 
     public function testSave(): void
     {
-        $this->cache->save($this->cache->getItem('bar')->set('baz'));
+        self::assertTrue($this->cache->save($this->cache->getItem('bar')->set('baz')));
 
         self::assertSame('baz', $this->cache->getItem('bar')->get());
     }
 
     public function testSaveDeferred(): void
     {
-        $this->cache->saveDeferred($this->cache->getItem('bar')->set('baz'));
+        self::assertTrue($this->cache->saveDeferred($this->cache->getItem('bar')->set('baz')));
 
         self::assertSame('baz', $this->cache->getItem('bar')->get());
     }

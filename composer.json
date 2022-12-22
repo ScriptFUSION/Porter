@@ -11,7 +11,7 @@
   "require": {
     "php": "^8.1",
     "async/throttle": "^4",
-    "psr/cache": "^1|^2",
+    "psr/cache": "^1|^2|^3",
     "psr/container": "^1|^2",
     "scriptfusion/retry": "^5",
     "scriptfusion/retry-exception-handlers": "^1.2",

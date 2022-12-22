@@ -24,7 +24,7 @@ final class CacheItem implements CacheItemInterface
         return $this->value;
     }
 
-    public function set(mixed $value): self
+    public function set(mixed $value): static
     {
         $this->value = $value;
 
@@ -36,12 +36,12 @@ final class CacheItem implements CacheItemInterface
         return $this->hit;
     }
 
-    public function expiresAt($expiration): self
+    public function expiresAt($expiration): static
     {
         throw new NotImplementedException;
     }
 
-    public function expiresAfter($time): self
+    public function expiresAfter($time): static
     {
         throw new NotImplementedException;
     }
