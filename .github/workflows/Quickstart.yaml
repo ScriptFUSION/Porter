@@ -42,7 +42,7 @@ jobs:
         run: composer require provider/european-central-bank
 
       - name: Require DI library
-        run: composer require joomla/di
+        run: composer require --with-dependencies joomla/di
 
       - name: Run PHP script
         run: | 

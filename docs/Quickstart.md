@@ -26,7 +26,7 @@ composer require provider/european-central-bank
 We now have the provider installed along with all its dependencies, including Porter herself. We want to create a `new Porter` instance now, but we need to pass a `ContainerInterface` to her constructor. [Any PSR-11 container][PSR-11 search] is valid, but let's use [Joomla DI][] for now.
 
 ```sh
-composer require joomla/di
+composer require --with-dependencies joomla/di
 ```
 
 Create a new container and register an instance of `EuropeanCentralBankProvider` with it. Pass the container to a new Porter instance. Don't forget to include the autoloader!
