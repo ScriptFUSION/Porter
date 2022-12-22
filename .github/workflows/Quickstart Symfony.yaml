@@ -42,7 +42,7 @@ jobs:
         run: composer require --with-dependencies provider/steam
 
       - name: Require Doctrine annotations
-        run: composer require doctrine/annotations
+        run: composer require doctrine/annotations ^1
 
       - name: Add Porter services
         run: |

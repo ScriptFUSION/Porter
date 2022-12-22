@@ -62,7 +62,7 @@ Let's make our new action act as the home page for our application by making it 
 We're using annotations because they're easiest to implement, but in order for this to work, we need to ensure the Doctrine annotations library is installed.
 
 ```sh
-composer require doctrine/annotations
+composer require doctrine/annotations ^1
 ```
 
 Let's just fill in the rest of the method with a stub, so we can test our application is working so far. The complete list of Steam app IDs is very long (over 150,000) so we will want to use a `StreamedResponse`.
