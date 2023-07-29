@@ -65,7 +65,7 @@ final class CachingConnectorTest extends TestCase
     }
 
     /**
-     * That that when the generated cache key contains non-compliant PSR-6 characters,
+     * Tests that when the generated cache key contains non-compliant PSR-6 characters,
      * InvalidCacheKeyException is thrown.
      */
     public function testValidateCacheKey(): void
@@ -88,10 +88,26 @@ final class CachingConnectorTest extends TestCase
     /**
      * Tests that cloning the caching connector also clones the wrapped connector.
      */
-    public function testClone(): void
+    public function testCloneConnector(): void
     {
         $clone = clone $this->connector;
 
         self::assertNotSame($this->wrappedConnector, $clone->getWrappedConnector());
+    }
+
+    /**
+     * Tests that cloning the caching connector does not clone the cache item pool (both instances point to the same
+     * pool).
+     */
+    public function testCloneCacheItemPool(): void
+    {
+        $clone = clone $this->connector;
+
+        $cacheA = \Closure::bind(fn () => $this->cache, $this->connector, $this->connector)();
+        $cacheB = \Closure::bind(fn () => $this->cache, $clone, $clone)();
+        self::assertSame($cacheA, $cacheB);
+
+        $clone->fetch($this->source);
+        self::assertSame(1, $cacheA->count(), 'Fetch on clone updates original cache item pool.');
     }
 }

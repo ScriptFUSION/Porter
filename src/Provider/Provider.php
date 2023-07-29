@@ -12,6 +12,8 @@ interface Provider
 {
     /**
      * Gets a connector compatible with this provider's resources.
+     *
+     * NB: this should not be a factory method as it will break things like caching.
      */
     public function getConnector(): Connector;
 }

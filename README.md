@@ -290,8 +290,6 @@ Any connector can be wrapped in a `CachingConnector` to provide [PSR-6][] cachin
 
 Remember that whilst using a `CachingConnector` enables caching, caching must also be enabled on a per-import basis by calling `Import::enableCache()`.
 
-Note that Caching is not yet supported for asynchronous imports.
-
 ### Example
 
 The follow example enables connector caching.
