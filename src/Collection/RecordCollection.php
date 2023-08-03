@@ -43,7 +43,7 @@ abstract class RecordCollection implements \Iterator
         return $this->previousCollection;
     }
 
-    public function findFirstCollection(): ?self
+    public function findFirstCollection(): self
     {
         do {
             $previous = $nextPrevious ?? $this->getPreviousCollection();
