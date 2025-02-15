@@ -40,18 +40,16 @@ final class RecordCollectionTest extends TestCase
     }
 
     /**
-     * Tests that when a RecordCollection yields a non-array datum, an exception is thrown.
+     * Tests that when a RecordCollection yields a non-array datum, the datum is returned as-is.
      */
     public function testNonArrayYield(): void
     {
         /** @var RecordCollection $collection */
         $collection = \Mockery::mock(
             RecordCollection::class,
-            [new \ArrayIterator(['foo'])]
+            [new \ArrayIterator([$datum = 'foo'])]
         )->makePartial();
 
-        $this->expectException(\TypeError::class);
-        $this->expectExceptionMessageMatches('[must be of( the)? type array]');
-        $collection->current();
+        self::assertSame($datum, $collection->current());
     }
 }

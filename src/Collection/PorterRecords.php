@@ -11,7 +11,7 @@ class PorterRecords extends RecordCollection
     {
         parent::__construct($records, $records);
 
-        // Force generators to run to first suspension point.
+        // Force generators to run to the first suspension point.
         $records->valid();
     }
 

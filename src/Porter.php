@@ -62,12 +62,12 @@ final class Porter
      *
      * @param Import $import Import specification.
      *
-     * @return array|null Record.
+     * @return mixed Record.
      *
      * @throws IncompatibleResourceException Resource does not implement required interface.
      * @throws ImportException More than one record was imported.
      */
-    public function importOne(Import $import): ?array
+    public function importOne(Import $import): mixed
     {
         if (!$import->getResource() instanceof SingleRecordResource) {
             throw IncompatibleResourceException::createMustImplementInterface();

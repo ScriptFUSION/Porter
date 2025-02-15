@@ -12,8 +12,7 @@ abstract class RecordCollection implements \Iterator
     {
     }
 
-    // TODO: Consider throwing our own exception type for clarity, instead of relying on PHP's TypeError.
-    public function current(): array
+    public function current(): mixed
     {
         return $this->records->current();
     }
