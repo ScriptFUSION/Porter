@@ -119,7 +119,7 @@ Porter's API
 `Porter` provides just two public methods for importing data. These are the methods to be most familiar with, where the life of a data import operation begins.
 
 * `import(Import): PorterRecords|CountablePorterRecords` &ndash; Imports one or more records from the resource contained in the specified import specification. If the total size of the collection is known, the record collection may implement `Countable`, otherwise `PorterRecords` is returned.
-* `importOne(Import): ?array` &ndash; Imports one record from the resource contained in the specified import specification. If more than one record is imported, `ImportException` is thrown. Use this when a provider implements `SingleRecordResource`, returning just a single record.
+* `importOne(Import): mixed` &ndash; Imports one record from the resource contained in the specified import specification. If more than one record is imported, `ImportException` is thrown. Use this when a provider implements `SingleRecordResource`, returning just a single record.
 
 Overview
 --------
@@ -153,13 +153,13 @@ Options may be configured using the methods below.
 Record collections
 ------------------
 
-Record collections are `Iterator`s, guaranteeing imported data is enumerable using `foreach`. Each *record* of the collection is the familiar and flexible `array` type, allowing us to present structured or flat data, such as JSON, XML or CSV, as an array.
+Record collections are `Iterator`s, guaranteeing imported data is enumerable using `foreach`. Each *record* of the collection is the `mixed` type, offering the flexibility to present data series in whatever format is most useful for the user, such as an array for JSON data or an object that bundles data with functionality that the user can directly invoke.
 
 ### Details
 
 Record collections may be `Countable`, depending on whether the imported data was countable and whether any destructive operations were performed after import. Filtering is a destructive operation since it may remove records and therefore the count reported by a `ProviderResource` would no longer be accurate. It is the responsibility of the resource to supply the total number of records in its collection by returning an iterator that implements `Countable`, such as `ArrayIterator`, or more commonly, `CountableProviderRecords`. When a countable iterator is used, Porter returns `CountablePorterRecords`, provided no destructive operations were performed.
 
-Record collections are composed by Porter using the decorator pattern. If provider data is not modified, `PorterRecords` will decorate the `ProviderRecords` returned from a `ProviderResource`. That is, `PorterRecords` has a pointer back to the previous collection, which could be written as: `PorterRecords` → `ProviderRecords`. If a [filter](#filtering) was applied, the collection stack would be `PorterRecords` → `FilteredRecords` → `ProviderRecords`. Normally this is an unimportant detail but can sometimes be useful for debugging.
+Record collections are composed by Porter using the decorator pattern. If provider data is not modified, `PorterRecords` will decorate the `ProviderRecords` returned from a `ProviderResource`. That is, `PorterRecords` has a pointer back to the previous collection, which could be written as: `PorterRecords` → `ProviderRecords`. If a [filter](#filtering) was applied, the collection stack would be `PorterRecords` → `FilteredRecords` → `ProviderRecords`. Normally, this is an unimportant detail but can sometimes be useful for debugging.
 
 The stack of record collection types informs us of the transformations a collection has undergone and each type holds a pointer to relevant objects that participated in the transformation. For example, `PorterRecords` holds a reference to the `Import` that was used to create it and can be accessed using `PorterRecords::getImport`.
 
@@ -249,7 +249,7 @@ Transformers should also implement the `__clone` magic method if they store any 
 Filtering
 ---------
 
-Filtering provides a way to remove some records. For each record, if the specified predicate function returns `false` (or a falsy value), the record will be removed, otherwise the record will be kept. The predicate receives the current record as an array as its first parameter and context as its second parameter.
+Filtering provides a way to remove some records. For each record, if the specified predicate function returns `false` (or a falsy value), the record will be removed, otherwise the record will be kept. The predicate receives the current record as its first parameter and context as its second parameter.
 
 In general, we would like to avoid filtering because it is inefficient to import data and then immediately remove some of it, but some immature APIs do not provide a way to reduce the data set on the server, so filtering on the client is the only alternative. Filtering also invalidates the record count reported by some resources, meaning we no longer know how many records are in the collection before iteration.
 
@@ -281,7 +281,7 @@ The exception handler can be changed by calling `setFetchExceptionHandler`. For 
 $specification->setFetchExceptionHandler(new ExponentialSleepFetchExceptionHandler(1000000));
 ```
 
-Durability only applies when connectors throw a recoverable exception type derived from `RecoverableConnectorException`. If an unexpected exception occurs the fetch attempt will be aborted. For more information, see [implementing connector durability](#durability-1). Exception handlers receive the thrown exception as their first argument. An exception handler can inspect the recoverable exception and throw its own exception if it decides the exception should be treated as fatal instead of recoverable.
+Durability only applies when connectors throw a recoverable exception type derived from `RecoverableConnectorException`. If an unexpected exception occurs, the fetch attempt will be aborted. For more information, see [implementing connector durability](#durability-1). Exception handlers receive the thrown exception as their first argument. An exception handler can inspect the recoverable exception and throw its own exception if it decides the exception should be treated as fatal instead of recoverable.
 
 Caching
 -------
@@ -362,7 +362,7 @@ final class MyProvider implements Provider
 Resources
 ---------
 
-Resources fetch data using the supplied connector and format it as a collection of arrays. A resource implements `ProviderResource` that defines the following three methods.
+Resources fetch data using the supplied connector and format it as an iterator. A resource implements `ProviderResource` that defines the following three methods.
 
 ```php
 public function getProviderClassName(): string;
@@ -371,7 +371,7 @@ public function fetch(ImportConnector $connector): \Iterator;
 
 A resource supplies the class name of the provider it expects a connector from when `getProviderClassName()` is called.
 
-When `fetch()` is called it is passed the connector from which data must be fetched. The resource must ensure data is formatted as an iterator of array values whilst remaining as true to the original format as possible; that is, we must avoid renaming or restructuring data because it is the caller's prerogative to perform data customization if desired. The recommended way to return an iterator is to use `yield` to implicitly return a `Generator`, which has the added benefit of processing one record at a time.
+When `fetch()` is called it is passed the connector from which data must be fetched. The resource must ensure data is formatted as an iterator of values whilst remaining as true to the original format as possible; that is, we must avoid renaming or restructuring data because it is the caller's prerogative to perform data customization if desired. The recommended way to return an iterator is to use `yield` to implicitly return a `Generator`, which has the added benefit of processing one record at a time.
 
 The fetch method receives an `ImportConnector`, which is a runtime wrapper for the underlying connector supplied by the provider. This wrapper is used to isolate the connector's state from the rest of the application. Since PHP doesn't have native immutability support, working with cloned state is the only way we can guarantee unexpected changes do not occur once an import has started. This means it's safe to import one resource, make changes to the connector's settings and then start another import before the first has completed. Providers can also safely make changes to the underlying connector by calling `getWrappedConnector()`, because the wrapped connector is cloned as soon as `ImportConnector` is constructed.
 
@@ -379,9 +379,9 @@ Providing immutability via cloning is an important concept because resources are
 
 ### Writing a resource
 
-Resources must implement the `ProviderResource` interface. `getProviderClassName()` usually returns a hard-coded provider class name and `fetch()` must always return an iterator of array values.
+Resources must implement the `ProviderResource` interface. `getProviderClassName()` usually returns a hard-coded provider class name and `fetch()` must always return an iterator.
 
-In this contrived example that uses dummy data and ignores the connector, suppose we want to return the numeric series one to three: the following implementation would be invalid because it returns an iterator of integer values instead of an iterator of array values.
+Either of the following `fetch()` implementations would be valid.
 
 ```php
 public function fetch(ImportConnector $connector): \Iterator
@@ -390,29 +390,12 @@ public function fetch(ImportConnector $connector): \Iterator
 }
 ```
 
-Either of the following `fetch()` implementations would be valid.
-
-```php
-public function fetch(ImportConnector $connector): \Iterator
-{
-    foreach (range(1, 3) as $number) {
-        yield [$number];
-    }
-}
-```
-
 Since the total number of records is known, the iterator can be wrapped in `CountableProviderRecords` to enrich the caller with this information.
 
 ```php
 public function fetch(ImportConnector $connector): \Iterator
 {
-    $series = function ($limit) {
-        foreach (range(1, $limit) as $number) {
-            yield [$number];
-        }
-    };
-
-    return new CountableProviderRecords($series($count = 3), $count, $this);
+    return new CountableProviderRecords(new ArrayIterator(range(1, $count = 3)), $count, $this);
 }
 ```
 
@@ -564,7 +547,7 @@ Porter is supported by [JetBrains for Open Source][] products.
   [Porter transformers icon]: https://avatars2.githubusercontent.com/u/24607042?v=3&s=35 "Porter transformers"
   [Porter connectors icon]: https://avatars3.githubusercontent.com/u/25672142?v=3&s=35 "Porter connectors"
   [Class diagram]: https://github.com/ScriptFUSION/Porter/blob/master/docs/images/diagrams/Porter%20UML%20class%20diagram%207.0.png?raw=true
-  [Data flow diagram]: https://github.com/ScriptFUSION/Porter/blob/master/docs/images/diagrams/Porter%20data%20flow%20diagram%207.0.png?raw=true
+  [Data flow diagram]: https://github.com/ScriptFUSION/Porter/blob/master/docs/images/diagrams/Porter%20data%20flow%20diagram%208.0.webp?raw=true
   [CurrencyRecords]: https://github.com/Provider/European-Central-Bank/blob/master/src/Records/CurrencyRecords.php
   [ECB test]: https://github.com/Provider/European-Central-Bank/blob/master/test/DailyForexRatesTest.php
   [Amp]: https://amphp.org
