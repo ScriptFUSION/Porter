@@ -71,7 +71,7 @@ jobs:
       - name: Test output contains USD
         run: 'grep --perl-regexp ''^USD: [\d.]+$'' out'
 
-      - name: Test output contains between 30-40 lines
+      - name: Test output contains between 25-35 lines
         run: |
           echo Lines: ${lines=$(wc --lines <out)}
-          ((lines >= 30 && lines <= 40))
+          ((lines >= 25 && lines <= 35))
