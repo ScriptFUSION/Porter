@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      php: 8.1
+      php: 8.2
 
     steps:
       - uses: actions/checkout@v3
@@ -31,18 +31,10 @@ jobs:
         working-directory:
 
       - name: Create Symfony project
-        run: composer create-project symfony/skeleton . ^5
+        run: composer create-project symfony/skeleton . ^7
 
-      - name: Configure minimum stability for Amp v3.
-        run: |
-          composer config minimum-stability beta
-          composer config prefer-stable true
-
-      - name: Require Steam
-        run: composer require --with-dependencies provider/steam
-
-      - name: Require Doctrine annotations
-        run: composer require doctrine/annotations ^1
+      - name: Require IANA
+        run: composer require --with-dependencies provider/iana
 
       - name: Add Porter services
         run: |
@@ -55,9 +47,9 @@ jobs:
                   class: Symfony\Component\DependencyInjection\ServiceLocator
                   arguments:
                       -
-                          - '@ScriptFUSION\Porter\Provider\Steam\SteamProvider'
+                          - '@ScriptFUSION\Porter\Provider\Iana\Provider\IanaProvider'
 
-              ScriptFUSION\Porter\Provider\Steam\SteamProvider: ~
+              ScriptFUSION\Porter\Provider\Iana\Provider\IanaProvider:
           .
 
       - name: Add AppListAction
@@ -70,11 +62,11 @@ jobs:
 
             use ScriptFUSION\Porter\Import\Import;
             use ScriptFUSION\Porter\Porter;
-            use ScriptFUSION\Porter\Provider\Steam\Resource\GetAppList;
+            use ScriptFUSION\Porter\Provider\Iana\Provider\Resource\IanaPortNumbers;
             use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
             use Symfony\Component\HttpFoundation\Response;
             use Symfony\Component\HttpFoundation\StreamedResponse;
-            use Symfony\Component\Routing\Annotation\Route;
+            use Symfony\Component\Routing\Attribute\Route;
 
             final class AppListAction extends AbstractController
             {
@@ -83,8 +75,12 @@ jobs:
                 {
                     return new StreamedResponse(
                         function () use ($porter): void {
-                            foreach ($porter->import(new Import(new GetAppList())) as $app) {
-                                echo "$app[appid]\n";
+                            foreach ($porter->import(new Import(new IanaPortNumbers())) as $port) {
+                                if ($port['Port Number'] === '') {
+                                    continue;
+                                }
+
+                                echo "{$port['Port Number']}:{$port['Transport Protocol']}\n";
                             }
                         },
                         headers: ['content-type' => 'text/plain'],
@@ -99,7 +95,7 @@ jobs:
       - name: Download home page
         run: curl localhost | tee out
 
-      - name: Test output contains over 150k lines
+      - name: Test output contains over 13k lines
         run: |
           echo Lines: ${lines=$(wc --lines <out)}
-          ((lines > 150000))
+          ((lines > 13000))
