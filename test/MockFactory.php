@@ -39,7 +39,7 @@ final class MockFactory
         ;
     }
 
-    public static function mockResource(Provider $provider, \Iterator $return = null, bool $single = false)
+    public static function mockResource(Provider $provider, ?\Iterator $return = null, bool $single = false)
         : ProviderResource|MockInterface
     {
         /** @var ProviderResource|MockInterface $resource */

@@ -177,7 +177,7 @@ final class ImportConnectorTest extends TestCase
     /**
      * Creates a closure that only throws an exception on the first invocation.
      */
-    private static function createExceptionThrowingClosure(\Exception $exception = null): \Closure
+    private static function createExceptionThrowingClosure(?\Exception $exception = null): \Closure
     {
         return static function () use ($exception): void {
             static $invocationCount;

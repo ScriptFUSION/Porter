@@ -18,7 +18,7 @@ class CachingConnector implements Connector, ConnectorWrapper
 
     public function __construct(
         private Connector $connector,
-        CacheItemPoolInterface $cache = null
+        ?CacheItemPoolInterface $cache = null
     ) {
         $this->cache = $cache ?: new MemoryCache;
     }

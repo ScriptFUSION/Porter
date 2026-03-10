@@ -16,8 +16,8 @@ final class FixtureFactory
 
     public static function buildImportConnector(
         Connector $connector,
-        RecoverableExceptionHandler $recoverableExceptionHandler = null,
-        Provider $provider = null,
+        ?RecoverableExceptionHandler $recoverableExceptionHandler = null,
+        ?Provider $provider = null,
         int $maxFetchAttempts = Import::DEFAULT_FETCH_ATTEMPTS,
         bool $mustCache = false
     ): ImportConnector {

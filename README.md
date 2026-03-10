@@ -15,7 +15,7 @@ Porter is the all-purpose PHP data importer. She fetches data from APIs, web scr
 
 Porter's [interface triad](#overview) of [providers](#providers), [resources](#resources) and [connectors](#connectors) allows us to publish testable SDKs and maps well to APIs and HTTP endpoints. For example, a typical API such as GitHub would define the provider as `GitHubProvider`, a resource as `GetUser` or `ListRepositories` and the connector could be [HttpConnector][].
 
-Porter supports [asynchronous](#asynchronous) imports via [fibers][]<sup>(PHP 8.1)</sup> allowing multiple imports to be started, paused and resumed concurrently. Async allows us to import data as fast as possible, transforming applications from network-bound (slow) to CPU-bound (optimal). [Throttle](#throttling) support ensures we do not exceed peer connection or throughput limits.
+Porter supports [asynchronous](#asynchronous) imports via [fibers][] allowing multiple imports to be started, paused and resumed concurrently. Async allows us to import data as fast as possible, transforming applications from network-bound (slow) to CPU-bound (optimal). [Throttle](#throttling) support ensures we do not exceed peer connection or throughput limits.
 
 ###### Porter network quick links
 

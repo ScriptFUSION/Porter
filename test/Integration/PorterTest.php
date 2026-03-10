@@ -68,7 +68,7 @@ final class PorterTest extends TestCase
         $this->singleImport = new Import($this->singleResource);
     }
 
-    private function registerProvider(Provider $provider, string $name = null): void
+    private function registerProvider(Provider $provider, ?string $name = null): void
     {
         $name ??= \get_class($provider);
 
